@@ -35,7 +35,7 @@ public class DefaultProviderFlowResolver implements ProviderFlowResolver {
         }
 
         TransactionFlowStrategy strategy = strategies.stream()
-                .filter(candidate -> candidate.supports(serviceDefinition.getServiceProviderCode(), capability))
+                .filter(candidate -> candidate.supports(serviceDefinition, capability))
                 .findFirst()
                 .orElseThrow(() -> new IntegrationException("No existe estrategia configurada para el proveedor/capacidad"));
 

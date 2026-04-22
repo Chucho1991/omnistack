@@ -74,6 +74,15 @@ Propiedades principales:
 - `app.integrations.mock-enabled`
 - `app.integration.providers.default.base-url`
 - `app.integration.providers.default.technical-user`
+- `app.integration.providers.ecuabet.base-url`
+- `app.integration.providers.ecuabet.service-provider-code`
+- `app.integration.providers.ecuabet.shop-id`
+- `app.integration.providers.ecuabet.country`
+- `app.integration.providers.ecuabet.token`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.item`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.path`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.capabilities`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.name`
 - `logging.level.com.omnistack.backend`
 
 ## Ejecucion local
@@ -116,6 +125,12 @@ Variables de entorno principales:
 - `APP_INTEGRATIONS_MOCK_ENABLED`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_TECHNICAL_USER`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_BASE_URL`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICE_PROVIDER_CODE`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_ID`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_COUNTRY`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_TOKEN`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHIN_PATH`
 
 ## Build y pruebas
 
@@ -264,34 +279,51 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
 ```json
 {
   "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
-  "chain": "001",
-  "store": "0001",
-  "storeName": "Tienda Centro",
-  "pos": "POS-01",
-  "channelPos": "POS",
-  "movementType": "CASH_IN",
-  "categoryCode": "REC",
-  "subcategoryCode": "CEL",
-  "serviceProviderCode": "CLARO",
-  "rmsItemCode": "900001",
-  "amount": 25.50,
-  "phone": "0999999999"
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565826",
+  "userid": "997561",
+  "phone": "123456",
+  "document": "0912345678"
 }
 ```
 
-### Response base transaccional
+### Response `/v1/precheck`
 
 ```json
 {
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565826",
   "is_error": false,
   "status": {
     "code": "00",
-    "message": "PRECHECK completado correctamente"
+    "message": "Transacción correcta"
   },
   "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
   "transactionId": "f0908f64-9145-45cf-a22c-c36bca604372",
-  "providerCode": "OK",
-  "providerMessage": "Operacion aprobada por proveedor mock"
+  "providerCode": "00",
+  "providerMessage": "Operacion procesada por ECUABET",
+  "username": "Carlos",
+  "lastname": "Perez",
+  "currency": "USD",
+  "authorization": "AUTO-1234567890ABCDEF",
+  "serialnumber": "SN-001",
+  "userid": "997561",
+  "document": "0912345678",
+  "amount": 25.50
 }
 ```
 
@@ -313,7 +345,23 @@ La resolucion de flujos depende de:
 - `VerifyStrategy`
 - `ReverseStrategy`
 
-No hay logica por proveedor en los controllers. En esta fase se entrega un adapter mock para proveedores REST.
+No hay logica por proveedor en los controllers. Las integraciones externas quedan reales por defecto. `app.integrations.mock-enabled=true` solo activa el flujo mock generico para pruebas controladas.
+
+### ECUABET Buscar usuario
+
+La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST /user/search` con:
+
+- headers: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- body: `shop`, `token`, `userid`, `country`, `phone`, `document`
+- identidad del proveedor: `service_provider_code`
+- `category_code` y `subcategory_code` siguen viajando en el contrato, pero no definen el proveedor; un mismo `service_provider_code` puede existir en varias subcategorias
+- response interna: replica `chain`, `store`, `store_name`, `pos`, `channel_POS`, `uuid`, `category_code`, `subcategory_code`, `service_provider_code` y `rms_item_code`
+- mapeo funcional: `is_error <- error`, `error.code <- code`, `error.message <- error`, `username <- name`, `status.code <- code`, `status.message <- "Transacción correcta"`
+- `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
+- `movement_type` no es obligatorio en `precheck`; la aplicacion usa la definicion del servicio resuelta desde catalogo/business-lines
+- resolucion de ruta: OMNISTACK usa `provider -> capability -> flow(cashin/cashout)`, validando el `item` configurado contra el `rms_item_code` del servicio
+
+El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/search` o la URL configurada por propiedades.
 
 ## OpenAPI
 

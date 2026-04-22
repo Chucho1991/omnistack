@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 public abstract class BaseResponse {
     @JsonProperty("is_error")
     @Schema(example = "false")
-    private boolean isError;
+    private boolean errorFlag;
     private ErrorDetail error;
     private StatusDetail status;
 }

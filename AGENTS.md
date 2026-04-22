@@ -90,6 +90,7 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - Usar correlation id por request cuando aplique.
 - Registrar eventos funcionales y errores relevantes sin exponer datos sensibles.
 - Toda integración crítica debe contemplar trazabilidad suficiente para soporte y auditoría.
+- Para consumos de web services externos mostrar en log de consola url, request y response 
 
 ## Testing obligatorio
 - Generar pruebas unitarias para todo endpoint nuevo.

@@ -9,8 +9,16 @@ public class TransactionRequestValidator implements ConstraintValidator<ValidTra
 
     @Override
     public boolean isValid(BaseTransactionRequest value, ConstraintValidatorContext context) {
-        if (value == null || value.getMovementType() == null) {
+        if (value == null) {
             return true;
+        }
+
+        if (value.getMovementType() == null) {
+            return hasText(value.getPhone())
+                    || hasText(value.getDocument())
+                    || hasText(value.getUserid())
+                    || hasText(value.getWithdrawId())
+                    || hasText(value.getPassword());
         }
 
         if (value.getMovementType() == MovementType.CASH_IN) {

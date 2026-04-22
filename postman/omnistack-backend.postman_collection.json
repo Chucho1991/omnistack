@@ -115,7 +115,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"1\",\n  \"subcategory_code\": \"1\",\n  \"service_provider_code\": \"1\",\n  \"rms_item_code\": \"10001565826\",\n  \"userid\": \"997561\",\n  \"phone\": \"123456\",\n  \"document\": \"0912345678\",\n  \"amount\": 25.50\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/precheck",

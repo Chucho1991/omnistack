@@ -89,5 +89,25 @@ public class AppProperties {
     public static class ProviderProperties {
         private String baseUrl;
         private String technicalUser;
+        private String providerName;
+        private String serviceProviderCode;
+        private String shopId;
+        private Integer country;
+        private String token;
+        private Map<String, ProviderCapabilityProperties> services = new HashMap<>();
+    }
+
+    @Data
+    public static class ProviderCapabilityProperties {
+        private ProviderOperationProperties cashin = new ProviderOperationProperties();
+        private ProviderOperationProperties cashout = new ProviderOperationProperties();
+    }
+
+    @Data
+    public static class ProviderOperationProperties {
+        private String item;
+        private String path;
+        private String capabilities;
+        private String name;
     }
 }

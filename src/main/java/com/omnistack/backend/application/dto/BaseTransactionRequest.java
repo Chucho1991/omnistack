@@ -46,7 +46,6 @@ public abstract class BaseTransactionRequest {
     @Schema(example = "POS")
     private ChannelPos channelPos;
 
-    @NotNull
     @JsonProperty("movement_type")
     @JsonAlias("movementType")
     @Schema(example = "CASH_IN")

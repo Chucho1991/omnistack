@@ -15,6 +15,7 @@ import com.omnistack.backend.domain.model.ServiceDefinition;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,14 +23,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "app.integrations", name = "mock-enabled", havingValue = "true")
 public class DefaultProviderTransactionStrategy
         implements PrecheckStrategy, ExecuteStrategy, VerifyStrategy, ReverseStrategy {
 
     private final ExternalProviderClient externalProviderClient;
 
     @Override
-    public boolean supports(String providerCode, Capability capability) {
-        return "CLARO".equalsIgnoreCase(providerCode) || "DEFAULT".equalsIgnoreCase(providerCode);
+    public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
+        String providerCode = serviceDefinition.getServiceProviderCode();
+        return providerCode != null && !"1".equalsIgnoreCase(providerCode);
     }
 
     @Override

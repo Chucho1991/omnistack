@@ -32,10 +32,7 @@ class TransactionControllerTest {
     void shouldReturnPrecheckResponse() throws Exception {
         when(transactionUseCase.precheck(any())).thenReturn(PrecheckResponse.builder()
                 .uuid("uuid-1")
-                .transactionId("uuid-1")
-                .providerCode("OK")
-                .providerMessage("Operacion aprobada")
-                .isError(false)
+                .errorFlag(false)
                 .status(new StatusDetail("00", "PRECHECK completado correctamente"))
                 .build());
 
