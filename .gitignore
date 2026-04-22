@@ -1,0 +1,49 @@
+# Maven / Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper / local repo
+.mvn/wrapper/maven-wrapper.jar
+.m2/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-data/
+
+# Build / temp
+build/
+out/
+tmp/
+temp/
+
+# Test / coverage
+coverage/
+.surefire-*
+
+# Local configs
+settings.xml

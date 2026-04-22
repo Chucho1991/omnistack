@@ -1,0 +1,243 @@
+{
+  "info": {
+    "_postman_id": "8f8f5a57-8570-4ab9-b70e-2fa3b3d1d90f",
+    "name": "OMNISTACK Backend",
+    "description": "Colección Postman para los endpoints internos del backend OMNISTACK.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Healthcheck",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/healthcheck",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "healthcheck"
+          ]
+        },
+        "description": "Verifica el estado básico del servicio."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/business-lines",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "business-lines"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"collection_subcategory\": [\n    {\n      \"category_code\": \"REC\",\n      \"category_name\": \"Recargas\",\n      \"subcategory_code\": \"CEL\",\n      \"subcategory_name\": \"Recargas celulares\",\n      \"is_active\": true,\n      \"service_providers\": [\n        {\n          \"service_provider_code\": \"CLARO\",\n          \"provider_name\": \"Claro\",\n          \"is_active\": true,\n          \"services\": [\n            {\n              \"rms_item_code\": \"900001\",\n              \"description\": \"Recarga Claro\",\n              \"is_active\": true,\n              \"jde_code\": \"JDE-REC-001\",\n              \"movement_type\": \"CASH_IN\",\n              \"is_mixed_payment\": false,\n              \"flg_item\": \"RECA\",\n              \"is_refund\": false,\n              \"min_amount\": \"1.00\",\n              \"max_amount\": \"200.00\",\n              \"capabilities\": [\"PRECHECK\", \"EXECUTE\", \"VERIFY\", \"REVERSE\"],\n              \"input_fields\": [\n                {\n                  \"id\": \"phone\",\n                  \"label\": \"Telefono\",\n                  \"type\": \"STRING\",\n                  \"capability\": \"PRECHECK\",\n                  \"required\": true,\n                  \"group\": \"PHONE\"\n                }\n              ],\n              \"payment_methods\": [\n                {\n                  \"service_payment_method_id\": 1,\n                  \"payment_method_code\": \"EFECTIVO\",\n                  \"is_active\": true\n                }\n              ],\n              \"requires_consent\": false\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Business Lines",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Correlation-Id",
+            "value": "{{correlationId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/business-lines",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "business-lines"
+          ]
+        },
+        "description": "Consulta la oferta comercial disponible por punto de venta."
+      },
+      "response": []
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Precheck",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "precheck"
+              ]
+            },
+            "description": "Realiza validaciones previas antes de ejecutar la transacción."
+          },
+          "response": []
+        },
+        {
+          "name": "Execute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "execute"
+              ]
+            },
+            "description": "Ejecuta la transacción del flujo de negocio."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "verify"
+              ]
+            },
+            "description": "Verifica el estado posterior de la transacción."
+          },
+          "response": []
+        },
+        {
+          "name": "Reverse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\",\n  \"motivo\": \"Reverso por timeout del proveedor\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/reverse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "reverse"
+              ]
+            },
+            "description": "Ejecuta el reverso transaccional."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8185"
+    },
+    {
+      "key": "correlationId",
+      "value": "postman-local-correlation-id"
+    }
+  ]
+}
