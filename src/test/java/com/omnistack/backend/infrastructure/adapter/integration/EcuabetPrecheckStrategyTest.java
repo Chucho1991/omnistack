@@ -45,6 +45,10 @@ class EcuabetPrecheckStrategyTest {
         capabilityProperties.getCashin().setPath("/user/search");
         capabilityProperties.getCashin().setCapabilities("BUSCAR_USUARIO");
         capabilityProperties.getCashin().setName("BUSCAR_USUARIO");
+        capabilityProperties.getCashout().setItem("10001565827");
+        capabilityProperties.getCashout().setPath("/user/searchwithdraw");
+        capabilityProperties.getCashout().setCapabilities("BUSCAR_NOTA_RETIRO");
+        capabilityProperties.getCashout().setName("BUSCAR_NOTA_RETIRO");
         provider.getServices().put("PRECHECK", capabilityProperties);
 
         AppProperties appProperties = new AppProperties();
@@ -129,6 +133,59 @@ class EcuabetPrecheckStrategyTest {
         assertEquals("00", response.getProviderCode());
         assertEquals("00", response.getStatus().getCode());
         assertEquals("Carlos", ((com.omnistack.backend.application.dto.PrecheckResponse) response).getUsername());
+    }
+
+    @Test
+    void shouldUseCashoutOperationForWithdrawalPrecheck() {
+        when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("00")
+                .externalMessage("Nota encontrada")
+                .payload(java.util.Map.of(
+                        "error", 0,
+                        "name", "USU FEMSA",
+                        "currency", "USD",
+                        "amount", "10",
+                        "userid", "998765"))
+                .build());
+
+        PrecheckRequest request = PrecheckRequest.builder()
+                .uuid("uuid-cashout")
+                .chain("1")
+                .store("148")
+                .storeName("FYBECA AMAZONAS")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_OUT)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("10001565827")
+                .withdrawId("7667")
+                .password("88422")
+                .build();
+
+        ServiceDefinition serviceDefinition = ServiceDefinition.builder()
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("10001565827")
+                .description("ECUABET CASH OUT")
+                .movementType(MovementType.CASH_OUT)
+                .capabilities(List.of(Capability.PRECHECK))
+                .build();
+
+        var response = strategy.process(request, serviceDefinition, Capability.PRECHECK);
+
+        ArgumentCaptor<com.omnistack.backend.domain.model.EcuabetUserSearchCommand> captor =
+                ArgumentCaptor.forClass(com.omnistack.backend.domain.model.EcuabetUserSearchCommand.class);
+        verify(ecuabetUserSearchPort).searchUser(captor.capture(), org.mockito.ArgumentMatchers.eq("/user/searchwithdraw"));
+
+        assertEquals(MovementType.CASH_OUT, captor.getValue().getMovementType());
+        assertEquals("7667", captor.getValue().getWithdrawId());
+        assertEquals("88422", captor.getValue().getPassword());
+        assertEquals("998765", ((com.omnistack.backend.application.dto.PrecheckResponse) response).getUserid());
+        assertEquals(new BigDecimal("10"), ((com.omnistack.backend.application.dto.PrecheckResponse) response).getAmount());
     }
 
     @Test

@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response externo generico para el endpoint ECUABET user/search.
+ * Response externo generico para los endpoints de busqueda ECUABET.
  * Conserva en {@code raw} los atributos no modelados explicitamente.
  */
 @Getter
@@ -20,6 +20,7 @@ public class EcuabetUserSearchResponse {
     private String code;
     private Integer error;
     private String name;
+    @JsonAlias("userId")
     private String userid;
     @JsonProperty("message")
     @JsonAlias("msg")

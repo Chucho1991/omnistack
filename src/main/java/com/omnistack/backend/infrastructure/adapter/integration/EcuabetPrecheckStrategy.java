@@ -53,6 +53,7 @@ public class EcuabetPrecheckStrategy implements PrecheckStrategy {
                 .storeName(request.getStoreName())
                 .pos(request.getPos())
                 .channelPos(request.getChannelPos())
+                .movementType(serviceDefinition.getMovementType())
                 .categoryCode(request.getCategoryCode())
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())

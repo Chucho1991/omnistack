@@ -10,6 +10,8 @@ select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '10001565827' as rms_item_code, 'withdrawId' as input_field_id, 'Número asignado a retiro' as label, 'STRING' as field_type, 'PRECHECK' as capability_code, 1 as is_required, 'ID' as field_group, '' as conditional_operator from dual
 union all
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '10001565827' as rms_item_code, 'password' as input_field_id, 'Clave de retiro' as label, 'STRING' as field_type, 'PRECHECK' as capability_code, 1 as is_required, 'ID' as field_group, '' as conditional_operator from dual
+union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '10001565828' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, 'STRING' as field_type, 'EXECUTE' as capability_code, 1 as is_required, 'IDENTIFICATION' as field_group, '' as conditional_operator from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '10001565828' as rms_item_code, 'amount' as input_field_id, 'Monto Recarga' as label, 'DOUBLE' as field_type, 'EXECUTE' as capability_code, 1 as is_required, 'AMOUNT' as field_group, '' as conditional_operator from dual

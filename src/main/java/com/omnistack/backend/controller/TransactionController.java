@@ -2,6 +2,7 @@ package com.omnistack.backend.controller;
 
 import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
+import com.omnistack.backend.application.dto.ErrorDetail;
 import com.omnistack.backend.application.dto.PrecheckRequest;
 import com.omnistack.backend.application.dto.PrecheckResponse;
 import com.omnistack.backend.application.dto.ReverseRequest;
@@ -42,7 +43,7 @@ public class TransactionController {
     @PostMapping(ApiPaths.V1_PRECHECK)
     @Operation(summary = "Precheck transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Precheck exitoso"),
-        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = com.omnistack.backend.shared.exception.ApiErrorResponse.class)))
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
     })
     public ResponseEntity<PrecheckResponse> precheck(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = ApiExamples.TRANSACTION_REQUEST)))
@@ -59,7 +60,7 @@ public class TransactionController {
     @PostMapping(ApiPaths.V1_EXECUTE)
     @Operation(summary = "Ejecucion transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Ejecucion exitosa"),
-        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = com.omnistack.backend.shared.exception.ApiErrorResponse.class)))
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
     })
     public ResponseEntity<ExecuteResponse> execute(@Valid @RequestBody ExecuteRequest request) {
         return ResponseEntity.ok(transactionUseCase.execute(request));
@@ -74,7 +75,7 @@ public class TransactionController {
     @PostMapping(ApiPaths.V1_VERIFY)
     @Operation(summary = "Verificacion transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Verificacion exitosa"),
-        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = com.omnistack.backend.shared.exception.ApiErrorResponse.class)))
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
     })
     public ResponseEntity<VerifyResponse> verify(@Valid @RequestBody VerifyRequest request) {
         return ResponseEntity.ok(transactionUseCase.verify(request));
@@ -89,7 +90,7 @@ public class TransactionController {
     @PostMapping(ApiPaths.V1_REVERSE)
     @Operation(summary = "Reverso transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Reverso exitoso"),
-        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = com.omnistack.backend.shared.exception.ApiErrorResponse.class)))
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
     })
     public ResponseEntity<ReverseResponse> reverse(@Valid @RequestBody ReverseRequest request) {
         return ResponseEntity.ok(transactionUseCase.reverse(request));

@@ -104,7 +104,7 @@ public final class ResponseFactory {
         if (isError) {
             builder.error(ErrorDetail.builder()
                     .code(externalResponse.getExternalCode())
-                    .message("Error reportado por ECUABET")
+                    .message(externalResponse.getExternalMessage())
                     .build());
         } else {
             builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));

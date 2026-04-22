@@ -83,6 +83,10 @@ Propiedades principales:
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.path`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.capabilities`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.name`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.item`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.path`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.capabilities`
+- `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.name`
 - `logging.level.com.omnistack.backend`
 
 ## Ejecucion local
@@ -131,6 +135,7 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_ECUABET_COUNTRY`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_TOKEN`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHOUT_PATH`
 
 ## Build y pruebas
 
@@ -359,6 +364,47 @@ La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST 
 - resolucion de ruta: OMNISTACK usa `provider -> capability -> flow(cashin/cashout)`, validando el `item` configurado contra el `rms_item_code` del servicio
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/search` o la URL configurada por propiedades.
+
+### ECUABET PRECHECK CASH_OUT
+
+Este bloque complementa la descripcion anterior con el flujo de Nota de Retiro para `service_provider_code=1` y `rms_item_code=10001565827`.
+
+- endpoint externo: `POST /user/searchwithdraw`
+- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- body externo: `shop`, `token`, `withdrawId`, `country`, `password`
+- mapeo de response: `is_error <- error`, `error.code <- code`, `error.message <- error`, `username <- name`, `currency <- currency`, `amount <- amount`, `userid <- userId|userid`
+- `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
+
+Ejemplo `PRECHECK CASH_OUT`:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "movement_type": "CASH_OUT",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565827",
+  "withdrawId": "7667",
+  "password": "88422"
+}
+```
+
+### Response de error
+
+```json
+{
+  "code": "VAL-001",
+  "message": "La solicitud no cumple las validaciones requeridas"
+}
+```
+
+El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/searchwithdraw` cuando el servicio resuelto corresponde a `CASH_OUT`.
 
 ## OpenAPI
 

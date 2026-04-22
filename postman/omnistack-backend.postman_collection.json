@@ -132,6 +132,38 @@
           "response": []
         },
         {
+          "name": "Precheck ECUABET Cashout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_OUT\",\n  \"category_code\": \"1\",\n  \"subcategory_code\": \"1\",\n  \"service_provider_code\": \"1\",\n  \"rms_item_code\": \"10001565827\",\n  \"withdrawId\": \"7667\",\n  \"password\": \"88422\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "precheck"
+              ]
+            },
+            "description": "Realiza el precheck de nota de retiro ECUABET por flujo CASH_OUT."
+          },
+          "response": []
+        },
+        {
           "name": "Execute",
           "request": {
             "method": "POST",

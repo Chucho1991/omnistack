@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.out.EcuabetUserSearchPort;
 import com.omnistack.backend.config.properties.AppProperties;
+import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.EcuabetUserSearchCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetErrorResponse;
@@ -41,6 +42,7 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
         AppProperties.ProviderProperties provider = getProviderProperties();
         EcuabetUserSearchRequest request = buildExternalRequest(command, provider);
         String url = provider.getBaseUrl() + operationPath;
+        String operationName = resolveOperationName(operationPath);
 
         traceToConsole("External web service request", url, JsonUtil.toJsonSilently(request));
 
@@ -54,13 +56,13 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
                         .defaultIfEmpty("")
                         .flatMap(body -> {
                             traceErrorToConsole("External web service error", url, body);
-                            return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                            return Mono.error(new IntegrationException(buildErrorMessage(body, operationName)));
                         }))
                 .bodyToMono(EcuabetUserSearchResponse.class)
                 .block();
 
         if (response == null) {
-            throw new IntegrationException("ECUABET no retorno contenido para la operacion user/search");
+            throw new IntegrationException("ECUABET no retorno contenido para la operacion " + operationName);
         }
 
         traceToConsole("External web service response", url, JsonUtil.toJsonSilently(response));
@@ -86,6 +88,16 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
     private EcuabetUserSearchRequest buildExternalRequest(
             EcuabetUserSearchCommand command,
             AppProperties.ProviderProperties provider) {
+        if (command.getMovementType() == MovementType.CASH_OUT) {
+            return EcuabetUserSearchRequest.builder()
+                    .shop(provider.getShopId())
+                    .token(provider.getToken())
+                    .withdrawId(requiredValue(command.getWithdrawId(), "withdrawId"))
+                    .country(provider.getCountry())
+                    .password(requiredValue(command.getPassword(), "password"))
+                    .build();
+        }
+
         return EcuabetUserSearchRequest.builder()
                 .shop(provider.getShopId())
                 .token(provider.getToken())
@@ -102,29 +114,29 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
     private String resolveExternalMessage(EcuabetUserSearchResponse response) {
         if (response.getError() != null && response.getError() != 0) {
-            return "Error reportado por ECUABET";
+            return String.valueOf(response.getError());
         }
         return response.getMessage() != null && !response.getMessage().isBlank()
                 ? response.getMessage()
                 : "Operacion procesada por ECUABET";
     }
 
-    private String buildErrorMessage(String body) {
+    private String buildErrorMessage(String body, String operationName) {
         if (body == null || body.isBlank()) {
-            return "Error HTTP al invocar ECUABET user/search";
+            return "Error HTTP al invocar ECUABET " + operationName;
         }
 
         try {
             EcuabetErrorResponse error = objectMapper.readValue(body, EcuabetErrorResponse.class);
             if (error.getMessage() != null && !error.getMessage().isBlank()) {
-                return "ECUABET user/search respondio con error: " + error.getMessage();
+                return "ECUABET " + operationName + " respondio con error: " + error.getMessage();
             }
             if (error.getError() != null && !error.getError().isBlank()) {
-                return "ECUABET user/search respondio con error: " + error.getError();
+                return "ECUABET " + operationName + " respondio con error: " + error.getError();
             }
-            return "ECUABET user/search respondio con error: " + objectMapper.writeValueAsString(error.getRaw());
+            return "ECUABET " + operationName + " respondio con error: " + objectMapper.writeValueAsString(error.getRaw());
         } catch (JsonProcessingException exception) {
-            return "ECUABET user/search respondio con error no parseable";
+            return "ECUABET " + operationName + " respondio con error no parseable";
         }
     }
 
@@ -133,9 +145,16 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
         payload.put("code", response.getCode());
         payload.put("error", response.getError());
         payload.put("name", response.getName());
-        payload.put("userid", response.getUserid());
         payload.putAll(response.getRaw());
+        payload.put("userid", response.getUserid());
         return payload;
+    }
+
+    private String resolveOperationName(String operationPath) {
+        if (operationPath == null || operationPath.isBlank()) {
+            return "operacion-configurada";
+        }
+        return operationPath.startsWith("/") ? operationPath.substring(1) : operationPath;
     }
 
     private AppProperties.ProviderProperties getProviderProperties() {
@@ -149,6 +168,14 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
     private String nullIfBlank(String value) {
         return value == null || value.isBlank() ? null : value;
+    }
+
+    private String requiredValue(String value, String fieldName) {
+        String normalizedValue = nullIfBlank(value);
+        if (normalizedValue == null) {
+            throw new IntegrationException("ECUABET requiere el campo " + fieldName + " para la operacion de CASH_OUT");
+        }
+        return normalizedValue;
     }
 
     private void traceToConsole(String label, String url, String body) {

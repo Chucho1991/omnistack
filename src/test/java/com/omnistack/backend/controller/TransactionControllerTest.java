@@ -58,4 +58,36 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.uuid").value("uuid-1"))
                 .andExpect(jsonPath("$.status.code").value("00"));
     }
+
+    @Test
+    void shouldAcceptCashoutPrecheckRequest() throws Exception {
+        when(transactionUseCase.precheck(any())).thenReturn(PrecheckResponse.builder()
+                .uuid("uuid-cashout")
+                .errorFlag(false)
+                .status(new StatusDetail("00", "Transaccion correcta"))
+                .build());
+
+        mockMvc.perform(post("/v1/precheck")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "uuid":"uuid-cashout",
+                                  "chain":"1",
+                                  "store":"148",
+                                  "store_name":"FYBECA AMAZONAS",
+                                  "pos":"1",
+                                  "channel_POS":"POS",
+                                  "movement_type":"CASH_OUT",
+                                  "category_code":"1",
+                                  "subcategory_code":"1",
+                                  "service_provider_code":"1",
+                                  "rms_item_code":"10001565827",
+                                  "withdrawId":"7667",
+                                  "password":"88422"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uuid").value("uuid-cashout"))
+                .andExpect(jsonPath("$.status.code").value("00"));
+    }
 }
