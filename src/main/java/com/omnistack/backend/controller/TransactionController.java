@@ -33,6 +33,12 @@ public class TransactionController {
 
     private final TransactionUseCase transactionUseCase;
 
+    /**
+     * Ejecuta la validacion previa de una transaccion antes de su procesamiento.
+     *
+     * @param request datos de entrada requeridos para el precheck transaccional
+     * @return respuesta HTTP con el resultado del precheck
+     */
     @PostMapping(ApiPaths.V1_PRECHECK)
     @Operation(summary = "Precheck transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Precheck exitoso"),
@@ -44,6 +50,12 @@ public class TransactionController {
         return ResponseEntity.ok(transactionUseCase.precheck(request));
     }
 
+    /**
+     * Ejecuta una transaccion sobre el flujo configurado para el proveedor.
+     *
+     * @param request datos de entrada requeridos para la ejecucion transaccional
+     * @return respuesta HTTP con el resultado de la ejecucion
+     */
     @PostMapping(ApiPaths.V1_EXECUTE)
     @Operation(summary = "Ejecucion transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Ejecucion exitosa"),
@@ -53,6 +65,12 @@ public class TransactionController {
         return ResponseEntity.ok(transactionUseCase.execute(request));
     }
 
+    /**
+     * Consulta el estado de una transaccion previamente procesada.
+     *
+     * @param request datos de entrada requeridos para la verificacion transaccional
+     * @return respuesta HTTP con el resultado de la verificacion
+     */
     @PostMapping(ApiPaths.V1_VERIFY)
     @Operation(summary = "Verificacion transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Verificacion exitosa"),
@@ -62,6 +80,12 @@ public class TransactionController {
         return ResponseEntity.ok(transactionUseCase.verify(request));
     }
 
+    /**
+     * Solicita el reverso de una transaccion procesada previamente.
+     *
+     * @param request datos de entrada requeridos para el reverso transaccional
+     * @return respuesta HTTP con el resultado del reverso
+     */
     @PostMapping(ApiPaths.V1_REVERSE)
     @Operation(summary = "Reverso transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Reverso exitoso"),

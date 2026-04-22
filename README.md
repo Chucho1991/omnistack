@@ -313,9 +313,6 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
     "message": "Transacción correcta"
   },
   "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
-  "transactionId": "f0908f64-9145-45cf-a22c-c36bca604372",
-  "providerCode": "00",
-  "providerMessage": "Operacion procesada por ECUABET",
   "username": "Carlos",
   "lastname": "Perez",
   "currency": "USD",

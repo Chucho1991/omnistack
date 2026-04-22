@@ -6,6 +6,7 @@ import lombok.Value;
 
 /**
  * Request externo para el endpoint ECUABET user/search.
+ * Representa el payload enviado al proveedor para consultar un usuario.
  */
 @Value
 @Builder

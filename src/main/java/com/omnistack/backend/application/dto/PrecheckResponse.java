@@ -15,7 +15,6 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-@JsonIgnoreProperties({"transactionId", "providerCode", "providerMessage"})
 public class PrecheckResponse extends BaseTransactionResponse {
     @Schema(example = "1")
     private String chain;

@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Contrato interno para la operacion Buscar usuario de ECUABET.
+ * Contrato interno del dominio para la operacion de busqueda de usuario en ECUABET.
  */
 @Value
 @Builder

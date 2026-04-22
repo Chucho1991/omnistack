@@ -66,6 +66,9 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - Documentar clases, DTOs y métodos públicos con JavaDoc.
 - Incluir `@param`, `@return` y `@throws` cuando aplique.
 - Mantener JavaDocs breves, técnicos y claros.
+- Toda nueva clase pública, método público o cambio sobre firmas públicas debe dejar el JavaDoc actualizado en el mismo cambio; Swagger/OpenAPI no reemplaza JavaDoc.
+- Antes de cerrar una tarea se debe verificar explícitamente que no quede ningún método público nuevo o modificado sin JavaDoc y sin sus etiquetas obligatorias cuando apliquen.
+- Si existe validador, regla de calidad o revisión asociada a JavaDoc, no puede desestimarse ni ignorarse; el cambio debe ajustarse para cumplirlo o dejar justificación técnica aprobada y documentada en `README.md` o `AGENTS.md`.
 - No dejar endpoints nuevos sin documentación funcional ni técnica.
 
 ## Validaciones y manejo de errores
@@ -119,6 +122,7 @@ Este archivo define las reglas estándar de implementación para futuras integra
 7. Actualizar la colección Postman y el environment si cambió el contrato expuesto.
 8. Crear o ajustar pruebas unitarias.
 9. Verificar que el cambio conserve coherencia arquitectónica.
+10. Ejecutar o revisar los validadores de calidad aplicables, incluyendo los de JavaDoc, antes de dar el cambio por terminado.
 
 ## Checklist de cierre
 - [ ] Arquitectura respetada.
@@ -126,6 +130,7 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - [ ] DTOs y validaciones implementados.
 - [ ] Endpoints documentados en Swagger/OpenAPI.
 - [ ] JavaDocs completos en clases y métodos públicos relevantes.
+- [ ] Validador o revisión de JavaDoc verificado y sin omisiones pendientes.
 - [ ] `README.md` actualizado.
 - [ ] `AGENTS.md` actualizado si cambiaron reglas o estándares.
 - [ ] Colección Postman y environment actualizados si cambió el contrato expuesto.
