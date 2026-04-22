@@ -123,6 +123,17 @@ Variables de entorno principales:
 mvn clean test
 ```
 
+## Catalogo business-lines
+
+El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedicado y cachea el resultado por llave de request durante 6 horas. Adicionalmente, el catálogo base del backend se refresca cada 6 horas desde el mismo adapter usando un request por defecto configurable.
+
+- Conexion Oracle configurada en `app.business-lines.oracle.datasource1.*`
+- Cache de 6 horas configurable en `app.business-lines.cache.ttl-hours`
+- Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
+- Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
+- Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
+- Los `WHERE` de Oracle usan `chain`, `store`, `store_name`, `pos` y `channel_POS`
+
 ## Endpoints expuestos
 
 - `POST /business-lines`
@@ -178,42 +189,51 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
   "channel_POS": "POS",
   "collection_subcategory": [
     {
-      "category_code": "REC",
-      "category_name": "Recargas",
-      "subcategory_code": "CEL",
-      "subcategory_name": "Recargas celulares",
+      "category_code": "1",
+      "category_name": "ENTRETENIMIENTO",
+      "subcategory_code": "1",
+      "subcategory_name": "APUESTAS",
       "is_active": true,
       "service_providers": [
         {
-          "service_provider_code": "CLARO",
-          "provider_name": "Claro",
+          "service_provider_code": "1",
+          "provider_name": "ECUABET",
           "is_active": true,
           "services": [
             {
-              "rms_item_code": "900001",
-              "description": "Recarga Claro",
+              "rms_item_code": "10001565826",
+              "description": "ECUABET CASH IN",
               "is_active": true,
-              "jde_code": "JDE-REC-001",
+              "jde_code": "ABC1234",
               "movement_type": "CASH_IN",
-              "is_mixed_payment": false,
+              "is_mixed_payment": true,
               "flg_item": "RECA",
-              "is_refund": false,
-              "min_amount": "1.00",
-              "max_amount": "200.00",
+              "is_refund": true,
+              "min_amount": "1",
+              "max_amount": "200",
               "capabilities": [
                 "PRECHECK",
                 "EXECUTE",
-                "VERIFY",
                 "REVERSE"
               ],
               "input_fields": [
                 {
-                  "id": "phone",
-                  "label": "Telefono",
+                  "id": "document",
+                  "label": "Documento Usuario",
                   "type": "STRING",
                   "capability": "PRECHECK",
-                  "required": true,
-                  "group": "PHONE"
+                  "required": false,
+                  "group": "IDENTIFICATION",
+                  "conditional": "OR"
+                },
+                {
+                  "id": "userid",
+                  "label": "ID Usuario",
+                  "type": "STRING",
+                  "capability": "PRECHECK",
+                  "required": false,
+                  "group": "IDENTIFICATION",
+                  "conditional": "OR"
                 }
               ],
               "payment_methods": [
@@ -221,9 +241,15 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
                   "service_payment_method_id": 1,
                   "payment_method_code": "EFECTIVO",
                   "is_active": true
+                },
+                {
+                  "service_payment_method_id": 2,
+                  "payment_method_code": "TARJETA CREDITO",
+                  "is_active": true
                 }
               ],
-              "requires_consent": false
+              "requires_consent": true,
+              "consent_text": "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><title>Lorem Ipsum</title></head><body><h1>Lorem Ipsum</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></body></html>"
             }
           ]
         }

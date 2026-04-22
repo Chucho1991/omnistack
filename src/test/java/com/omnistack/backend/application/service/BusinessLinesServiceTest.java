@@ -29,8 +29,16 @@ class BusinessLinesServiceTest {
 
     @Test
     void shouldReturnCatalogFromCache() {
-        CatalogCacheService cacheService = Mockito.mock(CatalogCacheService.class);
+        BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
         BusinessLinesService service = new BusinessLinesService(cacheService);
+        BusinessLinesRequest request = BusinessLinesRequest.builder()
+                .chain("001")
+                .store("0001")
+                .storeName("Tienda Centro")
+                .pos("POS-01")
+                .channelPos(ChannelPos.POS)
+                .movementTypeFilter(MovementType.CASH_IN)
+                .build();
 
         ServiceDefinition cashInService = ServiceDefinition.builder()
                 .categoryCode("REC")
@@ -83,7 +91,7 @@ class BusinessLinesServiceTest {
                 .requiresConsent(false)
                 .build();
 
-        when(cacheService.getCurrentSnapshot()).thenReturn(CatalogSnapshot.builder()
+        when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
                 .categories(List.of(Category.builder()
                         .categoryCode("REC")
                         .categoryName("Recargas")
@@ -104,14 +112,7 @@ class BusinessLinesServiceTest {
                 .version("v1")
                 .build());
 
-        var response = service.getBusinessLines(BusinessLinesRequest.builder()
-                .chain("001")
-                .store("0001")
-                .storeName("Tienda Centro")
-                .pos("POS-01")
-                .channelPos(ChannelPos.POS)
-                .movementTypeFilter(MovementType.CASH_IN)
-                .build());
+        var response = service.getBusinessLines(request);
 
         assertEquals("001", response.getChain());
         assertEquals("0001", response.getStore());

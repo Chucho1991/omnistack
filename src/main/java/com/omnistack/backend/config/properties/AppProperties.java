@@ -16,6 +16,7 @@ public class AppProperties {
 
     private Swagger swagger = new Swagger();
     private Catalog catalog = new Catalog();
+    private BusinessLines businessLines = new BusinessLines();
     private Integrations integrations = new Integrations();
     private Integration integration = new Integration();
 
@@ -34,6 +35,41 @@ public class AppProperties {
         public static class Refresh {
             private long fixedDelayMs;
             private long initialDelayMs;
+        }
+    }
+
+    @Data
+    public static class BusinessLines {
+        private String source = "oracle";
+        private Cache cache = new Cache();
+        private DefaultRequest defaultRequest = new DefaultRequest();
+        private Oracle oracle = new Oracle();
+
+        @Data
+        public static class Cache {
+            private long ttlHours = 6;
+        }
+
+        @Data
+        public static class DefaultRequest {
+            private String chain;
+            private String store;
+            private String storeName;
+            private String pos;
+            private String channelPos;
+        }
+
+        @Data
+        public static class Oracle {
+            private Datasource datasource1 = new Datasource();
+
+            @Data
+            public static class Datasource {
+                private String url;
+                private String username;
+                private String password;
+                private String driverClassName;
+            }
         }
     }
 

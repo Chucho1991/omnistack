@@ -16,12 +16,14 @@ import com.omnistack.backend.domain.model.ServiceProvider;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
  * Fuente en memoria para catálogos en esta primera etapa.
  */
 @Component
+@ConditionalOnProperty(prefix = "app.business-lines", name = "source", havingValue = "memory")
 public class InMemoryCatalogSourceAdapter implements CatalogSourcePort {
 
     @Override

@@ -14,6 +14,7 @@ import com.omnistack.backend.domain.model.InputField;
 import com.omnistack.backend.domain.model.PaymentMethod;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.domain.model.ServiceProvider;
+import java.util.Locale;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,11 +28,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BusinessLinesService implements BusinessLinesUseCase {
 
-    private final CatalogCacheService catalogCacheService;
+    private final BusinessLinesCatalogCacheService businessLinesCatalogCacheService;
 
     @Override
     public BusinessLinesResponse getBusinessLines(BusinessLinesRequest request) {
-        List<BusinessLineCollectionSubcategoryResponse> collectionSubcategories = catalogCacheService.getCurrentSnapshot()
+        List<BusinessLineCollectionSubcategoryResponse> collectionSubcategories = businessLinesCatalogCacheService.getCatalogSnapshot(request)
                 .getCategories().stream()
                 .flatMap(category -> category.getSubcategories().stream()
                         .map(subcategory -> toCollectionSubcategoryResponse(category.getCategoryCode(), category.getCategoryName(), subcategory, request)))
@@ -111,7 +112,7 @@ public class BusinessLinesService implements BusinessLinesUseCase {
     private BusinessLinePaymentMethodResponse toPaymentMethodResponse(PaymentMethod paymentMethod) {
         return BusinessLinePaymentMethodResponse.builder()
                 .servicePaymentMethodId(paymentMethod.getServicePaymentMethodId())
-                .paymentMethodCode(paymentMethod.getPaymentMethodCode().name())
+                .paymentMethodCode(paymentMethod.getPaymentMethodCode().name().toUpperCase(Locale.ROOT).replace('_', ' '))
                 .active(paymentMethod.isActive())
                 .build();
     }

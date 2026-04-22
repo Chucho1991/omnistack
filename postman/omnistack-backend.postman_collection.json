@@ -1,4 +1,4 @@
-{
+﻿{
   "info": {
     "_postman_id": "8f8f5a57-8570-4ab9-b70e-2fa3b3d1d90f",
     "name": "OMNISTACK Backend",
@@ -39,7 +39,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}"
+              "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/business-lines",
@@ -61,7 +61,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"collection_subcategory\": [\n    {\n      \"category_code\": \"REC\",\n      \"category_name\": \"Recargas\",\n      \"subcategory_code\": \"CEL\",\n      \"subcategory_name\": \"Recargas celulares\",\n      \"is_active\": true,\n      \"service_providers\": [\n        {\n          \"service_provider_code\": \"CLARO\",\n          \"provider_name\": \"Claro\",\n          \"is_active\": true,\n          \"services\": [\n            {\n              \"rms_item_code\": \"900001\",\n              \"description\": \"Recarga Claro\",\n              \"is_active\": true,\n              \"jde_code\": \"JDE-REC-001\",\n              \"movement_type\": \"CASH_IN\",\n              \"is_mixed_payment\": false,\n              \"flg_item\": \"RECA\",\n              \"is_refund\": false,\n              \"min_amount\": \"1.00\",\n              \"max_amount\": \"200.00\",\n              \"capabilities\": [\"PRECHECK\", \"EXECUTE\", \"VERIFY\", \"REVERSE\"],\n              \"input_fields\": [\n                {\n                  \"id\": \"phone\",\n                  \"label\": \"Telefono\",\n                  \"type\": \"STRING\",\n                  \"capability\": \"PRECHECK\",\n                  \"required\": true,\n                  \"group\": \"PHONE\"\n                }\n              ],\n              \"payment_methods\": [\n                {\n                  \"service_payment_method_id\": 1,\n                  \"payment_method_code\": \"EFECTIVO\",\n                  \"is_active\": true\n                }\n              ],\n              \"requires_consent\": false\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+          "body": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"collection_subcategory\": [\n    {\n      \"category_code\": 1,\n      \"category_name\": \"ENTRETENIMIENTO\",\n      \"subcategory_code\": 1,\n      \"subcategory_name\": \"APUESTAS\",\n      \"is_active\": true,\n      \"service_providers\": [\n        {\n          \"service_provider_code\": 1,\n          \"provider_name\": \"ECUABET\",\n          \"is_active\": true,\n          \"services\": [\n            {\n              \"rms_item_code\": \"10001565826\",\n              \"description\": \"ECUABET CASH IN\",\n              \"is_active\": true,\n              \"jde_code\": \"ABC1234\",\n              \"movement_type\": \"CASH_IN\",\n              \"is_mixed_payment\": true,\n              \"flg_item\": \"RECA\",\n              \"is_refund\": true,\n              \"min_amount\": \"1\",\n              \"max_amount\": \"200\",\n              \"capabilities\": [\"PRECHECK\", \"EXECUTE\", \"REVERSE\"],\n              \"input_fields\": [\n                {\n                  \"id\": \"document\",\n                  \"label\": \"Documento Usuario\",\n                  \"type\": \"STRING\",\n                  \"capability\": \"PRECHECK\",\n                  \"required\": false,\n                  \"group\": \"IDENTIFICATION\",\n                  \"conditional\": \"OR\"\n                },\n                {\n                  \"id\": \"userid\",\n                  \"label\": \"ID Usuario\",\n                  \"type\": \"STRING\",\n                  \"capability\": \"PRECHECK\",\n                  \"required\": false,\n                  \"group\": \"IDENTIFICATION\",\n                  \"conditional\": \"OR\"\n                }\n              ],\n              \"payment_methods\": [\n                {\n                  \"service_payment_method_id\": 1,\n                  \"payment_method_code\": \"EFECTIVO\",\n                  \"is_active\": true\n                },\n                {\n                  \"service_payment_method_id\": 2,\n                  \"payment_method_code\": \"TARJETA CREDITO\",\n                  \"is_active\": true\n                }\n              ],\n              \"requires_consent\": true\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
         }
       ]
     },
@@ -81,7 +81,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}"
+          "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/business-lines",
@@ -241,3 +241,4 @@
     }
   ]
 }
+
