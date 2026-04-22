@@ -16,10 +16,13 @@ public final class ApiExamples {
               "category_code":"1",
               "subcategory_code":"1",
               "service_provider_code":"1",
-              "rms_item_code":"10001565826",
-              "userid":"997561",
-              "phone":"123456",
-              "amount":25.50
+              "rms_item_code":"10001565827",
+              "userid":"",
+              "phone":"",
+              "withdrawId":"7667",
+              "password":"88422",
+              "document":"",
+              "amount":1.00
             }
             """;
 

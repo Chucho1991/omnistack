@@ -82,8 +82,12 @@ class TransactionControllerTest {
                                   "subcategory_code":"1",
                                   "service_provider_code":"1",
                                   "rms_item_code":"10001565827",
+                                  "userid":"",
+                                  "phone":"",
                                   "withdrawId":"7667",
-                                  "password":"88422"
+                                  "password":"88422",
+                                  "document":"",
+                                  "amount":1.00
                                 }
                                 """))
                 .andExpect(status().isOk())

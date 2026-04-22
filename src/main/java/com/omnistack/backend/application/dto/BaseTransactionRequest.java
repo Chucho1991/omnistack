@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.enums.MovementType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -75,10 +74,6 @@ public abstract class BaseTransactionRequest {
     @Schema(example = "900001")
     private String rmsItemCode;
 
-    @DecimalMin(value = "0.0", inclusive = false)
-    @Schema(example = "25.50")
-    private BigDecimal amount;
-
     @Schema(example = "usr123")
     private String userid;
 
@@ -101,4 +96,11 @@ public abstract class BaseTransactionRequest {
 
     @Schema(example = "SN001-XYZ")
     private String serialnumber;
+
+    /**
+     * Retorna el monto asociado a la solicitud transaccional.
+     *
+     * @return monto informado en la solicitud
+     */
+    public abstract BigDecimal getAmount();
 }
