@@ -34,6 +34,10 @@ public class BusinessLineServiceResponse {
     String minAmount;
     @JsonProperty("max_amount")
     String maxAmount;
+    @JsonProperty("timeout_ws_max")
+    String timeoutWsMax;
+    @JsonProperty("retries_ws_max")
+    String retriesWsMax;
     List<String> capabilities;
     @JsonProperty("input_fields")
     List<BusinessLineInputFieldResponse> inputFields;

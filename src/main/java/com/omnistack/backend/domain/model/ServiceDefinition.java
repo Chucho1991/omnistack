@@ -40,6 +40,10 @@ public class ServiceDefinition {
     BigDecimal minAmount;
     @JsonProperty("max_amount")
     BigDecimal maxAmount;
+    @JsonProperty("timeout_ws_max")
+    String timeoutWsMax;
+    @JsonProperty("retries_ws_max")
+    String retriesWsMax;
     List<Capability> capabilities;
     @JsonProperty("input_fields")
     List<InputField> inputFields;

@@ -271,6 +271,8 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
               "is_refund": true,
               "min_amount": "1",
               "max_amount": "200",
+              "timeout_ws_max": "10000",
+              "retries_ws_max": "3",
               "capabilities": [
                 "PRECHECK",
                 "EXECUTE",

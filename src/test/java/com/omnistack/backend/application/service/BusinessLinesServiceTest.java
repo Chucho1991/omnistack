@@ -54,6 +54,8 @@ class BusinessLinesServiceTest {
                 .refund(false)
                 .minAmount(new BigDecimal("1.00"))
                 .maxAmount(new BigDecimal("200.00"))
+                .timeoutWsMax("10000")
+                .retriesWsMax("3")
                 .capabilities(List.of(Capability.PRECHECK, Capability.EXECUTE))
                 .inputFields(List.of(InputField.builder()
                         .id("phone")
@@ -86,6 +88,8 @@ class BusinessLinesServiceTest {
                 .refund(true)
                 .minAmount(new BigDecimal("1.00"))
                 .maxAmount(new BigDecimal("200.00"))
+                .timeoutWsMax("10000")
+                .retriesWsMax("3")
                 .capabilities(List.of(Capability.EXECUTE))
                 .paymentMethods(List.of())
                 .requiresConsent(false)
@@ -124,6 +128,8 @@ class BusinessLinesServiceTest {
         assertEquals(1, response.getCollectionSubcategory().get(0).getServiceProviders().size());
         assertEquals(1, response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().size());
         assertEquals("900001", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRmsItemCode());
+        assertEquals("10000", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
+        assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
         assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRequiresConsent());
         assertEquals("phone", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getInputFields().get(0).getId());
         assertEquals("EFECTIVO", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode());

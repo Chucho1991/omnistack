@@ -62,6 +62,8 @@ class BusinessLinesControllerTest {
                                         .refund(false)
                                         .minAmount("1.00")
                                         .maxAmount("200.00")
+                                        .timeoutWsMax("10000")
+                                        .retriesWsMax("3")
                                         .capabilities(List.of("PRECHECK", "EXECUTE"))
                                         .inputFields(List.of(BusinessLineInputFieldResponse.builder()
                                                 .id("phone")
@@ -98,6 +100,8 @@ class BusinessLinesControllerTest {
                 .andExpect(jsonPath("$.store_name").value("FYBECA AMAZONAS"))
                 .andExpect(jsonPath("$.channel_POS").value("POS"))
                 .andExpect(jsonPath("$.collection_subcategory[0].is_active").value(true))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].timeout_ws_max").value("10000"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].retries_ws_max").value("3"))
                 .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].payment_methods[0].service_payment_method_id").value(1))
                 .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].input_fields[0].capability").value("PRECHECK"));
     }

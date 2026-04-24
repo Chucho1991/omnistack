@@ -85,6 +85,8 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .refund(service.isRefund())
                 .minAmount(service.getMinAmount().toPlainString())
                 .maxAmount(service.getMaxAmount().toPlainString())
+                .timeoutWsMax(service.getTimeoutWsMax())
+                .retriesWsMax(service.getRetriesWsMax())
                 .capabilities(service.getCapabilities().stream().map(Enum::name).collect(Collectors.toList()))
                 .inputFields(service.getInputFields() == null
                         ? Collections.emptyList()

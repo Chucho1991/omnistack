@@ -68,6 +68,8 @@ public class BusinessLinesController {
                                                       "is_refund": false,
                                                       "min_amount": "1.00",
                                                       "max_amount": "200.00",
+                                                      "timeout_ws_max": "10000",
+                                                      "retries_ws_max": "3",
                                                       "capabilities": ["PRECHECK", "EXECUTE", "VERIFY", "REVERSE"],
                                                       "input_fields": [
                                                         {

@@ -184,6 +184,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .refund(row.refund())
                 .minAmount(new BigDecimal(row.minAmount()))
                 .maxAmount(new BigDecimal(row.maxAmount()))
+                .timeoutWsMax(row.timeoutWsMax())
+                .retriesWsMax(row.retriesWsMax())
                 .capabilities(capabilities)
                 .inputFields(inputFields)
                 .paymentMethods(paymentMethods)
@@ -246,6 +248,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getInt("is_refund") == 1,
                 rs.getString("min_amount"),
                 rs.getString("max_amount"),
+                rs.getString("timeout_ws_max"),
+                rs.getString("retries_ws_max"),
                 rs.getInt("requires_consent") == 1,
                 rs.getString("consent_text"));
     }
@@ -331,6 +335,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             boolean refund,
             String minAmount,
             String maxAmount,
+            String timeoutWsMax,
+            String retriesWsMax,
             boolean requiresConsent,
             String consentText) {
         ServiceKey serviceKey() {
