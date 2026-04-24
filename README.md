@@ -9,6 +9,7 @@ Esta primera etapa no activa persistencia en base de datos. La solucion queda co
 - catalogos en memoria
 - auditoria en memoria
 - scheduler de recarga cada 6 horas
+- precarga de tokens dinamicos al arranque
 - clientes externos mockeables via REST adapter
 - arquitectura lista para incorporar Oracle en una segunda etapa
 
@@ -79,6 +80,7 @@ Propiedades principales:
 - `app.integration.providers.ecuabet.shop-id`
 - `app.integration.providers.ecuabet.country`
 - `app.integration.providers.ecuabet.token`
+- `app.integration.providers.ecuabet.auth.mode`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.item`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.path`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashin.capabilities`
@@ -87,6 +89,15 @@ Propiedades principales:
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.path`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.capabilities`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.name`
+- `app.integration.providers.loteria.base-url`
+- `app.integration.providers.loteria.service-provider-code`
+- `app.integration.providers.loteria.auth.mode`
+- `app.integration.providers.loteria.auth.ttl-hours`
+- `app.integration.providers.loteria.auth.refresh-on-startup`
+- `app.integration.providers.loteria.auth.login.path`
+- `app.integration.providers.loteria.auth.login.username`
+- `app.integration.providers.loteria.auth.login.password`
+- `app.integration.providers.loteria.auth.login.product-to-sell`
 - `logging.level.com.omnistack.backend`
 
 ## Ejecucion local
@@ -134,8 +145,18 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_ID`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_COUNTRY`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_TOKEN`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_AUTH_MODE`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHOUT_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_BASE_URL`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICE_PROVIDER_CODE`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_MODE`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_TTL_HOURS`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_REFRESH_ON_STARTUP`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_USERNAME`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_PASSWORD`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_PRODUCT_TO_SELL`
 
 ## Build y pruebas
 
@@ -162,6 +183,7 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - `POST /v1/execute`
 - `POST /v1/verify`
 - `POST /v1/reverse`
+- `POST /v1/provider-token/refresh`
 - `GET /actuator/health`
 - `GET /swagger-ui.html`
 
@@ -332,11 +354,51 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
 }
 ```
 
+### POST `/v1/provider-token/refresh`
+
+```json
+{
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2"
+}
+```
+
+### Response `/v1/provider-token/refresh`
+
+```json
+{
+  "is_error": false,
+  "status": {
+    "code": "00",
+    "message": "Token actualizado correctamente"
+  },
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "provider_name": "LOTERIA NACIONAL",
+  "refreshed_at": "2026-04-24T11:00:00-05:00",
+  "expires_at": "2026-04-25T11:00:00-05:00"
+}
+```
+
 ## Recarga de catalogos
 
 - Se ejecuta una carga inicial al arrancar la aplicacion.
 - El scheduler refresca el snapshot segun `app.catalog.refresh.fixed-delay-ms`.
 - Si una recarga falla, se conserva la ultima version valida en memoria.
+
+## Gestion de tokens de proveedor
+
+- El backend resuelve tokens por `category_code + subcategory_code + service_provider_code`.
+- `ProviderTokenService` soporta dos modos:
+- `STATIC`: usa el valor configurado en `app.integration.providers.<provider>.token`.
+- `LOGIN`: invoca un endpoint de autenticacion, cachea el token en memoria y controla expiracion por `app.integration.providers.<provider>.auth.ttl-hours`.
+- Un mismo `service_provider_code` puede tener multiples mecanismos de token; la resolucion toma la configuracion mas especifica para la categoria/subcategoria solicitada.
+- Los proveedores con `auth.refresh-on-startup=true` se refrescan automaticamente al iniciar la aplicacion.
+- Cuando un token dinamico expira, se regenera automaticamente en la siguiente solicitud que lo necesite.
+- `POST /v1/provider-token/refresh` fuerza el refresh manual del proveedor solicitado.
+- El endpoint manual solo aplica a proveedores con `auth.mode=LOGIN`; si el proveedor usa token estatico responde error de negocio.
 
 ## Integraciones externas
 
@@ -367,6 +429,8 @@ La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST 
 - resolucion de ruta: OMNISTACK usa `provider -> capability -> flow(cashin/cashout)`, validando el `item` configurado contra el `rms_item_code` del servicio
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/search` o la URL configurada por propiedades.
+
+ECUABET queda configurado con `auth.mode=STATIC`, por lo que el token se resuelve desde propiedades a traves del modulo generico de tokens.
 
 ### ECUABET PRECHECK CASH_OUT
 
@@ -412,6 +476,28 @@ Ejemplo `PRECHECK CASH_OUT`:
 ```
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/searchwithdraw` cuando el servicio resuelto corresponde a `CASH_OUT`.
+
+### LOTERIA Login BET593
+
+La autenticacion para las integraciones de Loteria se desacopla en un adapter HTTP dedicado y se administra por contexto comercial.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/Login`
+- body externo: `username`, `password`, `productoVender`
+- response externa: `usuario`, `token`, `codError`, `msgError`
+- llave de resolucion interna: `category_code + subcategory_code + service_provider_code`
+- TTL del token: configurable por `app.integration.providers.loteria.auth.ttl-hours`
+- precarga inicial: controlada por `app.integration.providers.loteria.auth.refresh-on-startup`
+- refresh manual interno: `POST /v1/provider-token/refresh` con `category_code`, `subcategory_code` y `service_provider_code`
+
+Ejemplo de login configurado para BET593:
+
+```json
+{
+  "username": "USRFEMSAPREP",
+  "password": "F3m993sA.",
+  "productoVender": "Bet593"
+}
+```
 
 ## OpenAPI
 

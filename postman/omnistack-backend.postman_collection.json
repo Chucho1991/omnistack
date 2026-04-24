@@ -260,6 +260,44 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Provider Tokens",
+      "item": [
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/provider-token/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "provider-token",
+                "refresh"
+              ]
+            },
+            "description": "Fuerza la regeneracion del token dinamico del proveedor configurado."
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -270,6 +308,18 @@
     {
       "key": "correlationId",
       "value": "postman-local-correlation-id"
+    },
+    {
+      "key": "serviceProviderCodeLoteria",
+      "value": "2"
+    },
+    {
+      "key": "categoryCodeLoteria",
+      "value": "1"
+    },
+    {
+      "key": "subcategoryCodeLoteria",
+      "value": "1"
     }
   ]
 }

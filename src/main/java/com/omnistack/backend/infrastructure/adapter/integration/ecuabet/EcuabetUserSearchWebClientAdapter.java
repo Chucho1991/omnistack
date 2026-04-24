@@ -2,6 +2,7 @@ package com.omnistack.backend.infrastructure.adapter.integration.ecuabet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.EcuabetUserSearchPort;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.MovementType;
@@ -36,6 +37,7 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
     private final WebClient omnistackWebClient;
     private final AppProperties appProperties;
     private final ObjectMapper objectMapper;
+    private final ProviderTokenResolverUseCase providerTokenResolverUseCase;
 
     @Override
     public ExternalTransactionResponse searchUser(EcuabetUserSearchCommand command, String operationPath) {
@@ -88,10 +90,14 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
     private EcuabetUserSearchRequest buildExternalRequest(
             EcuabetUserSearchCommand command,
             AppProperties.ProviderProperties provider) {
+        String providerToken = providerTokenResolverUseCase.getToken(
+                command.getCategoryCode(),
+                command.getSubcategoryCode(),
+                provider.getServiceProviderCode());
         if (command.getMovementType() == MovementType.CASH_OUT) {
             return EcuabetUserSearchRequest.builder()
                     .shop(provider.getShopId())
-                    .token(provider.getToken())
+                    .token(providerToken)
                     .withdrawId(requiredValue(command.getWithdrawId(), "withdrawId"))
                     .country(provider.getCountry())
                     .password(requiredValue(command.getPassword(), "password"))
@@ -100,7 +106,7 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
         return EcuabetUserSearchRequest.builder()
                 .shop(provider.getShopId())
-                .token(provider.getToken())
+                .token(providerToken)
                 .userid(nullIfBlank(command.getUserid()))
                 .country(provider.getCountry())
                 .phone(nullIfBlank(command.getPhone()))

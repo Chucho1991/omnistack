@@ -26,6 +26,14 @@ public final class ApiExamples {
             }
             """;
 
+    public static final String PROVIDER_TOKEN_REFRESH_REQUEST = """
+            {
+              "category_code":"1",
+              "subcategory_code":"1",
+              "service_provider_code":"2"
+            }
+            """;
+
     private ApiExamples() {
     }
 }

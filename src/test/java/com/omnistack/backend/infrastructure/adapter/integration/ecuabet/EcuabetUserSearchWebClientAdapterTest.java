@@ -57,7 +57,8 @@ class EcuabetUserSearchWebClientAdapterTest {
         EcuabetUserSearchWebClientAdapter adapter = new EcuabetUserSearchWebClientAdapter(
                 WebClient.builder().build(),
                 appProperties("http://localhost:" + server.getAddress().getPort()),
-                new ObjectMapper());
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test");
 
         var response = adapter.searchUser(EcuabetUserSearchCommand.builder()
                 .chain("1")
@@ -109,7 +110,7 @@ class EcuabetUserSearchWebClientAdapterTest {
         provider.setBaseUrl(baseUrl);
         provider.setShopId("998739");
         provider.setCountry(66);
-        provider.setToken("token-test");
+        provider.setServiceProviderCode("1");
 
         AppProperties appProperties = new AppProperties();
         appProperties.getIntegration().getProviders().put("ecuabet", provider);

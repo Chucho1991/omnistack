@@ -90,11 +90,30 @@ public class AppProperties {
         private String baseUrl;
         private String technicalUser;
         private String providerName;
+        private String categoryCode;
+        private String subcategoryCode;
         private String serviceProviderCode;
         private String shopId;
         private Integer country;
         private String token;
+        private ProviderTokenProperties auth = new ProviderTokenProperties();
         private Map<String, ProviderCapabilityProperties> services = new HashMap<>();
+    }
+
+    @Data
+    public static class ProviderTokenProperties {
+        private String mode = "STATIC";
+        private long ttlHours = 24;
+        private boolean refreshOnStartup = true;
+        private ProviderLoginProperties login = new ProviderLoginProperties();
+    }
+
+    @Data
+    public static class ProviderLoginProperties {
+        private String path;
+        private String username;
+        private String password;
+        private String productToSell;
     }
 
     @Data

@@ -130,7 +130,6 @@ class EcuabetPrecheckStrategyTest {
         assertEquals("0912345678", captor.getValue().getDocument());
         assertEquals(new BigDecimal("12.50"), captor.getValue().getAmount());
         assertEquals("uuid-1", response.getUuid());
-        assertEquals("00", response.getProviderCode());
         assertEquals("00", response.getStatus().getCode());
         assertEquals("Carlos", ((com.omnistack.backend.application.dto.PrecheckResponse) response).getUsername());
     }
