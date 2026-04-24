@@ -13,16 +13,13 @@ public final class ApiExamples {
               "store_name":"FYBECA AMAZONAS",
               "pos":"1",
               "channel_POS":"POS",
+              "movement_type":"CASH_IN",
               "category_code":"1",
               "subcategory_code":"1",
-              "service_provider_code":"1",
-              "rms_item_code":"10001565827",
-              "userid":"",
-              "phone":"",
-              "withdrawId":"7667",
-              "password":"88422",
-              "document":"",
-              "amount":1.00
+              "service_provider_code":"2",
+              "rms_item_code":"10001565828",
+              "document":"0901111112",
+              "amount":9.99
             }
             """;
 

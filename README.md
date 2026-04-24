@@ -90,7 +90,12 @@ Propiedades principales:
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.capabilities`
 - `app.integration.providers.ecuabet.services.<CAPABILITY>.cashout.name`
 - `app.integration.providers.loteria.base-url`
+- `app.integration.providers.loteria.category-code`
+- `app.integration.providers.loteria.subcategory-code`
 - `app.integration.providers.loteria.service-provider-code`
+- `app.integration.providers.loteria.canal`
+- `app.integration.providers.loteria.medio-id`
+- `app.integration.providers.loteria.punto-operacion-id`
 - `app.integration.providers.loteria.auth.mode`
 - `app.integration.providers.loteria.auth.ttl-hours`
 - `app.integration.providers.loteria.auth.refresh-on-startup`
@@ -98,6 +103,10 @@ Propiedades principales:
 - `app.integration.providers.loteria.auth.login.username`
 - `app.integration.providers.loteria.auth.login.password`
 - `app.integration.providers.loteria.auth.login.product-to-sell`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashin.item`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashin.path`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashin.capabilities`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashin.name`
 - `logging.level.com.omnistack.backend`
 
 ## Ejecucion local
@@ -135,8 +144,8 @@ Variables de entorno principales:
 - `SERVER_PORT`
 - `APP_CATALOG_REFRESH_FIXED_DELAY_MS`
 - `APP_CATALOG_REFRESH_INITIAL_DELAY_MS`
-- `APP_INTEGRATIONS_DEFAULT_CONNECT_TIMEOUT_MS`
-- `APP_INTEGRATIONS_DEFAULT_READ_TIMEOUT_MS`
+- `APP_INTEGRATIONS_DEFAULT_CONNECT_TIMEOUT_MS` (default `60000`)
+- `APP_INTEGRATIONS_DEFAULT_READ_TIMEOUT_MS` (default `60000`)
 - `APP_INTEGRATIONS_MOCK_ENABLED`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_TECHNICAL_USER`
@@ -149,7 +158,16 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHOUT_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_BASE_URL`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_CATEGORY_CODE`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SUBCATEGORY_CODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICE_PROVIDER_CODE`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_CANAL`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_MEDIO_ID`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_PUNTO_OPERACION_ID`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_ITEM`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_CAPABILITIES`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_NAME`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_MODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_TTL_HOURS`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_REFRESH_ON_STARTUP`
@@ -311,16 +329,13 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
+  "movement_type": "CASH_IN",
   "category_code": "1",
   "subcategory_code": "1",
-  "service_provider_code": "1",
-  "rms_item_code": "10001565827",
-  "userid": "",
-  "phone": "",
-  "withdrawId": "7667",
-  "password": "88422",
-  "document": "",
-  "amount": 1.00
+  "service_provider_code": "2",
+  "rms_item_code": "10001565828",
+  "document": "0901111112",
+  "amount": 9.99
 }
 ```
 
@@ -476,6 +491,31 @@ Ejemplo `PRECHECK CASH_OUT`:
 ```
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/searchwithdraw` cuando el servicio resuelto corresponde a `CASH_OUT`.
+
+### LOTERIA BET593 PRECHECK CASH_IN
+
+La recarga de saldos BET593 usa el proveedor Loteria Nacional con resolucion por catalogo `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/RecargarBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario`, `canal=BMV`, `medioId=23`, `puntooperacionId=52132`
+- mapeo request: `uuid -> codigotrn`, `document -> cuentaweb`, `amount -> valor`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `nombre -> username`, `apellido -> lastname`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`, `valor -> amount`
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "token": "token-dinamico",
+  "canal": "BMV",
+  "medioId": 23,
+  "puntooperacionId": 52132,
+  "cuentaweb": "0901111112",
+  "valor": "9.99",
+  "codigotrn": "f0908f64-9145-45cf-a22c-c36bca604372"
+}
+```
 
 ### LOTERIA Login BET593
 

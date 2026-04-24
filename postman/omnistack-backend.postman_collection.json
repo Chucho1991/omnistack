@@ -164,6 +164,38 @@
           "response": []
         },
         {
+          "name": "Precheck LOTERIA BET593 Cashin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"document\": \"0901111112\",\n  \"amount\": 9.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "precheck"
+              ]
+            },
+            "description": "Realiza el precheck/recarga de saldos BET593 por Loteria Nacional en flujo CASH_IN."
+          },
+          "response": []
+        },
+        {
           "name": "Execute",
           "request": {
             "method": "POST",

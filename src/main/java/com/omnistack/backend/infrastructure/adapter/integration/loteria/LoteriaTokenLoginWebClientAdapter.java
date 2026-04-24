@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -45,20 +46,26 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
 
         traceToConsole("Loteria token login request", url, JsonUtil.toJsonSilently(request));
 
-        LoteriaLoginResponse response = omnistackWebClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                        .defaultIfEmpty("")
-                        .flatMap(body -> {
-                            traceErrorToConsole("Loteria token login error", url, body);
-                            return Mono.error(new IntegrationException(buildErrorMessage(command.getProviderName(), body)));
-                        }))
-                .bodyToMono(String.class)
-                .map(body -> parseResponseBody(command.getProviderName(), body))
-                .block();
+        LoteriaLoginResponse response;
+        try {
+            response = omnistackWebClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(body -> {
+                                traceErrorToConsole("Loteria token login error", url, body);
+                                return Mono.error(new IntegrationException(buildErrorMessage(command.getProviderName(), body)));
+                            }))
+                    .bodyToMono(String.class)
+                    .map(body -> parseResponseBody(command.getProviderName(), body))
+                    .block();
+        } catch (WebClientRequestException exception) {
+            traceErrorToConsole("Loteria token login transport error", url, rootCauseMessage(exception));
+            throw new IntegrationException(buildTransportErrorMessage(command.getProviderName(), url, exception), exception);
+        }
 
         if (response == null) {
             throw new IntegrationException("Loteria no retorno contenido para el login del proveedor " + command.getProviderName());
@@ -100,6 +107,39 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
         } catch (JsonProcessingException exception) {
             return "Loteria login respondio con error no parseable para " + providerName;
         }
+    }
+
+    private String buildTransportErrorMessage(String providerName, String url, WebClientRequestException exception) {
+        if (hasCause(exception, "ReadTimeoutException")) {
+            return "Timeout al invocar login de Loteria para " + providerName + ": " + url;
+        }
+        if (hasCause(exception, "SSLHandshakeException") || hasCause(exception, "SunCertPathBuilderException")) {
+            return "Error SSL al invocar login de Loteria para " + providerName
+                    + ". Revise el certificado/truststore del contenedor para " + url;
+        }
+        return "Error de conexion al invocar login de Loteria para " + providerName + ": " + rootCauseMessage(exception);
+    }
+
+    private boolean hasCause(Throwable exception, String simpleClassName) {
+        Throwable current = exception;
+        while (current != null) {
+            if (current.getClass().getSimpleName().equals(simpleClassName)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private String rootCauseMessage(Throwable exception) {
+        Throwable current = exception;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+        String message = current.getMessage();
+        return message == null || message.isBlank()
+                ? current.getClass().getSimpleName()
+                : current.getClass().getSimpleName() + ": " + message;
     }
 
     private LoteriaLoginResponse parseResponseBody(String providerName, String body) {

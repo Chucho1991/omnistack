@@ -37,7 +37,7 @@ docker-data/
 
 # Build / temp
 build/
-out/
+/out/
 tmp/
 temp/
 

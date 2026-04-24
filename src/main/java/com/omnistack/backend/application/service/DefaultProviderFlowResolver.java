@@ -10,11 +10,13 @@ import com.omnistack.backend.shared.exception.CatalogNotFoundException;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * Resolver dinamico de estrategias de proveedor.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DefaultProviderFlowResolver implements ProviderFlowResolver {
@@ -38,6 +40,16 @@ public class DefaultProviderFlowResolver implements ProviderFlowResolver {
                 .filter(candidate -> candidate.supports(serviceDefinition, capability))
                 .findFirst()
                 .orElseThrow(() -> new IntegrationException("No existe estrategia configurada para el proveedor/capacidad"));
+
+        log.info(
+                "Provider flow resolved. capability={}, categoryCode={}, subcategoryCode={}, serviceProviderCode={}, rmsItemCode={}, movementType={}, strategy={}",
+                capability,
+                serviceDefinition.getCategoryCode(),
+                serviceDefinition.getSubcategoryCode(),
+                serviceDefinition.getServiceProviderCode(),
+                serviceDefinition.getRmsItemCode(),
+                serviceDefinition.getMovementType(),
+                strategy.getClass().getSimpleName());
 
         return ProviderFlowSelection.builder()
                 .serviceDefinition(serviceDefinition)

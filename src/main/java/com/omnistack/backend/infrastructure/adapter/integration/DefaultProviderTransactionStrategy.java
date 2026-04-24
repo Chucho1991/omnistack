@@ -9,6 +9,7 @@ import com.omnistack.backend.application.port.out.strategy.PrecheckStrategy;
 import com.omnistack.backend.application.port.out.strategy.ReverseStrategy;
 import com.omnistack.backend.application.port.out.strategy.VerifyStrategy;
 import com.omnistack.backend.domain.enums.Capability;
+import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.ExternalTransactionRequest;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
@@ -16,6 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Order(Ordered.LOWEST_PRECEDENCE)
 @ConditionalOnProperty(prefix = "app.integrations", name = "mock-enabled", havingValue = "true")
 public class DefaultProviderTransactionStrategy
         implements PrecheckStrategy, ExecuteStrategy, VerifyStrategy, ReverseStrategy {
@@ -32,7 +36,16 @@ public class DefaultProviderTransactionStrategy
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
         String providerCode = serviceDefinition.getServiceProviderCode();
-        return providerCode != null && !"1".equalsIgnoreCase(providerCode);
+        return providerCode != null
+                && !"1".equalsIgnoreCase(providerCode)
+                && !isImplementedBet593Recharge(serviceDefinition, capability);
+    }
+
+    private boolean isImplementedBet593Recharge(ServiceDefinition serviceDefinition, Capability capability) {
+        return capability == Capability.PRECHECK
+                && serviceDefinition.getMovementType() == MovementType.CASH_IN
+                && "2".equalsIgnoreCase(serviceDefinition.getServiceProviderCode())
+                && "10001565828".equalsIgnoreCase(serviceDefinition.getRmsItemCode());
     }
 
     @Override
