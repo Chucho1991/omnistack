@@ -17,6 +17,9 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ValidTransactionRequest
 @Schema(description = "Solicitud de validacion previa")
+/**
+ * DTO de entrada para la operacion de prevalidacion transaccional.
+ */
 public class PrecheckRequest extends BaseTransactionRequest {
     @DecimalMin(value = "0.0", inclusive = false)
     @Schema(example = "25.50")
