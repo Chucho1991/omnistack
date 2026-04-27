@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.omnistack.backend.application.dto.PrecheckResponse;
+import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.port.in.TransactionUseCase;
 import com.omnistack.backend.shared.exception.GlobalExceptionHandler;
@@ -93,5 +94,41 @@ class TransactionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uuid").value("uuid-cashout"))
                 .andExpect(jsonPath("$.status.code").value("00"));
+    }
+
+    @Test
+    void shouldAcceptEcuabetCashoutExecuteRequest() throws Exception {
+        when(transactionUseCase.execute(any())).thenReturn(ExecuteResponse.builder()
+                .uuid("uuid-cashout-execute")
+                .errorFlag(false)
+                .authorization("10980")
+                .status(new StatusDetail("0", "Transaccion correcta"))
+                .build());
+
+        mockMvc.perform(post("/v1/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "uuid":"uuid-cashout-execute",
+                                  "chain":"1",
+                                  "store":"148",
+                                  "store_name":"FYBECA EL BATAN",
+                                  "pos":"1",
+                                  "channel_POS":"POS",
+                                  "movement_type":"CASH_OUT",
+                                  "category_code":"1",
+                                  "subcategory_code":"1",
+                                  "service_provider_code":"1",
+                                  "rms_item_code":"10001565827",
+                                  "withdrawId":"7668",
+                                  "password":"77992",
+                                  "document":"0912345678",
+                                  "amount":25.50
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uuid").value("uuid-cashout-execute"))
+                .andExpect(jsonPath("$.authorization").value("10980"))
+                .andExpect(jsonPath("$.status.code").value("0"));
     }
 }

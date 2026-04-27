@@ -196,6 +196,38 @@
           "response": []
         },
         {
+          "name": "Execute ECUABET Cashout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA EL BATAN\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_OUT\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"10001565827\",\n  \"withdrawId\": \"7668\",\n  \"password\": \"77992\",\n  \"document\": \"0912345678\",\n  \"amount\": 25.50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "execute"
+              ]
+            },
+            "description": "Ejecuta la nota de retiro ECUABET por flujo CASH_OUT."
+          },
+          "response": []
+        },
+        {
           "name": "Precheck LOTERIA BET593 Cashin",
           "request": {
             "method": "POST",

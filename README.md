@@ -164,6 +164,8 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHOUT_PATH`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHIN_ITEM`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHOUT_ITEM`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHOUT_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_CATEGORY_CODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SUBCATEGORY_CODE`
@@ -577,6 +579,56 @@ Request externo generado:
   "country": 66,
   "amount": 100000.00,
   "transactionId": 91081,
+  "shop_info": "FYBECA EL BATAN",
+  "shop_ip": "10.0.0.10"
+}
+```
+
+### ECUABET EXECUTE CASH_OUT
+
+La ejecucion de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_item_code` CASH_OUT expuesto por business-lines (`10001565827` en el catalogo actual).
+
+- endpoint externo: `POST /user/withdraw`
+- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- body externo: `shop`, `token`, `withdrawId`, `country`, `password`, `transactionId`, `shop_info`, `shop_ip`
+- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET y lo devuelve al consumidor como `authorization`
+- `shop_info`: se mapea desde `store_name`
+- `shop_ip`: usa `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` si esta configurado; si no, se resuelve desde la IP local del servidor
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId generado`, `document <- document`, `amount <- amount`
+- seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
+
+Request interno:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA EL BATAN",
+  "pos": "1",
+  "channel_POS": "POS",
+  "movement_type": "CASH_OUT",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565827",
+  "withdrawId": "7668",
+  "password": "77992",
+  "document": "0912345678",
+  "amount": 25.50
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "shop": "998739",
+  "token": "token-ecuabet",
+  "withdrawId": "7668",
+  "country": 66,
+  "password": "77992",
+  "transactionId": 10980,
   "shop_info": "FYBECA EL BATAN",
   "shop_ip": "10.0.0.10"
 }

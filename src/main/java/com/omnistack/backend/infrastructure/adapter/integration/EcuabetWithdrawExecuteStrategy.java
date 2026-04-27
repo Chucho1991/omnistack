@@ -5,33 +5,32 @@ import com.omnistack.backend.application.dto.BaseTransactionResponse;
 import com.omnistack.backend.application.dto.ErrorDetail;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.application.port.out.EcuabetDepositPort;
+import com.omnistack.backend.application.port.out.EcuabetWithdrawPort;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.domain.model.EcuabetDepositCommand;
+import com.omnistack.backend.domain.model.EcuabetWithdrawCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
-import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Estrategia de EXECUTE CASH_IN para deposito de saldo ECUABET.
+ * Estrategia de EXECUTE CASH_OUT para nota de retiro ECUABET.
  */
 @Component
 @RequiredArgsConstructor
-public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
+public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
 
     private static final String PROVIDER_KEY = "ecuabet";
     private static final int MIN_TRANSACTION_ID = 10_000;
     private static final int MAX_TRANSACTION_ID = 999_999_999;
 
-    private final EcuabetDepositPort ecuabetDepositPort;
+    private final EcuabetWithdrawPort ecuabetWithdrawPort;
     private final AppProperties appProperties;
 
     /**
@@ -39,21 +38,21 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
      *
      * @param serviceDefinition definicion del servicio seleccionada desde catalogo
      * @param capability capacidad solicitada
-     * @return true cuando corresponde al EXECUTE CASH_IN de ECUABET
+     * @return true cuando corresponde al EXECUTE CASH_OUT de ECUABET
      */
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
         AppProperties.ProviderProperties provider = findProviderProperties();
         return capability == Capability.EXECUTE
                 && provider != null
-                && serviceDefinition.getMovementType() == MovementType.CASH_IN
+                && serviceDefinition.getMovementType() == MovementType.CASH_OUT
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
                 && hasConfiguredOperation(provider, capability, serviceDefinition);
     }
 
     /**
-     * Procesa la ejecucion de deposito ECUABET.
+     * Procesa la ejecucion de nota de retiro ECUABET.
      *
      * @param request request interno recibido por OMNISTACK
      * @param serviceDefinition definicion catalogada del servicio
@@ -70,7 +69,7 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
         AppProperties.ProviderOperationProperties operation = getRequiredOperation(provider, capability, serviceDefinition);
         Integer transactionId = generateTransactionId();
 
-        EcuabetDepositCommand command = EcuabetDepositCommand.builder()
+        EcuabetWithdrawCommand command = EcuabetWithdrawCommand.builder()
                 .uuid(request.getUuid())
                 .chain(request.getChain())
                 .store(request.getStore())
@@ -83,12 +82,14 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
                 .rmsItemCode(request.getRmsItemCode())
                 .userid(request.getUserid())
                 .phone(request.getPhone())
+                .withdrawId(request.getWithdrawId())
+                .password(request.getPassword())
                 .document(request.getDocument())
                 .amount(request.getAmount())
                 .transactionId(transactionId)
                 .build();
 
-        ExternalTransactionResponse externalResponse = ecuabetDepositPort.deposit(command, operation.getPath());
+        ExternalTransactionResponse externalResponse = ecuabetWithdrawPort.withdraw(command, operation.getPath());
         return buildResponse(request, externalResponse, transactionId);
     }
 
@@ -142,11 +143,14 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
         validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode());
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode());
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode());
-        if (request.getUserid() == null || request.getUserid().isBlank()) {
-            throw new IntegrationException("ECUABET requiere userid para deposito");
+        if (request.getWithdrawId() == null || request.getWithdrawId().isBlank()) {
+            throw new IntegrationException("ECUABET requiere withdrawId para nota de retiro");
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IntegrationException("ECUABET requiere password para nota de retiro");
         }
         if (request.getAmount() == null) {
-            throw new IntegrationException("ECUABET requiere amount para deposito");
+            throw new IntegrationException("ECUABET requiere amount para nota de retiro");
         }
     }
 
@@ -226,9 +230,9 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
         return value == null ? null : String.valueOf(value);
     }
 
-    private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
+    private java.math.BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
         String value = stringValue(payload, "amount");
-        return value == null || value.isBlank() ? request.getAmount() : new BigDecimal(value);
+        return value == null || value.isBlank() ? request.getAmount() : new java.math.BigDecimal(value);
     }
 
     private Integer integerValue(Map<String, Object> payload, String key) {
