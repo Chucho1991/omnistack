@@ -282,6 +282,7 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
               "max_amount": "200",
               "timeout_ws_max": "10000",
               "retries_ws_max": "3",
+              "num_tickets": "3",
               "capabilities": [
                 "PRECHECK",
                 "EXECUTE",

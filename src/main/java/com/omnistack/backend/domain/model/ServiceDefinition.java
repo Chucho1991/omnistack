@@ -44,6 +44,9 @@ public class ServiceDefinition {
     String timeoutWsMax;
     @JsonProperty("retries_ws_max")
     String retriesWsMax;
+    @Builder.Default
+    @JsonProperty("num_tickets")
+    String numTickets = "3";
     List<Capability> capabilities;
     @JsonProperty("input_fields")
     List<InputField> inputFields;

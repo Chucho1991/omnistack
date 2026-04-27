@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BusinessLinesService implements BusinessLinesUseCase {
 
+    private static final String DEFAULT_NUM_TICKETS = "3";
+
     private final BusinessLinesCatalogCacheService businessLinesCatalogCacheService;
 
     @Override
@@ -87,6 +89,7 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .maxAmount(service.getMaxAmount().toPlainString())
                 .timeoutWsMax(service.getTimeoutWsMax())
                 .retriesWsMax(service.getRetriesWsMax())
+                .numTickets(service.getNumTickets() == null ? DEFAULT_NUM_TICKETS : service.getNumTickets())
                 .capabilities(service.getCapabilities().stream().map(Enum::name).collect(Collectors.toList()))
                 .inputFields(service.getInputFields() == null
                         ? Collections.emptyList()

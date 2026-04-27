@@ -44,6 +44,7 @@ public class InMemoryCatalogSourceAdapter implements CatalogSourcePort {
                 .maxAmount(new BigDecimal("200.00"))
                 .timeoutWsMax("10000")
                 .retriesWsMax("3")
+                .numTickets("3")
                 .capabilities(List.of(Capability.PRECHECK, Capability.EXECUTE, Capability.VERIFY, Capability.REVERSE))
                 .inputFields(List.of(
                         InputField.builder().id("phone").label("Telefono").type(InputFieldType.STRING).capability(Capability.PRECHECK.name()).required(true).group("PHONE").build(),

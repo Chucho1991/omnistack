@@ -62,6 +62,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                         "200",
                         "10000",
                         "3",
+                        "3",
                         true,
                         "<html>consent</html>")));
         when(jdbcTemplate.query(eq("capability"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
@@ -100,6 +101,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertEquals(2, snapshot.getServices().get(0).getCapabilities().size());
         assertEquals("10000", snapshot.getServices().get(0).getTimeoutWsMax());
         assertEquals("3", snapshot.getServices().get(0).getRetriesWsMax());
+        assertEquals("3", snapshot.getServices().get(0).getNumTickets());
         assertEquals("document", snapshot.getServices().get(0).getInputFields().get(0).getId());
         assertEquals("TARJETA_CREDITO", snapshot.getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode().name());
         assertTrue(snapshot.getServices().get(0).isRequiresConsent());

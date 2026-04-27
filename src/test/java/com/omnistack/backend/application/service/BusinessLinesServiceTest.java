@@ -56,6 +56,7 @@ class BusinessLinesServiceTest {
                 .maxAmount(new BigDecimal("200.00"))
                 .timeoutWsMax("10000")
                 .retriesWsMax("3")
+                .numTickets("3")
                 .capabilities(List.of(Capability.PRECHECK, Capability.EXECUTE))
                 .inputFields(List.of(InputField.builder()
                         .id("phone")
@@ -130,6 +131,7 @@ class BusinessLinesServiceTest {
         assertEquals("900001", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRmsItemCode());
         assertEquals("10000", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
         assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
+        assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getNumTickets());
         assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRequiresConsent());
         assertEquals("phone", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getInputFields().get(0).getId());
         assertEquals("EFECTIVO", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode());

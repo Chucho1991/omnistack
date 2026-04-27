@@ -186,6 +186,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .maxAmount(new BigDecimal(row.maxAmount()))
                 .timeoutWsMax(row.timeoutWsMax())
                 .retriesWsMax(row.retriesWsMax())
+                .numTickets(row.numTickets())
                 .capabilities(capabilities)
                 .inputFields(inputFields)
                 .paymentMethods(paymentMethods)
@@ -250,6 +251,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getString("max_amount"),
                 rs.getString("timeout_ws_max"),
                 rs.getString("retries_ws_max"),
+                rs.getString("num_tickets"),
                 rs.getInt("requires_consent") == 1,
                 rs.getString("consent_text"));
     }
@@ -337,6 +339,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             String maxAmount,
             String timeoutWsMax,
             String retriesWsMax,
+            String numTickets,
             boolean requiresConsent,
             String consentText) {
         ServiceKey serviceKey() {

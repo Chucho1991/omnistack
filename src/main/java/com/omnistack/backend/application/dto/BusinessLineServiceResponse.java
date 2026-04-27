@@ -38,6 +38,8 @@ public class BusinessLineServiceResponse {
     String timeoutWsMax;
     @JsonProperty("retries_ws_max")
     String retriesWsMax;
+    @JsonProperty("num_tickets")
+    String numTickets;
     List<String> capabilities;
     @JsonProperty("input_fields")
     List<BusinessLineInputFieldResponse> inputFields;
