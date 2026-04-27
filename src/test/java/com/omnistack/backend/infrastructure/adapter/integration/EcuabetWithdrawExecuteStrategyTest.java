@@ -69,7 +69,7 @@ class EcuabetWithdrawExecuteStrategyTest {
     }
 
     @Test
-    void shouldBuildWithdrawCommandAndReturnGeneratedAuthorization() {
+    void shouldBuildWithdrawCommandAndReturnProviderAuthorization() {
         when(ecuabetWithdrawPort.withdraw(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
                 .approved(true)
                 .externalCode("0")
@@ -112,7 +112,7 @@ class EcuabetWithdrawExecuteStrategyTest {
         assertEquals("77992", captor.getValue().getPassword());
         assertEquals(new BigDecimal("25.50"), captor.getValue().getAmount());
         assertNotNull(captor.getValue().getTransactionId());
-        assertEquals(String.valueOf(captor.getValue().getTransactionId()), response.getAuthorization());
+        assertEquals("91081", response.getAuthorization());
         assertEquals("0912345678", response.getDocument());
         assertEquals(new BigDecimal("20.00"), response.getAmount());
         assertEquals("0", response.getStatus().getCode());

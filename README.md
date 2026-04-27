@@ -177,6 +177,10 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_CAPABILITIES`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_NAME`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_ITEM`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_CAPABILITIES`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_NAME`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_MODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_TTL_HOURS`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_REFRESH_ON_STARTUP`
@@ -422,7 +426,6 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
     "message": "Transaccion correcta"
   },
   "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
-  "transactionId": "f0908f64-9145-45cf-a22c-c36bca604372",
   "providerCode": "0",
   "providerMessage": "Transaccion correcta",
   "username": "Carlos",
@@ -564,10 +567,10 @@ La recarga de saldos ECUABET usa `service_provider_code=1` y `rms_item_code=1000
 - endpoint externo: `POST /user/deposit`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
 - body externo: `shop`, `token`, `userid`, `country`, `amount`, `transactionId`, `shop_info`, `shop_ip`
-- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET y lo devuelve al consumidor como `authorization`
+- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - `shop_info`: se mapea desde `store_name`
 - `shop_ip`: usa `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` si esta configurado; si no, se resuelve desde la IP local del servidor
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId generado`, `document <- document`, `amount <- amount`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request externo generado:
@@ -592,10 +595,10 @@ La ejecucion de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_i
 - endpoint externo: `POST /user/withdraw`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
 - body externo: `shop`, `token`, `withdrawId`, `country`, `password`, `transactionId`, `shop_info`, `shop_ip`
-- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET y lo devuelve al consumidor como `authorization`
+- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - `shop_info`: se mapea desde `store_name`
 - `shop_ip`: usa `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` si esta configurado; si no, se resuelve desde la IP local del servidor
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId generado`, `document <- document`, `amount <- amount`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request interno:
@@ -655,6 +658,55 @@ Request externo generado:
   "medioId": 23,
   "puntooperacionId": 52132,
   "cuentaweb": "0901111112",
+  "valor": "9.99",
+  "codigotrn": "f0908f64-9145-45cf-a22c-c36bca604372"
+}
+```
+
+### LOTERIA BET593 EXECUTE CASH_IN
+
+La confirmacion de recarga de saldos BET593 usa el mismo contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConfirmarBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario`, `canal=BMV`, `medioId=23`, `puntooperacionId=52132`
+- mapeo request: `uuid -> codigotrn`, `document -> cuentaweb`, `authorization -> recargaid`, `serialnumber -> serialnumber`, `amount -> valor`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `nombre -> username`, `apellido -> lastname`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`, `valor -> amount`
+
+Request interno:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "movement_type": "CASH_IN",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "10001565828",
+  "authorization": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
+  "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
+  "document": "0901111112",
+  "amount": 9.99
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "token": "token-dinamico",
+  "canal": "BMV",
+  "medioId": 23,
+  "puntooperacionId": 52132,
+  "cuentaweb": "0901111112",
+  "recargaid": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
+  "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
   "valor": "9.99",
   "codigotrn": "f0908f64-9145-45cf-a22c-c36bca604372"
 }

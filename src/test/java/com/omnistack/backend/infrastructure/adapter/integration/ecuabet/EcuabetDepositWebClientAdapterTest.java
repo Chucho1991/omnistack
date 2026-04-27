@@ -92,7 +92,7 @@ class EcuabetDepositWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"transactionId\":91081"));
         assertTrue(capturedBody.get().contains("\"shop_info\":\"FYBECA EL BATAN\""));
         assertTrue(capturedBody.get().contains("\"shop_ip\":\"10.0.0.10\""));
-        assertEquals("91081", String.valueOf(response.getPayload().get("authorization")));
+        assertEquals("41468", String.valueOf(response.getPayload().get("authorization")));
         assertEquals("563455", String.valueOf(response.getPayload().get("depositId")));
         assertEquals("41468", String.valueOf(response.getPayload().get("providerTransactionId")));
         assertEquals("Carlos", String.valueOf(response.getPayload().get("name")));

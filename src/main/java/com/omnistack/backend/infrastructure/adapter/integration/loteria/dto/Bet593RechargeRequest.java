@@ -1,5 +1,6 @@
 package com.omnistack.backend.infrastructure.adapter.integration.loteria.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Value;
 
@@ -8,6 +9,7 @@ import lombok.Value;
  */
 @Value
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Bet593RechargeRequest {
     String usuario;
     String token;
@@ -15,6 +17,8 @@ public class Bet593RechargeRequest {
     Integer medioId;
     Integer puntooperacionId;
     String cuentaweb;
+    String recargaid;
+    String serialnumber;
     String valor;
     String codigotrn;
 }

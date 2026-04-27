@@ -120,13 +120,19 @@ public class EcuabetWithdrawWebClientAdapter implements EcuabetWithdrawPort {
         payload.put("error", response.getError());
         payload.put("code", resolveExternalCode(response));
         payload.put("message", resolveExternalMessage(response));
-        payload.put("authorization", String.valueOf(command.getTransactionId()));
+        payload.put("authorization", resolveAuthorization(command, response));
         payload.put("document", command.getDocument());
         payload.put("amount", command.getAmount());
         payload.put("withdrawId", command.getWithdrawId());
         payload.put("providerTransactionId", response.getTransactionId());
         payload.putAll(response.getRaw());
         return payload;
+    }
+
+    private String resolveAuthorization(EcuabetWithdrawCommand command, EcuabetWithdrawResponse response) {
+        return response.getTransactionId() != null && !response.getTransactionId().isBlank()
+                ? response.getTransactionId()
+                : String.valueOf(command.getTransactionId());
     }
 
     private String resolveExternalCode(EcuabetWithdrawResponse response) {

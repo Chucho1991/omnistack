@@ -69,7 +69,7 @@ class EcuabetDepositExecuteStrategyTest {
     }
 
     @Test
-    void shouldBuildDepositCommandAndReturnGeneratedAuthorization() {
+    void shouldBuildDepositCommandAndReturnProviderAuthorization() {
         when(ecuabetDepositPort.deposit(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
                 .approved(true)
                 .externalCode("0")
@@ -113,7 +113,7 @@ class EcuabetDepositExecuteStrategyTest {
         assertEquals("997561", captor.getValue().getUserid());
         assertEquals(new BigDecimal("100000.00"), captor.getValue().getAmount());
         assertNotNull(captor.getValue().getTransactionId());
-        assertEquals(String.valueOf(captor.getValue().getTransactionId()), response.getAuthorization());
+        assertEquals("91081", response.getAuthorization());
         assertEquals("Carlos", response.getUsername());
         assertEquals("Perez", response.getLastname());
         assertEquals("USD", response.getCurrency());

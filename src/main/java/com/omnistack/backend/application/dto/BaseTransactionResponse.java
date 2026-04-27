@@ -14,9 +14,6 @@ public abstract class BaseTransactionResponse extends BaseResponse {
     @Schema(example = "f0908f64-9145-45cf-a22c-c36bca604372")
     private String uuid;
 
-    @Schema(example = "TXN-20260422-001")
-    private String transactionId;
-
     @Schema(example = "OK")
     private String providerCode;
 

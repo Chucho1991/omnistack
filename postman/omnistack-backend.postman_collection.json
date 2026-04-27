@@ -260,6 +260,38 @@
           "response": []
         },
         {
+          "name": "Execute LOTERIA BET593 Cashin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"authorization\": \"9F968187-F436-4F19-8C1F-A7A4DA07A899\",\n  \"serialnumber\": \"7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511\",\n  \"document\": \"0901111112\",\n  \"amount\": 9.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "execute"
+              ]
+            },
+            "description": "Confirma la recarga de saldos BET593 por Loteria Nacional en flujo CASH_IN."
+          },
+          "response": []
+        },
+        {
           "name": "Execute",
           "request": {
             "method": "POST",

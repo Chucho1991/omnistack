@@ -90,7 +90,7 @@ class EcuabetWithdrawWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"transactionId\":10980"));
         assertTrue(capturedBody.get().contains("\"shop_info\":\"FYBECA EL BATAN\""));
         assertTrue(capturedBody.get().contains("\"shop_ip\":\"10.0.0.10\""));
-        assertEquals("10980", String.valueOf(response.getPayload().get("authorization")));
+        assertEquals("41472", String.valueOf(response.getPayload().get("authorization")));
         assertEquals("41472", String.valueOf(response.getPayload().get("providerTransactionId")));
         assertEquals("20.00", String.valueOf(response.getPayload().get("amount")));
     }

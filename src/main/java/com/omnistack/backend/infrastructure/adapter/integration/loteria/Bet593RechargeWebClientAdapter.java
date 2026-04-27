@@ -104,6 +104,8 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
                 .medioId(provider.getMedioId())
                 .puntooperacionId(provider.getPuntoOperacionId())
                 .cuentaweb(requiredValue(command.getDocument(), "document"))
+                .recargaid(command.getAuthorization())
+                .serialnumber(command.getSerialnumber())
                 .valor(formatAmount(command.getAmount()))
                 .codigotrn(requiredValue(command.getUuid(), "uuid"))
                 .build();
@@ -118,6 +120,7 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
         payload.put("lastname", response.getApellido());
         payload.put("authorization", response.getRecargaid());
         payload.put("serialnumber", response.getSerialnumber());
+        payload.put("userid", null);
         payload.put("document", response.getCuentaweb());
         payload.put("amount", response.getValor());
         payload.putAll(response.getRaw());

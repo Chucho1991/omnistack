@@ -5,59 +5,60 @@ import com.omnistack.backend.application.dto.BaseTransactionResponse;
 import com.omnistack.backend.application.dto.ErrorDetail;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.application.port.out.EcuabetWithdrawPort;
+import com.omnistack.backend.application.port.out.Bet593RechargePort;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.domain.model.EcuabetWithdrawCommand;
+import com.omnistack.backend.domain.model.Bet593RechargeCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import java.math.BigDecimal;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Estrategia de EXECUTE CASH_OUT para nota de retiro ECUABET.
+ * Estrategia de EXECUTE CASH_IN para confirmar recargas BET593 mediante Loteria Nacional.
  */
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
-public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
+public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
 
-    private static final String PROVIDER_KEY = "ecuabet";
-    private static final int MIN_TRANSACTION_ID = 10_000;
-    private static final int MAX_TRANSACTION_ID = 999_999_999;
+    private static final String PROVIDER_KEY = "loteria";
 
-    private final EcuabetWithdrawPort ecuabetWithdrawPort;
+    private final Bet593RechargePort bet593RechargePort;
     private final AppProperties appProperties;
 
     /**
-     * Indica si la estrategia atiende la capacidad y servicio configurados.
+     * Indica si la estrategia soporta el servicio y capacidad resueltos.
      *
-     * @param serviceDefinition definicion del servicio seleccionada desde catalogo
-     * @param capability capacidad solicitada
-     * @return true cuando corresponde al EXECUTE CASH_OUT de ECUABET
+     * @param serviceDefinition definicion comercial resuelta desde catalogo
+     * @param capability capacidad transaccional solicitada
+     * @return true cuando corresponde al EXECUTE CASH_IN BET593
      */
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
         AppProperties.ProviderProperties provider = findProviderProperties();
         return capability == Capability.EXECUTE
                 && provider != null
-                && serviceDefinition.getMovementType() == MovementType.CASH_OUT
+                && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
                 && hasConfiguredOperation(provider, capability, serviceDefinition);
     }
 
     /**
-     * Procesa la ejecucion de nota de retiro ECUABET.
+     * Procesa la confirmacion de recarga BET593 y delega el consumo externo al puerto configurado.
      *
-     * @param request request interno recibido por OMNISTACK
-     * @param serviceDefinition definicion catalogada del servicio
-     * @param capability capacidad solicitada
-     * @return respuesta interna mapeada para OMNISTACK
+     * @param request request canonico interno
+     * @param serviceDefinition definicion comercial resuelta
+     * @param capability capacidad transaccional solicitada
+     * @return response canonico de execute
      */
     @Override
     public BaseTransactionResponse process(
@@ -65,17 +66,17 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
             ServiceDefinition serviceDefinition,
             Capability capability) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        validateRequest(request, serviceDefinition, provider);
+        validateBusinessContext(request, serviceDefinition, provider);
+        validateRequiredRequestFields(request);
         AppProperties.ProviderOperationProperties operation = getRequiredOperation(provider, capability, serviceDefinition);
-        Integer transactionId = generateTransactionId();
 
-        EcuabetWithdrawCommand command = EcuabetWithdrawCommand.builder()
+        Bet593RechargeCommand command = Bet593RechargeCommand.builder()
                 .uuid(request.getUuid())
                 .chain(request.getChain())
                 .store(request.getStore())
                 .storeName(request.getStoreName())
                 .pos(request.getPos())
-                .channelPos(request.getChannelPos())
+                .channelPos(request.getChannelPos().name())
                 .categoryCode(request.getCategoryCode())
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())
@@ -84,22 +85,19 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
                 .phone(request.getPhone())
                 .withdrawId(request.getWithdrawId())
                 .password(request.getPassword())
+                .authorization(request.getAuthorization())
+                .serialnumber(request.getSerialnumber())
                 .document(request.getDocument())
                 .amount(request.getAmount())
-                .transactionId(transactionId)
                 .build();
 
-        ExternalTransactionResponse externalResponse = ecuabetWithdrawPort.withdraw(command, operation.getPath());
-        return buildResponse(request, externalResponse, transactionId);
+        ExternalTransactionResponse externalResponse = bet593RechargePort.recharge(command, operation.getPath());
+        return buildResponse(request, externalResponse);
     }
 
-    private ExecuteResponse buildResponse(
-            BaseTransactionRequest request,
-            ExternalTransactionResponse externalResponse,
-            Integer transactionId) {
+    private ExecuteResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
-        Integer providerError = integerValue(payload, "error");
-        boolean isError = providerError != null && providerError != 0;
+        boolean isError = stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
 
         ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
                 .chain(request.getChain())
@@ -118,8 +116,10 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(resolveValue(payload, "authorization", String.valueOf(transactionId)))
-                .document(request.getDocument())
+                .authorization(resolveValue(payload, "authorization", request.getAuthorization()))
+                .serialnumber(resolveValue(payload, "serialnumber", request.getSerialnumber()))
+                .userid(resolveValue(payload, "userid", request.getUserid()))
+                .document(resolveValue(payload, "document", request.getDocument()))
                 .amount(resolveAmount(payload, request));
 
         if (isError) {
@@ -134,38 +134,46 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
         return builder.build();
     }
 
-    private void validateRequest(
+    private void validateBusinessContext(
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode());
         validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode());
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode());
+        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode());
+        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode());
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode());
-        if (request.getWithdrawId() == null || request.getWithdrawId().isBlank()) {
-            throw new IntegrationException("ECUABET requiere withdrawId para nota de retiro");
+    }
+
+    private void validateRequiredRequestFields(BaseTransactionRequest request) {
+        if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
+            throw new IntegrationException("Loteria BET593 requiere authorization para confirmar recarga");
         }
-        if (request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new IntegrationException("ECUABET requiere password para nota de retiro");
+        if (request.getSerialnumber() == null || request.getSerialnumber().isBlank()) {
+            throw new IntegrationException("Loteria BET593 requiere serialnumber para confirmar recarga");
+        }
+        if (request.getDocument() == null || request.getDocument().isBlank()) {
+            throw new IntegrationException("Loteria BET593 requiere document para confirmar recarga");
         }
         if (request.getAmount() == null) {
-            throw new IntegrationException("ECUABET requiere amount para nota de retiro");
+            throw new IntegrationException("Loteria BET593 requiere amount para confirmar recarga");
         }
     }
 
     private void validateValue(String fieldName, String currentValue, String expectedValue) {
         if (expectedValue == null || expectedValue.isBlank()) {
-            throw new IntegrationException("La configuracion de ECUABET no define el valor requerido para " + fieldName);
+            throw new IntegrationException("La configuracion de Loteria BET593 no define el valor requerido para " + fieldName);
         }
         if (!expectedValue.equalsIgnoreCase(currentValue)) {
-            throw new IntegrationException("La solicitud no coincide con la configuracion esperada de ECUABET para " + fieldName);
+            throw new IntegrationException("La solicitud no coincide con la configuracion esperada de Loteria BET593 para " + fieldName);
         }
     }
 
     private AppProperties.ProviderProperties getProviderProperties() {
         AppProperties.ProviderProperties provider = findProviderProperties();
         if (provider == null) {
-            throw new IntegrationException("No existe configuracion para el proveedor ECUABET");
+            throw new IntegrationException("No existe configuracion para el proveedor Loteria");
         }
         return provider;
     }
@@ -192,13 +200,12 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
             ServiceDefinition serviceDefinition) {
         AppProperties.ProviderOperationProperties operation = findOperation(provider, capability, serviceDefinition.getMovementType());
         if (operation == null || operation.getPath() == null || operation.getPath().isBlank()) {
-            throw new IntegrationException("ECUABET no tiene ruta configurada para capability=" + capability.name()
+            throw new IntegrationException("Loteria BET593 no tiene ruta configurada para capability=" + capability.name()
                     + " y movement_type=" + serviceDefinition.getMovementType());
         }
         if (operation.getItem() == null || !operation.getItem().equalsIgnoreCase(serviceDefinition.getRmsItemCode())) {
-            throw new IntegrationException("ECUABET no tiene item configurado para rms_item_code=" + serviceDefinition.getRmsItemCode()
-                    + ", capability=" + capability.name()
-                    + " y movement_type=" + serviceDefinition.getMovementType());
+            throw new IntegrationException("Loteria BET593 no tiene item configurado para rms_item_code="
+                    + serviceDefinition.getRmsItemCode());
         }
         return operation;
     }
@@ -217,8 +224,9 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
         return movementType == MovementType.CASH_IN ? capabilityProperties.getCashin() : capabilityProperties.getCashout();
     }
 
-    private Integer generateTransactionId() {
-        return ThreadLocalRandom.current().nextInt(MIN_TRANSACTION_ID, MAX_TRANSACTION_ID);
+    private String resolveValue(Map<String, Object> payload, String key, String fallback) {
+        String value = stringValue(payload, key);
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private String stringValue(Map<String, Object> payload, String key) {
@@ -229,18 +237,8 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
         return value == null ? null : String.valueOf(value);
     }
 
-    private String resolveValue(Map<String, Object> payload, String key, String fallback) {
-        String value = stringValue(payload, key);
-        return value == null || value.isBlank() ? fallback : value;
-    }
-
-    private java.math.BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
+    private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
         String value = stringValue(payload, "amount");
-        return value == null || value.isBlank() ? request.getAmount() : new java.math.BigDecimal(value);
-    }
-
-    private Integer integerValue(Map<String, Object> payload, String key) {
-        String value = stringValue(payload, key);
-        return value == null || value.isBlank() ? null : Integer.valueOf(value);
+        return value == null || value.isBlank() ? request.getAmount() : new BigDecimal(value);
     }
 }

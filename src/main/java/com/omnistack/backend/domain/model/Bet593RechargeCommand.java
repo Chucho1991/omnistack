@@ -24,6 +24,8 @@ public class Bet593RechargeCommand {
     String phone;
     String withdrawId;
     String password;
+    String authorization;
+    String serialnumber;
     String document;
     BigDecimal amount;
 }

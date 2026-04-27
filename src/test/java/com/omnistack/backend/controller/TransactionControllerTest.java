@@ -128,6 +128,7 @@ class TransactionControllerTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uuid").value("uuid-cashout-execute"))
+                .andExpect(jsonPath("$.transactionId").doesNotExist())
                 .andExpect(jsonPath("$.authorization").value("10980"))
                 .andExpect(jsonPath("$.status.code").value("0"));
     }

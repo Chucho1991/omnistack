@@ -73,6 +73,8 @@ class Bet593RechargeWebClientAdapterTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
+                .authorization("9F968187-F436-4F19-8C1F-A7A4DA07A899")
+                .serialnumber("7366ea56284a06a2")
                 .document("0901111112")
                 .amount(new BigDecimal("9.99"))
                 .build(), "/APIVentasLoteria/api/Ventas/RecargarBet593");
@@ -84,6 +86,8 @@ class Bet593RechargeWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"medioId\":23"));
         assertTrue(capturedBody.get().contains("\"puntooperacionId\":52132"));
         assertTrue(capturedBody.get().contains("\"cuentaweb\":\"0901111112\""));
+        assertTrue(capturedBody.get().contains("\"recargaid\":\"9F968187-F436-4F19-8C1F-A7A4DA07A899\""));
+        assertTrue(capturedBody.get().contains("\"serialnumber\":\"7366ea56284a06a2\""));
         assertTrue(capturedBody.get().contains("\"valor\":\"9.99\""));
         assertTrue(capturedBody.get().contains("\"codigotrn\":\"uuid-bet593\""));
         assertTrue(response.isApproved());

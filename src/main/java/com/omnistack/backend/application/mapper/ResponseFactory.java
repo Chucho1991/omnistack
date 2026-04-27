@@ -47,7 +47,6 @@ public final class ResponseFactory {
             case PRECHECK -> precheckResponse(request, externalResponse);
             case EXECUTE -> ExecuteResponse.builder()
                     .uuid(request.getUuid())
-                    .transactionId(request.getUuid())
                     .providerCode(externalResponse.getExternalCode())
                     .providerMessage(externalResponse.getExternalMessage())
                     .errorFlag(false)
@@ -55,7 +54,6 @@ public final class ResponseFactory {
                     .build();
             case VERIFY -> VerifyResponse.builder()
                     .uuid(request.getUuid())
-                    .transactionId(request.getUuid())
                     .providerCode(externalResponse.getExternalCode())
                     .providerMessage(externalResponse.getExternalMessage())
                     .errorFlag(false)
@@ -63,7 +61,6 @@ public final class ResponseFactory {
                     .build();
             case REVERSE -> ReverseResponse.builder()
                     .uuid(request.getUuid())
-                    .transactionId(request.getUuid())
                     .providerCode(externalResponse.getExternalCode())
                     .providerMessage(externalResponse.getExternalMessage())
                     .errorFlag(false)

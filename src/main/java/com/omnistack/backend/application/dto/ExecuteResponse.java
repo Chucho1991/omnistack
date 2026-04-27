@@ -63,6 +63,12 @@ public class ExecuteResponse extends BaseTransactionResponse {
     @Schema(example = "91081")
     private String authorization;
 
+    @Schema(example = "SN001-XYZ")
+    private String serialnumber;
+
+    @Schema(example = "997561")
+    private String userid;
+
     @Schema(example = "0912345678")
     private String document;
 

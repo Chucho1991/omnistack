@@ -107,7 +107,6 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
                 .pos(request.getPos())
                 .channelPos(request.getChannelPos().name())
                 .uuid(request.getUuid())
-                .transactionId(request.getUuid())
                 .providerCode(externalResponse.getExternalCode())
                 .providerMessage(externalResponse.getExternalMessage())
                 .categoryCode(request.getCategoryCode())
@@ -118,7 +117,7 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(String.valueOf(transactionId))
+                .authorization(resolveValue(payload, "authorization", String.valueOf(transactionId)))
                 .document(request.getDocument())
                 .amount(resolveAmount(payload, request));
 
@@ -224,6 +223,11 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
         }
         Object value = payload.get(key);
         return value == null ? null : String.valueOf(value);
+    }
+
+    private String resolveValue(Map<String, Object> payload, String key, String fallback) {
+        String value = stringValue(payload, key);
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
