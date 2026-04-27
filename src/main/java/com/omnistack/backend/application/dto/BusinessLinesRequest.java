@@ -17,6 +17,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Consulta de oferta comercial por punto de venta")
+/**
+ * DTO de entrada para consultar lineas de negocio por punto de venta.
+ */
 public class BusinessLinesRequest {
     @NotBlank
     @Schema(example = "001")

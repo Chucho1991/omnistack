@@ -7,5 +7,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+/**
+ * DTO de salida para la verificacion posterior de transacciones.
+ */
 public class VerifyResponse extends BaseTransactionResponse {
 }

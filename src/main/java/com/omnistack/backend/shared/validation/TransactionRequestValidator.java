@@ -5,8 +5,18 @@ import com.omnistack.backend.domain.enums.MovementType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+/**
+ * Validador de datos minimos requeridos para solicitudes transaccionales.
+ */
 public class TransactionRequestValidator implements ConstraintValidator<ValidTransactionRequest, BaseTransactionRequest> {
 
+    /**
+     * Verifica combinaciones validas de identificadores por tipo de movimiento.
+     *
+     * @param value solicitud base a validar.
+     * @param context contexto de validacion de Bean Validation.
+     * @return {@code true} si la solicitud es consistente con la regla definida.
+     */
     @Override
     public boolean isValid(BaseTransactionRequest value, ConstraintValidatorContext context) {
         if (value == null) {
@@ -32,6 +42,12 @@ public class TransactionRequestValidator implements ConstraintValidator<ValidTra
         return true;
     }
 
+    /**
+     * Determina si una cadena contiene texto no vacio.
+     *
+     * @param value valor a evaluar.
+     * @return {@code true} cuando existe contenido no blanco.
+     */
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
     }

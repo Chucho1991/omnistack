@@ -16,6 +16,9 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ValidReverseRequest
 @Schema(description = "Solicitud de reverso")
+/**
+ * DTO de entrada para revertir una transaccion previamente ejecutada.
+ */
 public class ReverseRequest extends BaseTransactionRequest {
     @DecimalMin(value = "0.0", inclusive = false)
     @Schema(example = "25.50")

@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Estado funcional de la operacion")
+/**
+ * DTO que representa el estado funcional de una respuesta transaccional.
+ */
 public class StatusDetail {
     @Schema(example = "00")
     private String code;

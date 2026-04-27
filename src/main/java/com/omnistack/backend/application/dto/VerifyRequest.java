@@ -17,6 +17,9 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ValidTransactionRequest
 @Schema(description = "Solicitud de verificacion posterior")
+/**
+ * DTO de entrada para verificar el estado de una transaccion.
+ */
 public class VerifyRequest extends BaseTransactionRequest {
     @DecimalMin(value = "0.0", inclusive = false)
     @Schema(example = "25.50")

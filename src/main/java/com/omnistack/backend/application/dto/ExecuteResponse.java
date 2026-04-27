@@ -7,5 +7,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+/**
+ * DTO de salida para la ejecucion transaccional.
+ */
 public class ExecuteResponse extends BaseTransactionResponse {
 }
