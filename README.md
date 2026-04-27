@@ -150,13 +150,20 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_TECHNICAL_USER`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_BASE_URL`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_CATEGORY_CODE`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SUBCATEGORY_CODE`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICE_PROVIDER_CODE`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_ID`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` (opcional; si esta vacio se resuelve desde la IP local del servidor)
 - `APP_INTEGRATION_PROVIDERS_ECUABET_COUNTRY`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_TOKEN`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_AUTH_MODE`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHIN_ITEM`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHOUT_ITEM`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_PRECHECK_CASHOUT_PATH`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHIN_ITEM`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_CATEGORY_CODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SUBCATEGORY_CODE`
@@ -371,6 +378,59 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
 }
 ```
 
+### POST `/v1/execute` ECUABET CASH_IN
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA EL BATAN",
+  "pos": "1",
+  "channel_POS": "POS",
+  "movement_type": "CASH_IN",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565826",
+  "userid": "997561",
+  "phone": "123456",
+  "document": "0912345678",
+  "amount": 100000.00
+}
+```
+
+### Response `/v1/execute` ECUABET CASH_IN
+
+```json
+{
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA EL BATAN",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565826",
+  "is_error": false,
+  "status": {
+    "code": "0",
+    "message": "Transaccion correcta"
+  },
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "transactionId": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "providerCode": "0",
+  "providerMessage": "Transaccion correcta",
+  "username": "Carlos",
+  "lastname": "Perez",
+  "currency": "USD",
+  "authorization": "91081",
+  "document": "0912345678",
+  "amount": 100000.00
+}
+```
+
 ### POST `/v1/provider-token/refresh`
 
 ```json
@@ -493,6 +553,34 @@ Ejemplo `PRECHECK CASH_OUT`:
 ```
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/searchwithdraw` cuando el servicio resuelto corresponde a `CASH_OUT`.
+
+### ECUABET EXECUTE CASH_IN
+
+La recarga de saldos ECUABET usa `service_provider_code=1` y `rms_item_code=10001565826` para ejecutar el deposito externo.
+
+- endpoint externo: `POST /user/deposit`
+- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- body externo: `shop`, `token`, `userid`, `country`, `amount`, `transactionId`, `shop_info`, `shop_ip`
+- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET y lo devuelve al consumidor como `authorization`
+- `shop_info`: se mapea desde `store_name`
+- `shop_ip`: usa `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` si esta configurado; si no, se resuelve desde la IP local del servidor
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId generado`, `document <- document`, `amount <- amount`
+- seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
+
+Request externo generado:
+
+```json
+{
+  "shop": "998739",
+  "token": "token-ecuabet",
+  "userid": 997561,
+  "country": 66,
+  "amount": 100000.00,
+  "transactionId": 91081,
+  "shop_info": "FYBECA EL BATAN",
+  "shop_ip": "10.0.0.10"
+}
+```
 
 ### LOTERIA BET593 PRECHECK CASH_IN
 

@@ -94,6 +94,7 @@ public class AppProperties {
         private String subcategoryCode;
         private String serviceProviderCode;
         private String shopId;
+        private String shopIp;
         private Integer country;
         private String token;
         private String canal;
