@@ -27,5 +27,6 @@ public class Bet593RechargeCommand {
     String authorization;
     String serialnumber;
     String document;
+    String motivo;
     BigDecimal amount;
 }

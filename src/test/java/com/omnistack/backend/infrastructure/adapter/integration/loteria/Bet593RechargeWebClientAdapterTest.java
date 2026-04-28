@@ -157,6 +157,63 @@ class Bet593RechargeWebClientAdapterTest {
     }
 
     @Test
+    void shouldSendBet593RechargeReversePayloadAndNormalizeBusinessError() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593", exchange -> respondJson(exchange,
+                """
+                {
+                  "usuario": "USRFEMSAPREP",
+                  "token": "78611427112026090453786114275309",
+                  "operacion": "REVRETIROOL",
+                  "codError": 400066,
+                  "msgError": "Tiempo excedido para realizar un reverso de recarga",
+                  "resultado": null,
+                  "cuentaweb": null,
+                  "nombre": null,
+                  "apellido": null,
+                  "tipoDocumento": null,
+                  "valor": null,
+                  "fecharecarga": null,
+                  "recargaid": null,
+                  "serialnumber": null,
+                  "estado": null
+                }
+                """));
+        server.start();
+
+        Bet593RechargeWebClientAdapter adapter = new Bet593RechargeWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+
+        var response = adapter.reverseRecharge(Bet593RechargeCommand.builder()
+                .uuid("ca9b201a-a668-45ed-876c-00affcb18580")
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("2")
+                .document("0901111112")
+                .motivo("Demora en obtener respuesta")
+                .build(), "/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
+
+        assertEquals("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593", capturedPath.get());
+        assertTrue(capturedBody.get().contains("\"usuario\":\"USRFEMSAPREP\""));
+        assertTrue(capturedBody.get().contains("\"maquina\":\"192.168.3.230\""));
+        assertTrue(capturedBody.get().contains("\"operacion\":\"REVRETIROOL\""));
+        assertTrue(capturedBody.get().contains("\"token\":\"token-dinamico\""));
+        assertTrue(capturedBody.get().contains("\"usuarioId\":\"USRFEMSAPREP\""));
+        assertTrue(capturedBody.get().contains("\"medioId\":23"));
+        assertTrue(capturedBody.get().contains("\"clienteId\":58542"));
+        assertTrue(capturedBody.get().contains("\"numeroTransaccion\":\"ca9b201a-a668-45ed-876c-00affcb18580\""));
+        assertTrue(capturedBody.get().contains("\"identificacion\":\"0901111112\""));
+        assertTrue(capturedBody.get().contains("\"motivo\":\"Demora en obtener respuesta\""));
+        assertFalse(response.isApproved());
+        assertEquals("400066", response.getExternalCode());
+        assertEquals("Tiempo excedido para realizar un reverso de recarga", response.getExternalMessage());
+    }
+
+
+    @Test
     void shouldConvertReadTimeoutIntoIntegrationException() throws Exception {
         server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/APIVentasLoteria/api/Ventas/RecargarBet593", exchange -> {
@@ -217,7 +274,12 @@ class Bet593RechargeWebClientAdapterTest {
         provider.setCanal("BMV");
         provider.setMedioId(23);
         provider.setPuntoOperacionId(52132);
+        provider.setShopIp("192.168.3.230");
+        provider.setClienteId(58542);
         provider.getAuth().getLogin().setUsername("USRFEMSAPREP");
+        AppProperties.ProviderCapabilityProperties reverseCapabilityProperties = new AppProperties.ProviderCapabilityProperties();
+        reverseCapabilityProperties.getCashin().setName("REVRETIROOL");
+        provider.getServices().put("REVERSE", reverseCapabilityProperties);
 
         AppProperties appProperties = new AppProperties();
         appProperties.getIntegration().getProviders().put("loteria", provider);

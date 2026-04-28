@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.Bet593WithdrawPort;
+import com.omnistack.backend.application.port.out.Bet593WithdrawReversePort;
 import com.omnistack.backend.application.port.out.Bet593WithdrawValidationPort;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.Bet593WithdrawCommand;
@@ -29,11 +30,12 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet593WithdrawValidationPort {
+public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet593WithdrawValidationPort, Bet593WithdrawReversePort {
 
     private static final String PROVIDER_KEY = "loteria";
     private static final String EXECUTE_OPERATION = "EXECUTE";
     private static final String VERIFY_OPERATION = "VERIFY";
+    private static final String REVERSE_OPERATION = "REVERSE";
 
     private final WebClient omnistackWebClient;
     private final AppProperties appProperties;
@@ -62,6 +64,18 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
     @Override
     public ExternalTransactionResponse validateWithdraw(Bet593WithdrawCommand command, String operationPath) {
         return consumeWithdraw(command, operationPath, VERIFY_OPERATION, "Loteria BET593 withdraw verify");
+    }
+
+    /**
+     * Ejecuta el consumo externo de reverso de nota de retiro BET593.
+     *
+     * @param command request interno normalizado para la operacion
+     * @param operationPath ruta configurada del endpoint externo
+     * @return respuesta normalizada del proveedor
+     */
+    @Override
+    public ExternalTransactionResponse reverseWithdraw(Bet593WithdrawCommand command, String operationPath) {
+        return consumeWithdraw(command, operationPath, REVERSE_OPERATION, "Loteria BET593 withdraw reverse");
     }
 
     private ExternalTransactionResponse consumeWithdraw(
@@ -131,10 +145,32 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
                 .usuarioId(username)
                 .clienteId(provider.getClienteId())
                 .medioId(provider.getMedioId())
-                .numeroTransaccion(requiredValue(command.getUuid(), "uuid"))
+                .numeroTransaccion(resolveTransactionNumber(command, operationKey))
                 .identificacion(requiredValue(command.getDocument(), "document"))
-                .numeroRetiro(requiredValue(command.getWithdrawId(), "withdrawId"))
+                .numeroRetiro(resolveWithdrawNumber(command, operationKey))
+                .motivo(resolveMotivo(command, operationKey))
                 .build();
+    }
+
+    private String resolveTransactionNumber(Bet593WithdrawCommand command, String operationKey) {
+        if (REVERSE_OPERATION.equals(operationKey)) {
+            return requiredValue(command.getAuthorization(), "authorization");
+        }
+        return requiredValue(command.getUuid(), "uuid");
+    }
+
+    private String resolveWithdrawNumber(Bet593WithdrawCommand command, String operationKey) {
+        if (REVERSE_OPERATION.equals(operationKey)) {
+            return null;
+        }
+        return requiredValue(command.getWithdrawId(), "withdrawId");
+    }
+
+    private String resolveMotivo(Bet593WithdrawCommand command, String operationKey) {
+        if (REVERSE_OPERATION.equals(operationKey)) {
+            return requiredValue(command.getMotivo(), "motivo");
+        }
+        return null;
     }
 
     private void applyRequestFallbacks(Bet593WithdrawResponse response, Bet593WithdrawRequest request) {

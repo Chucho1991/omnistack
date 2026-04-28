@@ -5,21 +5,20 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Request externo para nota de retiro BET593 en Loteria Nacional.
+ * Request externo para reversar recargas BET593 en Loteria Nacional.
  */
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Bet593WithdrawRequest {
+public class Bet593RechargeReverseRequest {
     String usuario;
     String maquina;
     String operacion;
     String token;
     String usuarioId;
-    Integer clienteId;
     Integer medioId;
+    Integer clienteId;
     String numeroTransaccion;
     String identificacion;
-    String numeroRetiro;
     String motivo;
 }

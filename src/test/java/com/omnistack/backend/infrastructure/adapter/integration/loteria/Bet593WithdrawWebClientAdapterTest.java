@@ -179,6 +179,54 @@ class Bet593WithdrawWebClientAdapterTest {
     }
 
     @Test
+    void shouldSendBet593WithdrawReversePayload() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593", exchange -> respondJson(exchange,
+                """
+                {
+                  "codError": 0,
+                  "msgError": "",
+                  "usuario": "USRFEMSAPREP",
+                  "operacion": "REVRETIROOL",
+                  "token": "token-dinamico",
+                  "ordenPagoId": 82319,
+                  "identificacion": "0901111112",
+                  "valor": "200.000000",
+                  "numeroTransaccion": "ca9b201a-a668-45ed-876c-00affcb18580",
+                  "nombre": null,
+                  "fecha": "2026-04-27T22:42:00"
+                }
+                """));
+        server.start();
+
+        Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+
+        var response = adapter.reverseWithdraw(Bet593WithdrawCommand.builder()
+                .uuid(GENERATED_UUID)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("2")
+                .authorization("ca9b201a-a668-45ed-876c-00affcb18580")
+                .document("0901111112")
+                .motivo("Demora en obtener respuesta")
+                .build(), "/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
+
+        assertEquals("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593", capturedPath.get());
+        assertTrue(capturedBody.get().contains("\"operacion\":\"REVRETIROOL\""));
+        assertTrue(capturedBody.get().contains("\"numeroTransaccion\":\"ca9b201a-a668-45ed-876c-00affcb18580\""));
+        assertTrue(capturedBody.get().contains("\"identificacion\":\"0901111112\""));
+        assertTrue(capturedBody.get().contains("\"motivo\":\"Demora en obtener respuesta\""));
+        assertTrue(response.isApproved());
+        assertEquals("0", response.getExternalCode());
+        assertEquals("0901111112", String.valueOf(response.getPayload().get("document")));
+        assertEquals("ca9b201a-a668-45ed-876c-00affcb18580", String.valueOf(response.getPayload().get("transactionNumber")));
+    }
+
+    @Test
     void shouldConvertReadTimeoutIntoIntegrationException() throws Exception {
         server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/APIVentasLoteria/api/Ventas/RetirarBet593", exchange -> {
@@ -246,6 +294,9 @@ class Bet593WithdrawWebClientAdapterTest {
         AppProperties.ProviderCapabilityProperties verifyCapabilityProperties = new AppProperties.ProviderCapabilityProperties();
         verifyCapabilityProperties.getCashout().setName("CONRETIROOL");
         provider.getServices().put("VERIFY", verifyCapabilityProperties);
+        AppProperties.ProviderCapabilityProperties reverseCapabilityProperties = new AppProperties.ProviderCapabilityProperties();
+        reverseCapabilityProperties.getCashout().setName("REVRETIROOL");
+        provider.getServices().put("REVERSE", reverseCapabilityProperties);
 
         AppProperties appProperties = new AppProperties();
         appProperties.getIntegration().getProviders().put("loteria", provider);

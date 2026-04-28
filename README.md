@@ -183,6 +183,10 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_CAPABILITIES`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_NAME`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_REVERSE_CASHIN_ITEM`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_REVERSE_CASHIN_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_REVERSE_CASHIN_CAPABILITIES`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_REVERSE_CASHIN_NAME`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_ITEM`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_CAPABILITIES`
@@ -230,6 +234,19 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
 
 - [omnistack-backend.postman_collection.json](/omnistack/postman/omnistack-backend.postman_collection.json)
 - [omnistack-local.postman_environment.json](/omnistack/postman/omnistack-local.postman_environment.json)
+
+La coleccion esta organizada por carpetas de escenario para facilitar pruebas manuales por flujo:
+
+- `Health`
+- `Catalogo Comercial`
+- `Escenarios / Cashin ECUABET`
+- `Escenarios / Cashout ECUABET`
+- `Escenarios / Cashin LOTERIA BET593`
+- `Escenarios / Cashout LOTERIA BET593`
+- `Operaciones Genericas`
+- `Provider Tokens`
+
+El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `chain`, `store`, `storeName`, `pos`, `channelPos`, `correlationId`), los codigos de proveedor/categoria/subcategoria, los `rms_item_code`, montos y datos de prueba de cada escenario. Para personalizar una corrida manual se debe modificar el environment en lugar de editar los payloads de cada request.
 
 ## Ejemplos
 
@@ -847,6 +864,100 @@ Request externo generado:
   "numeroTransaccion": "ca9b201a-a668-45ed-876c-00affcb18580",
   "identificacion": "0901111112",
   "numeroRetiro": "340468406359"
+}
+```
+
+### LOTERIA BET593 REVERSE CASH_IN
+
+El reverso de recarga BET593 usa Loteria Nacional con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/ReversarRetiroBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario/usuarioId=USRFEMSAPREP`, `maquina=192.168.3.230`, `operacion=REVRETIROOL`, `clienteId=58542`, `medioId=23`
+- mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `motivo -> motivo`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `cuentaweb -> document`, `recargaid -> authorization`
+- respuesta exitosa interna: `status.message="Transacción correcta"`
+
+Request interno:
+
+```json
+{
+  "uuid": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "10001565828",
+  "document": "0901111112",
+  "motivo": "Demora en obtener respuesta"
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "maquina": "192.168.3.230",
+  "operacion": "REVRETIROOL",
+  "token": "token-dinamico",
+  "usuarioId": "USRFEMSAPREP",
+  "medioId": 23,
+  "clienteId": 58542,
+  "numeroTransaccion": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "identificacion": "0901111112",
+  "motivo": "Demora en obtener respuesta"
+}
+```
+
+### LOTERIA BET593 REVERSE CASH_OUT
+
+El reverso de nota de retiro BET593 usa Loteria Nacional con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565829`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/ReversarRetiroBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=REVRETIROOL`, `clienteId=58542`, `medioId=23`
+- mapeo request: `authorization -> numeroTransaccion`, `document -> identificacion`, `motivo -> motivo`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `identificacion -> document`, `numeroTransaccion -> authorization`
+
+Request interno:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "10001565829",
+  "authorization": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "document": "0901111112",
+  "motivo": "Demora en obtener respuesta"
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "maquina": "192.168.3.230",
+  "operacion": "REVRETIROOL",
+  "token": "token-dinamico",
+  "usuarioId": "USRFEMSAPREP",
+  "medioId": 23,
+  "clienteId": 58542,
+  "numeroTransaccion": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "identificacion": "0901111112",
+  "motivo": "Demora en obtener respuesta"
 }
 ```
 
