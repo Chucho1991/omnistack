@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.Bet593WithdrawPort;
+import com.omnistack.backend.application.port.out.Bet593WithdrawValidationPort;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.Bet593WithdrawCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
@@ -28,9 +29,11 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
+public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet593WithdrawValidationPort {
 
     private static final String PROVIDER_KEY = "loteria";
+    private static final String EXECUTE_OPERATION = "EXECUTE";
+    private static final String VERIFY_OPERATION = "VERIFY";
 
     private final WebClient omnistackWebClient;
     private final AppProperties appProperties;
@@ -46,11 +49,31 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
      */
     @Override
     public ExternalTransactionResponse withdraw(Bet593WithdrawCommand command, String operationPath) {
+        return consumeWithdraw(command, operationPath, EXECUTE_OPERATION, "Loteria BET593 withdraw");
+    }
+
+    /**
+     * Ejecuta el consumo externo de validacion de nota de retiro BET593.
+     *
+     * @param command request interno normalizado para la operacion
+     * @param operationPath ruta configurada del endpoint externo
+     * @return respuesta normalizada del proveedor
+     */
+    @Override
+    public ExternalTransactionResponse validateWithdraw(Bet593WithdrawCommand command, String operationPath) {
+        return consumeWithdraw(command, operationPath, VERIFY_OPERATION, "Loteria BET593 withdraw verify");
+    }
+
+    private ExternalTransactionResponse consumeWithdraw(
+            Bet593WithdrawCommand command,
+            String operationPath,
+            String operationKey,
+            String traceLabel) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        Bet593WithdrawRequest request = buildExternalRequest(command, provider);
+        Bet593WithdrawRequest request = buildExternalRequest(command, provider, operationKey);
         String url = resolveUrl(provider.getBaseUrl(), operationPath);
 
-        traceToConsole("Loteria BET593 withdraw request", url, JsonUtil.toJsonSilently(request));
+        traceToConsole(traceLabel + " request", url, JsonUtil.toJsonSilently(request));
 
         Bet593WithdrawResponse response;
         try {
@@ -62,14 +85,14 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
                     .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
                             .defaultIfEmpty("")
                             .flatMap(body -> {
-                                traceErrorToConsole("Loteria BET593 withdraw error", url, body);
+                                traceErrorToConsole(traceLabel + " error", url, body);
                                 return Mono.error(new IntegrationException(buildErrorMessage(body)));
                             }))
                     .bodyToMono(String.class)
                     .map(this::parseResponseBody)
                     .block();
         } catch (WebClientRequestException exception) {
-            traceErrorToConsole("Loteria BET593 withdraw transport error", url, rootCauseMessage(exception));
+            traceErrorToConsole(traceLabel + " transport error", url, rootCauseMessage(exception));
             throw new IntegrationException(buildTransportErrorMessage(url, exception), exception);
         }
 
@@ -78,7 +101,7 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
         }
         applyRequestFallbacks(response, request);
 
-        traceToConsole("Loteria BET593 withdraw response", url, JsonUtil.toJsonSilently(response));
+        traceToConsole(traceLabel + " response", url, JsonUtil.toJsonSilently(response));
 
         return ExternalTransactionResponse.builder()
                 .approved(!hasBusinessError(response))
@@ -90,18 +113,20 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
 
     private Bet593WithdrawRequest buildExternalRequest(
             Bet593WithdrawCommand command,
-            AppProperties.ProviderProperties provider) {
-        validateProviderConfiguration(provider);
+            AppProperties.ProviderProperties provider,
+            String operationKey) {
+        validateProviderConfiguration(provider, operationKey);
         String providerToken = providerTokenResolverUseCase.getToken(
                 command.getCategoryCode(),
                 command.getSubcategoryCode(),
                 provider.getServiceProviderCode());
         String username = provider.getAuth().getLogin().getUsername();
+        AppProperties.ProviderOperationProperties operation = provider.getServices().get(operationKey).getCashout();
 
         return Bet593WithdrawRequest.builder()
                 .usuario(username)
                 .maquina(provider.getShopIp())
-                .operacion(requiredValue(provider.getServices().get("EXECUTE").getCashout().getName(), "operation.name"))
+                .operacion(requiredValue(operation.getName(), "operation.name"))
                 .token(providerToken)
                 .usuarioId(username)
                 .clienteId(provider.getClienteId())
@@ -205,7 +230,7 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
         }
     }
 
-    private void validateProviderConfiguration(AppProperties.ProviderProperties provider) {
+    private void validateProviderConfiguration(AppProperties.ProviderProperties provider, String operationKey) {
         if (provider.getAuth() == null || provider.getAuth().getLogin() == null
                 || provider.getAuth().getLogin().getUsername() == null
                 || provider.getAuth().getLogin().getUsername().isBlank()) {
@@ -221,9 +246,9 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort {
             throw new IntegrationException("Loteria BET593 requiere medioId configurado");
         }
         if (provider.getServices() == null
-                || provider.getServices().get("EXECUTE") == null
-                || provider.getServices().get("EXECUTE").getCashout() == null) {
-            throw new IntegrationException("Loteria BET593 requiere operacion EXECUTE cashout configurada");
+                || provider.getServices().get(operationKey) == null
+                || provider.getServices().get(operationKey).getCashout() == null) {
+            throw new IntegrationException("Loteria BET593 requiere operacion " + operationKey + " cashout configurada");
         }
     }
 

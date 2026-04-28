@@ -324,6 +324,37 @@
           "response": []
         },
         {
+          "name": "Verify LOTERIA BET593 Cashout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"0901111112\",\n  \"withdrawId\": \"340468406359\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "verify"
+              ]
+            },
+            "description": "Valida la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT."
+          },
+          "response": []
+        },        {
           "name": "Execute LOTERIA BET593 Cashout",
           "request": {
             "method": "POST",

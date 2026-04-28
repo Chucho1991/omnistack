@@ -803,6 +803,53 @@ Request externo generado:
 }
 ```
 
+### LOTERIA BET593 VERIFY CASH_OUT
+
+La validacion de nota de retiro BET593 consulta el estado de una orden CASH_OUT con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565829`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConsultarRetiroBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=CONRETIROOL`, `clienteId=58542`, `medioId=23`
+- mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `withdrawId -> numeroRetiro`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `identificacion -> document`
+- regla especial: `codError=400022` se interpreta como transaccion ejecutada y responde `status.code=400022`, `status.message=Transaccion correcta`
+
+Request interno:
+
+```json
+{
+  "uuid": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "10001565829",
+  "document": "0901111112",
+  "withdrawId": "340468406359"
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "maquina": "192.168.3.230",
+  "operacion": "CONRETIROOL",
+  "token": "token-dinamico",
+  "usuarioId": "USRFEMSAPREP",
+  "medioId": 23,
+  "clienteId": 58542,
+  "numeroTransaccion": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "identificacion": "0901111112",
+  "numeroRetiro": "340468406359"
+}
+```
+
 ### LOTERIA Login BET593
 
 La autenticacion para las integraciones de Loteria se desacopla en un adapter HTTP dedicado y se administra por contexto comercial.

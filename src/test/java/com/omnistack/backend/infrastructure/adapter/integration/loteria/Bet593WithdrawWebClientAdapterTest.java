@@ -135,6 +135,50 @@ class Bet593WithdrawWebClientAdapterTest {
     }
 
     @Test
+    void shouldSendBet593WithdrawValidationPayload() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593", exchange -> respondJson(exchange,
+                """
+                {
+                  "codError": 400022,
+                  "msgError": "Orden de pago no disponible para pago o ya esta pagada,",
+                  "usuario": "",
+                  "operacion": "",
+                  "token": "token-dinamico",
+                  "ordenPagoId": null,
+                  "identificacion": null,
+                  "valor": null,
+                  "numeroTransaccion": null,
+                  "nombre": null,
+                  "fecha": "0001-01-01T00:00:00"
+                }
+                """));
+        server.start();
+
+        Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+
+        var response = adapter.validateWithdraw(Bet593WithdrawCommand.builder()
+                .uuid(GENERATED_UUID)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("2")
+                .document("0901111112")
+                .withdrawId("340468406359")
+                .build(), "/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593");
+
+        assertEquals("/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593", capturedPath.get());
+        assertTrue(capturedBody.get().contains("\"operacion\":\"CONRETIROOL\""));
+        assertTrue(capturedBody.get().contains("\"numeroRetiro\":\"340468406359\""));
+        assertTrue(capturedBody.get().contains("\"identificacion\":\"0901111112\""));
+        assertEquals("400022", response.getExternalCode());
+        assertEquals(GENERATED_UUID, String.valueOf(response.getPayload().get("transactionNumber")));
+    }
+
+    @Test
     void shouldConvertReadTimeoutIntoIntegrationException() throws Exception {
         server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/APIVentasLoteria/api/Ventas/RetirarBet593", exchange -> {
@@ -199,6 +243,9 @@ class Bet593WithdrawWebClientAdapterTest {
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
         capabilityProperties.getCashout().setName("RETIROOL");
         provider.getServices().put("EXECUTE", capabilityProperties);
+        AppProperties.ProviderCapabilityProperties verifyCapabilityProperties = new AppProperties.ProviderCapabilityProperties();
+        verifyCapabilityProperties.getCashout().setName("CONRETIROOL");
+        provider.getServices().put("VERIFY", verifyCapabilityProperties);
 
         AppProperties appProperties = new AppProperties();
         appProperties.getIntegration().getProviders().put("loteria", provider);
