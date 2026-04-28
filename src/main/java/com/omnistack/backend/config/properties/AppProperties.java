@@ -100,6 +100,7 @@ public class AppProperties {
         private String canal;
         private Integer medioId;
         private Integer puntoOperacionId;
+        private Integer clienteId;
         private ProviderTokenProperties auth = new ProviderTokenProperties();
         private Map<String, ProviderCapabilityProperties> services = new HashMap<>();
     }

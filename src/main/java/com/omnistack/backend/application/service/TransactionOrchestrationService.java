@@ -52,6 +52,7 @@ public class TransactionOrchestrationService implements TransactionUseCase {
     private Object process(BaseTransactionRequest request, Capability capability, String endpoint) {
         OffsetDateTime startTime = OffsetDateTime.now();
         var selection = providerFlowResolver.resolve(request, capability);
+        request.setMovementType(selection.getServiceDefinition().getMovementType());
 
         try {
             Object response = selection.getStrategy().process(request, selection.getServiceDefinition(), capability);

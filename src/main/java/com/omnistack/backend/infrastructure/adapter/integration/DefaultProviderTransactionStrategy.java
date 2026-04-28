@@ -55,7 +55,7 @@ public class DefaultProviderTransactionStrategy
         payload.put("store", request.getStore());
         payload.put("pos", request.getPos());
         payload.put("channel_POS", request.getChannelPos());
-        payload.put("movement_type", request.getMovementType());
+        payload.put("movement_type", serviceDefinition.getMovementType());
         payload.put("amount", request.getAmount());
         payload.put("phone", request.getPhone());
         payload.put("document", request.getDocument());

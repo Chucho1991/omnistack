@@ -173,6 +173,8 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_CANAL`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_MEDIO_ID`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_PUNTO_OPERACION_ID`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SHOP_IP`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_CLIENTE_ID`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_ITEM`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHIN_CAPABILITIES`
@@ -181,6 +183,10 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_CAPABILITIES`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHIN_NAME`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_ITEM`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_CAPABILITIES`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_EXECUTE_CASHOUT_NAME`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_MODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_TTL_HOURS`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_REFRESH_ON_STARTUP`
@@ -345,7 +351,6 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "movement_type": "CASH_IN",
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
@@ -395,7 +400,6 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
   "store_name": "FYBECA EL BATAN",
   "pos": "1",
   "channel_POS": "POS",
-  "movement_type": "CASH_IN",
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
@@ -508,7 +512,7 @@ La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST 
 - response interna: replica `chain`, `store`, `store_name`, `pos`, `channel_POS`, `uuid`, `category_code`, `subcategory_code`, `service_provider_code` y `rms_item_code`
 - mapeo funcional: `is_error <- error`, `error.code <- code`, `error.message <- error`, `username <- name`, `status.code <- code`, `status.message <- "Transacción correcta"`
 - `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
-- `movement_type` no es obligatorio en `precheck`; la aplicacion usa la definicion del servicio resuelta desde catalogo/business-lines
+- `movement_type` no es requerido en los endpoints transaccionales; la aplicacion resuelve CASH_IN o CASH_OUT desde la definicion del servicio en catalogo/business-lines segun `rms_item_code`
 - resolucion de ruta: OMNISTACK usa `provider -> capability -> flow(cashin/cashout)`, validando el `item` configurado contra el `rms_item_code` del servicio
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/search` o la URL configurada por propiedades.
@@ -535,7 +539,6 @@ Ejemplo `PRECHECK CASH_OUT`:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "movement_type": "CASH_OUT",
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
@@ -611,7 +614,6 @@ Request interno:
   "store_name": "FYBECA EL BATAN",
   "pos": "1",
   "channel_POS": "POS",
-  "movement_type": "CASH_OUT",
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
@@ -683,7 +685,6 @@ Request interno:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "movement_type": "CASH_IN",
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
@@ -709,6 +710,53 @@ Request externo generado:
   "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
   "valor": "9.99",
   "codigotrn": "f0908f64-9145-45cf-a22c-c36bca604372"
+}
+```
+
+### LOTERIA BET593 EXECUTE CASH_OUT
+
+La nota de retiro BET593 usa Loteria Nacional con resolucion por catalogo `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565829`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/RetirarBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=RETIROOL`, `clienteId=58542`, `medioId=23`
+- mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `withdrawId -> numeroRetiro`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `ordenPagoId -> authorization`, `identificacion -> document`, `valor -> amount`
+
+Request interno:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "10001565829",
+  "document": "0911274165",
+  "withdrawId": "20240430800100007",
+  "amount": 17.00
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "maquina": "192.168.3.230",
+  "operacion": "RETIROOL",
+  "token": "token-dinamico",
+  "usuarioId": "USRFEMSAPREP",
+  "clienteId": 58542,
+  "medioId": 23,
+  "numeroTransaccion": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "identificacion": "0911274165",
+  "numeroRetiro": "20240430800100007"
 }
 ```
 

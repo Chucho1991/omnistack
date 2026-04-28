@@ -1,8 +1,8 @@
-锘縶
+{
   "info": {
     "_postman_id": "8f8f5a57-8570-4ab9-b70e-2fa3b3d1d90f",
     "name": "OMNISTACK Backend",
-    "description": "Colecci贸n Postman para los endpoints internos del backend OMNISTACK.",
+    "description": "Colecci髇 Postman para los endpoints internos del backend OMNISTACK.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -20,7 +20,7 @@
             "healthcheck"
           ]
         },
-        "description": "Verifica el estado b谩sico del servicio."
+        "description": "Verifica el estado b醩ico del servicio."
       },
       "response": [
         {
@@ -115,7 +115,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"1\",\n  \"subcategory_code\": \"1\",\n  \"service_provider_code\": \"1\",\n  \"rms_item_code\": \"10001565826\",\n  \"userid\": \"997561\",\n  \"phone\": \"123456\",\n  \"document\": \"0912345678\",\n  \"amount\": 25.50\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"1\",\n  \"subcategory_code\": \"1\",\n  \"service_provider_code\": \"1\",\n  \"rms_item_code\": \"10001565826\",\n  \"userid\": \"997561\",\n  \"phone\": \"123456\",\n  \"document\": \"0912345678\",\n  \"amount\": 25.50\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/precheck",
@@ -127,7 +127,7 @@
                 "precheck"
               ]
             },
-            "description": "Realiza validaciones previas antes de ejecutar la transacci贸n."
+            "description": "Realiza validaciones previas antes de ejecutar la transacci髇."
           },
           "response": []
         },
@@ -147,7 +147,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA EL BATAN\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"10001565826\",\n  \"userid\": \"997561\",\n  \"phone\": \"123456\",\n  \"document\": \"0912345678\",\n  \"amount\": 100000.00\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA EL BATAN\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"10001565826\",\n  \"userid\": \"997561\",\n  \"phone\": \"123456\",\n  \"document\": \"0912345678\",\n  \"amount\": 100000.00\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/execute",
@@ -179,7 +179,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_OUT\",\n  \"category_code\": \"1\",\n  \"subcategory_code\": \"1\",\n  \"service_provider_code\": \"1\",\n  \"rms_item_code\": \"10001565827\",\n  \"userid\": \"\",\n  \"phone\": \"\",\n  \"withdrawId\": \"7667\",\n  \"password\": \"88422\",\n  \"document\": \"\",\n  \"amount\": 1.00\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"1\",\n  \"subcategory_code\": \"1\",\n  \"service_provider_code\": \"1\",\n  \"rms_item_code\": \"10001565827\",\n  \"userid\": \"\",\n  \"phone\": \"\",\n  \"withdrawId\": \"7667\",\n  \"password\": \"88422\",\n  \"document\": \"\",\n  \"amount\": 1.00\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/precheck",
@@ -211,7 +211,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA EL BATAN\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_OUT\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"10001565827\",\n  \"withdrawId\": \"7668\",\n  \"password\": \"77992\",\n  \"document\": \"0912345678\",\n  \"amount\": 25.50\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA EL BATAN\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"10001565827\",\n  \"withdrawId\": \"7668\",\n  \"password\": \"77992\",\n  \"document\": \"0912345678\",\n  \"amount\": 25.50\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/execute",
@@ -243,7 +243,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"document\": \"0901111112\",\n  \"amount\": 9.99\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"document\": \"0901111112\",\n  \"amount\": 9.99\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/precheck",
@@ -275,7 +275,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"authorization\": \"9F968187-F436-4F19-8C1F-A7A4DA07A899\",\n  \"serialnumber\": \"7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511\",\n  \"document\": \"0901111112\",\n  \"amount\": 9.99\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"authorization\": \"9F968187-F436-4F19-8C1F-A7A4DA07A899\",\n  \"serialnumber\": \"7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511\",\n  \"document\": \"0901111112\",\n  \"amount\": 9.99\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/execute",
@@ -288,6 +288,38 @@
               ]
             },
             "description": "Confirma la recarga de saldos BET593 por Loteria Nacional en flujo CASH_IN."
+          },
+          "response": []
+        },
+        {
+          "name": "Execute LOTERIA BET593 Cashout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"0911274165\",\n  \"withdrawId\": \"20240430800100007\",\n  \"amount\": 17.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "execute"
+              ]
+            },
+            "description": "Ejecuta la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT."
           },
           "response": []
         },
@@ -307,7 +339,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/execute",
@@ -319,7 +351,7 @@
                 "execute"
               ]
             },
-            "description": "Ejecuta la transacci贸n del flujo de negocio."
+            "description": "Ejecuta la transacci髇 del flujo de negocio."
           },
           "response": []
         },
@@ -339,7 +371,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/verify",
@@ -351,7 +383,7 @@
                 "verify"
               ]
             },
-            "description": "Verifica el estado posterior de la transacci贸n."
+            "description": "Verifica el estado posterior de la transacci髇."
           },
           "response": []
         },
@@ -371,7 +403,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"movement_type\": \"CASH_IN\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\",\n  \"motivo\": \"Reverso por timeout del proveedor\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\",\n  \"motivo\": \"Reverso por timeout del proveedor\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/reverse",
@@ -463,3 +495,4 @@
     }
   ]
 }
+

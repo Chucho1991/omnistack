@@ -47,7 +47,7 @@ public abstract class BaseTransactionRequest {
 
     @JsonProperty("movement_type")
     @JsonAlias("movementType")
-    @Schema(example = "CASH_IN")
+    @Schema(example = "CASH_IN", description = "Campo opcional; OMNISTACK resuelve CASH_IN o CASH_OUT desde el catalogo segun rms_item_code")
     private MovementType movementType;
 
     @NotBlank
