@@ -10,6 +10,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * DTO de entrada para ejecutar una transaccion en proveedor externo.
+ */
 @Getter
 @Setter
 @SuperBuilder
@@ -17,9 +20,6 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ValidTransactionRequest
 @Schema(description = "Solicitud de ejecucion transaccional")
-/**
- * DTO de entrada para ejecutar una transaccion en proveedor externo.
- */
 public class ExecuteRequest extends BaseTransactionRequest {
     @DecimalMin(value = "0.0", inclusive = false)
     @Schema(example = "25.50")

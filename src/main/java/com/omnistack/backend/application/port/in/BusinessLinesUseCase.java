@@ -8,5 +8,11 @@ import com.omnistack.backend.application.dto.BusinessLinesResponse;
  */
 public interface BusinessLinesUseCase {
 
+    /**
+     * Consulta las lineas de negocio disponibles para un punto de venta.
+     *
+     * @param request datos de consulta del catalogo comercial
+     * @return oferta comercial consolidada
+     */
     BusinessLinesResponse getBusinessLines(BusinessLinesRequest request);
 }

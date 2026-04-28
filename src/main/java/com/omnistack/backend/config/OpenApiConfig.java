@@ -13,6 +13,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    /**
+     * Construye la definicion OpenAPI expuesta por Swagger UI.
+     *
+     * @param properties propiedades funcionales de la aplicacion
+     * @return configuracion OpenAPI
+     */
     @Bean
     public OpenAPI omnistackOpenApi(AppProperties properties) {
         return new OpenAPI()

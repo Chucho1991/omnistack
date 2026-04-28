@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Respuesta base para operaciones transaccionales identificadas por uuid.
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor

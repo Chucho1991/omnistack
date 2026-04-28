@@ -8,14 +8,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * DTO de salida para la verificacion posterior de transacciones.
+ */
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-/**
- * DTO de salida para la verificacion posterior de transacciones.
- */
 public class VerifyResponse extends BaseTransactionResponse {
     @Schema(example = "1")
     private String chain;

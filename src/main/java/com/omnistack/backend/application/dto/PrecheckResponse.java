@@ -10,14 +10,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * DTO de salida para la respuesta de prevalidacion.
+ */
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-/**
- * DTO de salida para la respuesta de prevalidacion.
- */
 public class PrecheckResponse extends BaseTransactionResponse {
     @Schema(example = "1")
     private String chain;

@@ -9,5 +9,12 @@ import com.omnistack.backend.domain.model.ProviderFlowSelection;
  */
 public interface ProviderFlowResolver {
 
+    /**
+     * Resuelve la estrategia de proveedor para una capacidad solicitada.
+     *
+     * @param request request transaccional recibido
+     * @param capability capacidad requerida
+     * @return seleccion de servicio y estrategia
+     */
     ProviderFlowSelection resolve(BaseTransactionRequest request, Capability capability);
 }

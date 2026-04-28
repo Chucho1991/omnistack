@@ -6,14 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO con el detalle estandar de error devuelto por la API.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Detalle uniforme del error")
-/**
- * DTO con el detalle estandar de error devuelto por la API.
- */
 public class ErrorDetail {
     @Schema(example = "BUS-001")
     private String code;

@@ -15,6 +15,12 @@ import reactor.netty.http.client.HttpClient;
 @Configuration
 public class WebClientConfig {
 
+    /**
+     * Construye el cliente HTTP reactivo usado por adapters de integracion.
+     *
+     * @param properties propiedades de timeout de integraciones
+     * @return cliente WebClient configurado
+     */
     @Bean
     public WebClient omnistackWebClient(AppProperties properties) {
         HttpClient httpClient = HttpClient.create()

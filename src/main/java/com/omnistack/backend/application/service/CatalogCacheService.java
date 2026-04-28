@@ -32,6 +32,9 @@ public class CatalogCacheService implements CatalogCachePort {
                     .version("bootstrap")
                     .build());
 
+    /**
+     * Recarga el catalogo desde la fuente configurada y conserva el ultimo snapshot valido ante errores.
+     */
     public synchronized void refreshCatalog() {
         try {
             CatalogSnapshot snapshot = catalogSourcePort.loadCatalogSnapshot();
@@ -68,6 +71,16 @@ public class CatalogCacheService implements CatalogCachePort {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene un servicio requerido o lanza excepcion funcional si no existe.
+     *
+     * @param categoryCode codigo de categoria
+     * @param subcategoryCode codigo de subcategoria
+     * @param providerCode codigo de proveedor
+     * @param rmsItemCode codigo RMS del item
+     * @return definicion de servicio requerida
+     * @throws CatalogNotFoundException cuando no existe configuracion para los codigos enviados
+     */
     public ServiceDefinition getRequiredService(
             String categoryCode,
             String subcategoryCode,

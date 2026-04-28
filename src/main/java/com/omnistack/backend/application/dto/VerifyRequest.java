@@ -8,6 +8,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * DTO de entrada para verificar el estado de una transaccion.
+ */
 @Getter
 @Setter
 @SuperBuilder
@@ -15,8 +18,5 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @ValidTransactionRequest
 @Schema(description = "Solicitud de verificacion posterior")
-/**
- * DTO de entrada para verificar el estado de una transaccion.
- */
 public class VerifyRequest extends BaseTransactionRequest {
 }

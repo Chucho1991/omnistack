@@ -166,38 +166,6 @@
                 }
               },
               "response": []
-            },
-            {
-              "name": "Reverse",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/reverse",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "reverse"
-                  ]
-                },
-                "description": "Reversa la nota de retiro ECUABET por flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdReverse}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordReverse}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
-                }
-              },
-              "response": []
             }
           ]
         },
@@ -264,6 +232,38 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdExecute}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordExecute}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutAmount}}\n}"
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reverse",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Correlation-Id",
+                    "value": "{{correlationId}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reverse",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                },
+                "description": "Reversa la nota de retiro ECUABET por flujo CASH_OUT.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdReverse}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordReverse}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
                 }
               },
               "response": []
@@ -368,6 +368,38 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "Reverse",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Correlation-Id",
+                    "value": "{{correlationId}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reverse",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                },
+                "description": "Reversa una recarga BET593 por Loteria Nacional en flujo CASH_IN.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
+                }
+              },
+              "response": []
             }
           ]
         },
@@ -437,6 +469,38 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "Reverse",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Correlation-Id",
+                    "value": "{{correlationId}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/reverse",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                },
+                "description": "Reversa la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"authorization\": \"{{loteriaReverseAuthorization}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
+                }
+              },
+              "response": []
             }
           ]
         }
@@ -445,6 +509,38 @@
     {
       "name": "Operaciones Genericas",
       "item": [
+        {
+          "name": "Precheck",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "precheck"
+              ]
+            },
+            "description": "Ejecuta un precheck generico parametrizable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{genericCategoryCode}}\",\n  \"subcategory_code\": \"{{genericSubcategoryCode}}\",\n  \"service_provider_code\": \"{{genericServiceProviderCode}}\",\n  \"rms_item_code\": \"{{genericRmsItemCode}}\",\n  \"amount\": {{genericAmount}},\n  \"phone\": \"{{customerPhone}}\"\n}"
+            }
+          },
+          "response": []
+        },
         {
           "name": "Execute",
           "request": {
@@ -769,19 +865,19 @@
     },
     {
       "key": "genericCategoryCode",
-      "value": "REC"
+      "value": "1"
     },
     {
       "key": "genericSubcategoryCode",
-      "value": "CEL"
+      "value": "1"
     },
     {
       "key": "genericServiceProviderCode",
-      "value": "CLARO"
+      "value": "1"
     },
     {
       "key": "genericRmsItemCode",
-      "value": "900001"
+      "value": "10001565826"
     },
     {
       "key": "genericAmount",

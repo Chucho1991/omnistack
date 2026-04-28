@@ -17,6 +17,13 @@ public final class JsonUtil {
     private JsonUtil() {
     }
 
+    /**
+     * Serializa un objeto a JSON y propaga errores como excepcion de estado.
+     *
+     * @param value objeto a serializar
+     * @return representacion JSON
+     * @throws IllegalStateException cuando no es posible serializar el objeto
+     */
     public static String toJson(Object value) {
         try {
             return OBJECT_MAPPER.writeValueAsString(value);
@@ -25,6 +32,12 @@ public final class JsonUtil {
         }
     }
 
+    /**
+     * Serializa un objeto a JSON sin propagar errores.
+     *
+     * @param value objeto a serializar
+     * @return representacion JSON o marcador de error de serializacion
+     */
     public static String toJsonSilently(Object value) {
         try {
             return OBJECT_MAPPER.writeValueAsString(value);

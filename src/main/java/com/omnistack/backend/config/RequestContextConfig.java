@@ -12,6 +12,11 @@ import org.springframework.core.Ordered;
 @Configuration
 public class RequestContextConfig {
 
+    /**
+     * Registra el filtro de correlation id con maxima precedencia.
+     *
+     * @return bean de registro del filtro
+     */
     @Bean
     public FilterRegistrationBean<CorrelationIdFilter> correlationIdFilterRegistration() {
         FilterRegistrationBean<CorrelationIdFilter> registration = new FilterRegistrationBean<>();

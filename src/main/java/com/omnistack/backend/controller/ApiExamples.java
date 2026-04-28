@@ -5,6 +5,9 @@ package com.omnistack.backend.controller;
  */
 public final class ApiExamples {
 
+    /**
+     * Request transaccional usado como ejemplo en Swagger.
+     */
     public static final String TRANSACTION_REQUEST = """
             {
               "uuid":"f0908f64-9145-45cf-a22c-c36bca604372",
@@ -22,6 +25,9 @@ public final class ApiExamples {
             }
             """;
 
+    /**
+     * Request de refresco manual de token usado como ejemplo en Swagger.
+     */
     public static final String PROVIDER_TOKEN_REFRESH_REQUEST = """
             {
               "category_code":"1",

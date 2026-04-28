@@ -13,6 +13,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Request base compartido por las operaciones transaccionales.
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor

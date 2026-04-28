@@ -18,7 +18,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class CorrelationIdFilter extends OncePerRequestFilter {
 
+    /**
+     * Clave MDC usada para el correlation id.
+     */
     public static final String CORRELATION_ID = "correlationId";
+    /**
+     * Header HTTP usado para transportar el correlation id.
+     */
     public static final String HEADER_NAME = "X-Correlation-Id";
 
     @Override

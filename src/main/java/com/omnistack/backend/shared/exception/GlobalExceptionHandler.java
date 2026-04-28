@@ -18,6 +18,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Maneja errores de validacion de entrada.
+     *
+     * @param exception excepcion de validacion
+     * @return respuesta HTTP de solicitud invalida
+     */
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, ConstraintViolationException.class})
     public ResponseEntity<ErrorDetail> handleValidation(Exception exception) {
         return ResponseEntity.badRequest().body(error(
@@ -25,6 +31,12 @@ public class GlobalExceptionHandler {
                 "La solicitud no cumple las validaciones requeridas"));
     }
 
+    /**
+     * Maneja errores funcionales de negocio.
+     *
+     * @param exception excepcion de negocio
+     * @return respuesta HTTP de error funcional
+     */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorDetail> handleBusiness(BusinessException exception) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error(
@@ -32,6 +44,12 @@ public class GlobalExceptionHandler {
                 exception.getMessage()));
     }
 
+    /**
+     * Maneja errores de integracion externa.
+     *
+     * @param exception excepcion de integracion
+     * @return respuesta HTTP de gateway externo fallido
+     */
     @ExceptionHandler(IntegrationException.class)
     public ResponseEntity<ErrorDetail> handleIntegration(IntegrationException exception) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error(
@@ -39,6 +57,12 @@ public class GlobalExceptionHandler {
                 exception.getMessage()));
     }
 
+    /**
+     * Maneja errores de catalogo no encontrado.
+     *
+     * @param exception excepcion de catalogo
+     * @return respuesta HTTP de recurso no encontrado
+     */
     @ExceptionHandler(CatalogNotFoundException.class)
     public ResponseEntity<ErrorDetail> handleCatalog(CatalogNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error(
@@ -46,6 +70,12 @@ public class GlobalExceptionHandler {
                 exception.getMessage()));
     }
 
+    /**
+     * Maneja errores no controlados.
+     *
+     * @param exception excepcion no controlada
+     * @return respuesta HTTP de error interno
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDetail> handleGeneric(Exception exception) {
         log.error("Unhandled error", exception);

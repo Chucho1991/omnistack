@@ -7,5 +7,10 @@ import com.omnistack.backend.domain.model.TransactionAuditLog;
  */
 public interface AuditLogPort {
 
+    /**
+     * Persiste un evento de auditoria funcional.
+     *
+     * @param log evento de auditoria a registrar
+     */
     void save(TransactionAuditLog log);
 }

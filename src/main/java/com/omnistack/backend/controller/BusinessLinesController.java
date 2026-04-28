@@ -28,6 +28,12 @@ public class BusinessLinesController {
 
     private final BusinessLinesUseCase businessLinesUseCase;
 
+    /**
+     * Consulta la oferta comercial disponible para el punto de venta indicado.
+     *
+     * @param request datos del punto de venta y filtro opcional de movimiento
+     * @return respuesta HTTP con las lineas de negocio disponibles
+     */
     @PostMapping(ApiPaths.BUSINESS_LINES)
     @Operation(
             summary = "Consultar lineas de negocio",

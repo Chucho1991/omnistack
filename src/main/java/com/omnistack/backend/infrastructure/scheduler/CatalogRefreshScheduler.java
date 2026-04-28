@@ -15,11 +15,17 @@ public class CatalogRefreshScheduler {
 
     private final CatalogCacheService catalogCacheService;
 
+    /**
+     * Ejecuta la carga inicial del catalogo al iniciar el componente.
+     */
     @PostConstruct
     public void initialLoad() {
         catalogCacheService.refreshCatalog();
     }
 
+    /**
+     * Ejecuta la recarga periodica del catalogo.
+     */
     @Scheduled(
             fixedDelayString = "${app.catalog.refresh.fixed-delay-ms}",
             initialDelayString = "${app.catalog.refresh.initial-delay-ms}")

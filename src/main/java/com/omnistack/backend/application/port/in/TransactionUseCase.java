@@ -14,11 +14,35 @@ import com.omnistack.backend.application.dto.VerifyResponse;
  */
 public interface TransactionUseCase {
 
+    /**
+     * Ejecuta validaciones previas sobre una transaccion.
+     *
+     * @param request datos de prevalidacion
+     * @return resultado de la prevalidacion
+     */
     PrecheckResponse precheck(PrecheckRequest request);
 
+    /**
+     * Ejecuta una transaccion.
+     *
+     * @param request datos de ejecucion
+     * @return resultado de la ejecucion
+     */
     ExecuteResponse execute(ExecuteRequest request);
 
+    /**
+     * Verifica el estado de una transaccion.
+     *
+     * @param request datos de verificacion
+     * @return resultado de la verificacion
+     */
     VerifyResponse verify(VerifyRequest request);
 
+    /**
+     * Reversa una transaccion.
+     *
+     * @param request datos del reverso
+     * @return resultado del reverso
+     */
     ReverseResponse reverse(ReverseRequest request);
 }

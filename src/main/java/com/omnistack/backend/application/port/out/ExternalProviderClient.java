@@ -8,5 +8,11 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
  */
 public interface ExternalProviderClient {
 
+    /**
+     * Invoca un proveedor externo con un request canonico.
+     *
+     * @param request solicitud externa canonica
+     * @return respuesta canonica del proveedor
+     */
     ExternalTransactionResponse invoke(ExternalTransactionRequest request);
 }

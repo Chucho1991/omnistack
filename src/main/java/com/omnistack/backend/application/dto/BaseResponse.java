@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Respuesta base compartida por los contratos de salida de la API.
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor

@@ -19,6 +19,12 @@ public class EcuabetErrorResponse {
     private String error;
     private final Map<String, Object> raw = new LinkedHashMap<>();
 
+    /**
+     * Captura campos no modelados de la respuesta de error externa.
+     *
+     * @param key nombre del campo recibido
+     * @param value valor del campo recibido
+     */
     @JsonAnySetter
     public void addRawField(String key, Object value) {
         raw.put(key, value);

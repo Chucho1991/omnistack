@@ -13,6 +13,11 @@ public class CatalogCacheHealthIndicator implements HealthIndicator {
 
     private final CatalogCacheService catalogCacheService;
 
+    /**
+     * Crea el indicador de salud del cache de catalogos.
+     *
+     * @param catalogCacheService servicio de cache de catalogos
+     */
     public CatalogCacheHealthIndicator(CatalogCacheService catalogCacheService) {
         this.catalogCacheService = catalogCacheService;
     }

@@ -11,6 +11,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 public class OmnistackBackendApplication {
 
+    /**
+     * Inicializa la aplicacion Spring Boot.
+     *
+     * @param args argumentos de linea de comandos
+     */
     public static void main(String[] args) {
         SpringApplication.run(OmnistackBackendApplication.class, args);
     }
