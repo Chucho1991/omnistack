@@ -2,6 +2,7 @@ package com.omnistack.backend.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,6 +54,18 @@ public class ReverseResponse extends BaseTransactionResponse {
     @Schema(example = "ca9b201a-a668-45ed-876c-00affcb18580")
     private String authorization;
 
+    @Schema(example = "Carlos")
+    private String username;
+
+    @Schema(example = "Perez")
+    private String lastname;
+
+    @Schema(example = "USD")
+    private String currency;
+
     @Schema(example = "0901111112")
     private String document;
+
+    @Schema(example = "25.50")
+    private BigDecimal amount;
 }

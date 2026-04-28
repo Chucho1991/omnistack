@@ -159,10 +159,10 @@
                     "reverse"
                   ]
                 },
-                "description": "Reversa una recarga BET593 por Loteria Nacional en flujo CASH_IN.",
+                "description": "Reversa una recarga ECUABET por flujo CASH_IN.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{loteriaReverseTransactionNumber}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
+                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"authorization\": \"{{ecuabetReverseAuthorization}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
                 }
               },
               "response": []
@@ -501,7 +501,7 @@
                 "reverse"
               ]
             },
-            "description": "Ejecuta un reverso generico parametrizable. Para LOTERIA BET593 CASH_IN use category_code=1, subcategory_code=1, service_provider_code=2, rms_item_code=10001565828, uuid, document y motivo. Para CASH_OUT use rms_item_code=10001565829, document, authorization y motivo.",
+            "description": "Ejecuta un reverso generico parametrizable. Para ECUABET CASH_IN use category_code=1, subcategory_code=1, service_provider_code=1, rms_item_code=10001565826, authorization numerico, amount y motivo. Para LOTERIA BET593 CASH_IN use category_code=1, subcategory_code=1, service_provider_code=2, rms_item_code=10001565828, uuid, document y motivo. Para CASH_OUT use rms_item_code=10001565829, document, authorization y motivo.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"authorization\": \"{{loteriaReverseAuthorization}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
@@ -618,6 +618,14 @@
     {
       "key": "ecuabetCashinAmount",
       "value": "25.50"
+    },
+    {
+      "key": "ecuabetReverseAuthorization",
+      "value": "91081"
+    },
+    {
+      "key": "ecuabetReverseAmount",
+      "value": "100000.00"
     },
     {
       "key": "ecuabetCashoutUserId",

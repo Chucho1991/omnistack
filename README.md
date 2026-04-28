@@ -166,6 +166,8 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHOUT_ITEM`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_EXECUTE_CASHOUT_PATH`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_REVERSE_CASHIN_ITEM`
+- `APP_INTEGRATION_PROVIDERS_ECUABET_SERVICES_REVERSE_CASHIN_PATH`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_CATEGORY_CODE`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_SUBCATEGORY_CODE`
@@ -603,6 +605,51 @@ Request externo generado:
   "transactionId": 91081,
   "shop_info": "FYBECA EL BATAN",
   "shop_ip": "10.0.0.10"
+}
+```
+
+### ECUABET REVERSE CASH_IN
+
+El reverso de recarga ECUABET usa `service_provider_code=1` y `rms_item_code=10001565826` para invocar el rollback externo de deposito.
+
+- endpoint externo: `POST /rollback/deposit`
+- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- body externo: `shop`, `token`, `country`, `amount`, `transactionId`
+- `transactionId`: se mapea desde `authorization` del request interno y debe ser numerico
+- `authorization`: en la respuesta interna se conserva el `transactionId` enviado al request externo; el `transactionId` retornado por ECUABET se registra como dato de proveedor y no reemplaza la autorizacion del flujo
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- authorization interno`, `document <- document`, `amount <- amount`
+- seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
+
+Request interno:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA EL BATAN",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "1",
+  "rms_item_code": "10001565826",
+  "authorization": "91081",
+  "document": "0912345678",
+  "amount": 100000.00,
+  "motivo": "Reverso por timeout del proveedor"
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "shop": "998739",
+  "token": "token-ecuabet",
+  "country": 66,
+  "amount": 100000.00,
+  "transactionId": 91081
 }
 ```
 

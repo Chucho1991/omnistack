@@ -13,6 +13,7 @@ import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.dto.VerifyResponse;
 import com.omnistack.backend.application.port.in.TransactionUseCase;
 import com.omnistack.backend.shared.exception.GlobalExceptionHandler;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -198,6 +199,45 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.uuid").value("uuid-reverse"))
                 .andExpect(jsonPath("$.authorization").value("ca9b201a-a668-45ed-876c-00affcb18580"))
                 .andExpect(jsonPath("$.document").value("0901111112"))
+                .andExpect(jsonPath("$.status.code").value("0"));
+    }
+
+    @Test
+    void shouldAcceptEcuabetCashinReverseRequest() throws Exception {
+        when(transactionUseCase.reverse(any())).thenReturn(ReverseResponse.builder()
+                .uuid("uuid-ecuabet-reverse")
+                .errorFlag(false)
+                .authorization("91081")
+                .document("0912345678")
+                .amount(new BigDecimal("100000.00"))
+                .status(new StatusDetail("0", "Transaccion correcta"))
+                .build());
+
+        mockMvc.perform(post("/v1/reverse")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "uuid":"uuid-ecuabet-reverse",
+                                  "chain":"1",
+                                  "store":"148",
+                                  "store_name":"FYBECA EL BATAN",
+                                  "pos":"1",
+                                  "channel_POS":"POS",
+                                  "category_code":"1",
+                                  "subcategory_code":"1",
+                                  "service_provider_code":"1",
+                                  "rms_item_code":"10001565826",
+                                  "authorization":"91081",
+                                  "document":"0912345678",
+                                  "amount":100000.00,
+                                  "motivo":"Demora en obtener respuesta"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uuid").value("uuid-ecuabet-reverse"))
+                .andExpect(jsonPath("$.authorization").value("91081"))
+                .andExpect(jsonPath("$.document").value("0912345678"))
+                .andExpect(jsonPath("$.amount").value(100000.00))
                 .andExpect(jsonPath("$.status.code").value("0"));
     }
 }
