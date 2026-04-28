@@ -102,5 +102,8 @@ public abstract class BaseTransactionRequest {
      *
      * @return monto informado en la solicitud
      */
-    public abstract BigDecimal getAmount();
+    @Schema(hidden = true)
+    public BigDecimal getAmount() {
+        return null;
+    }
 }

@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.omnistack.backend.application.dto.PrecheckResponse;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
+import com.omnistack.backend.application.dto.VerifyResponse;
 import com.omnistack.backend.application.port.in.TransactionUseCase;
 import com.omnistack.backend.shared.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
@@ -128,6 +129,38 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.uuid").value("uuid-cashout-execute"))
                 .andExpect(jsonPath("$.transactionId").doesNotExist())
                 .andExpect(jsonPath("$.authorization").value("10980"))
+                .andExpect(jsonPath("$.status.code").value("0"));
+    }
+
+    @Test
+    void shouldAcceptVerifyRequestWithoutAmount() throws Exception {
+        when(transactionUseCase.verify(any())).thenReturn(VerifyResponse.builder()
+                .uuid("uuid-verify")
+                .errorFlag(false)
+                .status(new StatusDetail("0", "Transaccion ha sido ejecutada"))
+                .build());
+
+        mockMvc.perform(post("/v1/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "uuid":"uuid-verify",
+                                  "chain":"1",
+                                  "store":"148",
+                                  "store_name":"FYBECA AMAZONAS",
+                                  "pos":"1",
+                                  "channel_POS":"POS",
+                                  "category_code":"1",
+                                  "subcategory_code":"1",
+                                  "service_provider_code":"2",
+                                  "rms_item_code":"10001565828",
+                                  "authorization":"9F968187-F436-4F19-8C1F-A7A4DA07A899",
+                                  "serialnumber":"7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
+                                  "document":"0901111112"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uuid").value("uuid-verify"))
                 .andExpect(jsonPath("$.status.code").value("0"));
     }
 }

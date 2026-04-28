@@ -47,22 +47,16 @@ public final class ResponseFactory {
             case PRECHECK -> precheckResponse(request, externalResponse);
             case EXECUTE -> ExecuteResponse.builder()
                     .uuid(request.getUuid())
-                    .providerCode(externalResponse.getExternalCode())
-                    .providerMessage(externalResponse.getExternalMessage())
                     .errorFlag(false)
                     .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
                     .build();
             case VERIFY -> VerifyResponse.builder()
                     .uuid(request.getUuid())
-                    .providerCode(externalResponse.getExternalCode())
-                    .providerMessage(externalResponse.getExternalMessage())
                     .errorFlag(false)
                     .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
                     .build();
             case REVERSE -> ReverseResponse.builder()
                     .uuid(request.getUuid())
-                    .providerCode(externalResponse.getExternalCode())
-                    .providerMessage(externalResponse.getExternalMessage())
                     .errorFlag(false)
                     .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
                     .build();

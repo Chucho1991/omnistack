@@ -56,7 +56,9 @@ public class DefaultProviderTransactionStrategy
         payload.put("pos", request.getPos());
         payload.put("channel_POS", request.getChannelPos());
         payload.put("movement_type", serviceDefinition.getMovementType());
-        payload.put("amount", request.getAmount());
+        if (capability != Capability.VERIFY) {
+            payload.put("amount", request.getAmount());
+        }
         payload.put("phone", request.getPhone());
         payload.put("document", request.getDocument());
         payload.put("userid", request.getUserid());

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.Bet593RechargePort;
+import com.omnistack.backend.application.port.out.Bet593RechargeValidationPort;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.Bet593RechargeCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
@@ -29,7 +30,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
+public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet593RechargeValidationPort {
 
     private static final String PROVIDER_KEY = "loteria";
 
@@ -49,9 +50,32 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
     public ExternalTransactionResponse recharge(Bet593RechargeCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
         Bet593RechargeRequest request = buildExternalRequest(command, provider);
+        return invokeLoteria(operationPath, provider, request, "recharge", "recarga BET593");
+    }
+
+    /**
+     * Ejecuta el consumo externo de validacion de recarga BET593.
+     *
+     * @param command request interno normalizado para la validacion
+     * @param operationPath ruta configurada del endpoint externo
+     * @return respuesta normalizada del proveedor
+     */
+    @Override
+    public ExternalTransactionResponse validateRecharge(Bet593RechargeCommand command, String operationPath) {
+        AppProperties.ProviderProperties provider = getProviderProperties();
+        Bet593RechargeRequest request = buildExternalValidationRequest(command, provider);
+        return invokeLoteria(operationPath, provider, request, "validate recharge", "validacion de recarga BET593");
+    }
+
+    private ExternalTransactionResponse invokeLoteria(
+            String operationPath,
+            AppProperties.ProviderProperties provider,
+            Bet593RechargeRequest request,
+            String logOperation,
+            String errorOperation) {
         String url = resolveUrl(provider.getBaseUrl(), operationPath);
 
-        traceToConsole("Loteria BET593 recharge request", url, JsonUtil.toJsonSilently(request));
+        traceToConsole("Loteria BET593 " + logOperation + " request", url, JsonUtil.toJsonSilently(request));
 
         Bet593RechargeResponse response;
         try {
@@ -63,22 +87,22 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
                     .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
                             .defaultIfEmpty("")
                             .flatMap(body -> {
-                                traceErrorToConsole("Loteria BET593 recharge error", url, body);
-                                return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                                traceErrorToConsole("Loteria BET593 " + logOperation + " error", url, body);
+                                return Mono.error(new IntegrationException(buildErrorMessage(body, errorOperation)));
                             }))
                     .bodyToMono(String.class)
                     .map(this::parseResponseBody)
                     .block();
         } catch (WebClientRequestException exception) {
-            traceErrorToConsole("Loteria BET593 recharge transport error", url, rootCauseMessage(exception));
-            throw new IntegrationException(buildTransportErrorMessage(url, exception), exception);
+            traceErrorToConsole("Loteria BET593 " + logOperation + " transport error", url, rootCauseMessage(exception));
+            throw new IntegrationException(buildTransportErrorMessage(url, exception, errorOperation), exception);
         }
 
         if (response == null) {
-            throw new IntegrationException("Loteria no retorno contenido para recarga BET593");
+            throw new IntegrationException("Loteria no retorno contenido para " + errorOperation);
         }
 
-        traceToConsole("Loteria BET593 recharge response", url, JsonUtil.toJsonSilently(response));
+        traceToConsole("Loteria BET593 " + logOperation + " response", url, JsonUtil.toJsonSilently(response));
 
         return ExternalTransactionResponse.builder()
                 .approved(!hasBusinessError(response))
@@ -111,6 +135,27 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
                 .build();
     }
 
+    private Bet593RechargeRequest buildExternalValidationRequest(
+            Bet593RechargeCommand command,
+            AppProperties.ProviderProperties provider) {
+        validateProviderConfiguration(provider);
+        String providerToken = providerTokenResolverUseCase.getToken(
+                command.getCategoryCode(),
+                command.getSubcategoryCode(),
+                provider.getServiceProviderCode());
+
+        return Bet593RechargeRequest.builder()
+                .usuario(provider.getAuth().getLogin().getUsername())
+                .token(providerToken)
+                .canal(provider.getCanal())
+                .medioId(provider.getMedioId())
+                .puntooperacionId(provider.getPuntoOperacionId())
+                .cuentaweb(requiredValue(command.getDocument(), "document"))
+                .recargaid(requiredValue(command.getAuthorization(), "authorization"))
+                .serialnumber(requiredValue(command.getSerialnumber(), "serialnumber"))
+                .build();
+    }
+
     private Map<String, Object> buildPayload(Bet593RechargeResponse response) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("error", hasBusinessError(response) ? 1 : 0);
@@ -123,6 +168,7 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
         payload.put("userid", null);
         payload.put("document", response.getCuentaweb());
         payload.put("amount", response.getValor());
+        payload.put("status", response.getEstado());
         payload.putAll(response.getRaw());
         return payload;
     }
@@ -139,27 +185,28 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort {
         return response.getMsgError() != null ? response.getMsgError() : "";
     }
 
-    private String buildErrorMessage(String body) {
+    private String buildErrorMessage(String body, String operation) {
         if (body == null || body.isBlank()) {
-            return "Error HTTP al invocar recarga BET593 de Loteria";
+            return "Error HTTP al invocar " + operation + " de Loteria";
         }
         try {
             Bet593RechargeResponse response = objectMapper.readValue(body, Bet593RechargeResponse.class);
-            return "Loteria recarga BET593 respondio con error: "
+            return "Loteria " + operation + " respondio con error: "
                     + defaultMessage(response.getMsgError(), JsonUtil.toJsonSilently(response.getRaw()));
         } catch (JsonProcessingException exception) {
-            return "Loteria recarga BET593 respondio con error no parseable";
+            return "Loteria " + operation + " respondio con error no parseable";
         }
     }
 
-    private String buildTransportErrorMessage(String url, WebClientRequestException exception) {
+    private String buildTransportErrorMessage(String url, WebClientRequestException exception, String operation) {
         if (hasCause(exception, "ReadTimeoutException")) {
-            return "Timeout al invocar recarga BET593 de Loteria: " + url;
+            return "Timeout al invocar " + operation + " de Loteria: " + url;
         }
         if (hasCause(exception, "SSLHandshakeException") || hasCause(exception, "SunCertPathBuilderException")) {
-            return "Error SSL al invocar recarga BET593 de Loteria. Revise el certificado/truststore del contenedor para " + url;
+            return "Error SSL al invocar " + operation
+                    + " de Loteria. Revise el certificado/truststore del contenedor para " + url;
         }
-        return "Error de conexion al invocar recarga BET593 de Loteria: " + rootCauseMessage(exception);
+        return "Error de conexion al invocar " + operation + " de Loteria: " + rootCauseMessage(exception);
     }
 
     private boolean hasCause(Throwable exception, String simpleClassName) {

@@ -2,8 +2,6 @@ package com.omnistack.backend.application.dto;
 
 import com.omnistack.backend.shared.validation.ValidTransactionRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.DecimalMin;
-import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.EqualsAndHashCode;
@@ -21,7 +19,4 @@ import lombok.experimental.SuperBuilder;
  * DTO de entrada para verificar el estado de una transaccion.
  */
 public class VerifyRequest extends BaseTransactionRequest {
-    @DecimalMin(value = "0.0", inclusive = false)
-    @Schema(example = "25.50")
-    private BigDecimal amount;
 }

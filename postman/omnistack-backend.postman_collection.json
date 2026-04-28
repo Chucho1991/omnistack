@@ -292,6 +292,38 @@
           "response": []
         },
         {
+          "name": "Verify LOTERIA BET593 Cashin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Correlation-Id",
+                "value": "{{correlationId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"10001565828\",\n  \"authorization\": \"9F968187-F436-4F19-8C1F-A7A4DA07A899\",\n  \"serialnumber\": \"7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511\",\n  \"document\": \"0901111112\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "verify"
+              ]
+            },
+            "description": "Valida el estado de una recarga BET593 por Loteria Nacional en flujo CASH_IN."
+          },
+          "response": []
+        },
+        {
           "name": "Execute LOTERIA BET593 Cashout",
           "request": {
             "method": "POST",
@@ -371,7 +403,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"amount\": 25.50,\n  \"phone\": \"0999999999\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"001\",\n  \"store\": \"0001\",\n  \"store_name\": \"Tienda Centro\",\n  \"pos\": \"POS-01\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"REC\",\n  \"subcategory_code\": \"CEL\",\n  \"service_provider_code\": \"CLARO\",\n  \"rms_item_code\": \"900001\",\n  \"phone\": \"0999999999\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/v1/verify",

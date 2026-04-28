@@ -107,8 +107,6 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
                 .pos(request.getPos())
                 .channelPos(request.getChannelPos().name())
                 .uuid(request.getUuid())
-                .providerCode(externalResponse.getExternalCode())
-                .providerMessage(externalResponse.getExternalMessage())
                 .categoryCode(request.getCategoryCode())
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())

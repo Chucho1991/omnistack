@@ -430,8 +430,6 @@ Se incluyen artefactos versionados para pruebas manuales en la carpeta `postman/
     "message": "Transaccion correcta"
   },
   "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
-  "providerCode": "0",
-  "providerMessage": "Transaccion correcta",
   "username": "Carlos",
   "lastname": "Perez",
   "currency": "USD",
@@ -710,6 +708,51 @@ Request externo generado:
   "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
   "valor": "9.99",
   "codigotrn": "f0908f64-9145-45cf-a22c-c36bca604372"
+}
+```
+
+### LOTERIA BET593 VERIFY CASH_IN
+
+La validacion de recarga BET593 consulta el estado de una recarga CASH_IN con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/ValidarBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario`, `canal=BMV`, `medioId=23`, `puntooperacionId=52132`
+- mapeo request: `document -> cuentaweb`, `authorization -> recargaid`, `serialnumber -> serialnumber`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `estado=COMMIT -> status.message=Transaccion ha sido ejecutada`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`
+
+Request interno:
+
+```json
+{
+  "uuid": "f0908f64-9145-45cf-a22c-c36bca604372",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "10001565828",
+  "authorization": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
+  "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
+  "document": "0901111112"
+}
+```
+
+Request externo generado:
+
+```json
+{
+  "usuario": "USRFEMSAPREP",
+  "token": "token-dinamico",
+  "canal": "BMV",
+  "medioId": 23,
+  "puntooperacionId": 52132,
+  "cuentaweb": "0901111112",
+  "recargaid": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
+  "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511"
 }
 ```
 

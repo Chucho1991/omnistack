@@ -3,10 +3,10 @@ package com.omnistack.backend.infrastructure.adapter.integration;
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
 import com.omnistack.backend.application.dto.ErrorDetail;
-import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.application.port.out.Bet593RechargePort;
-import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
+import com.omnistack.backend.application.dto.VerifyResponse;
+import com.omnistack.backend.application.port.out.Bet593RechargeValidationPort;
+import com.omnistack.backend.application.port.out.strategy.VerifyStrategy;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.MovementType;
@@ -14,7 +14,6 @@ import com.omnistack.backend.domain.model.Bet593RechargeCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
-import java.math.BigDecimal;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
@@ -22,16 +21,17 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Estrategia de EXECUTE CASH_IN para confirmar recargas BET593 mediante Loteria Nacional.
+ * Estrategia de VERIFY CASH_IN para validar recargas BET593 mediante Loteria Nacional.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
-public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
+public class LoteriaBet593VerifyStrategy implements VerifyStrategy {
 
     private static final String PROVIDER_KEY = "loteria";
+    private static final String COMMIT_STATUS = "COMMIT";
 
-    private final Bet593RechargePort bet593RechargePort;
+    private final Bet593RechargeValidationPort bet593RechargeValidationPort;
     private final AppProperties appProperties;
 
     /**
@@ -39,12 +39,12 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
      *
      * @param serviceDefinition definicion comercial resuelta desde catalogo
      * @param capability capacidad transaccional solicitada
-     * @return true cuando corresponde al EXECUTE CASH_IN BET593
+     * @return true cuando corresponde al VERIFY CASH_IN BET593
      */
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
         AppProperties.ProviderProperties provider = findProviderProperties();
-        return capability == Capability.EXECUTE
+        return capability == Capability.VERIFY
                 && provider != null
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
@@ -53,12 +53,12 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
     }
 
     /**
-     * Procesa la confirmacion de recarga BET593 y delega el consumo externo al puerto configurado.
+     * Procesa la validacion de recarga BET593 y delega el consumo externo al puerto configurado.
      *
      * @param request request canonico interno
      * @param serviceDefinition definicion comercial resuelta
      * @param capability capacidad transaccional solicitada
-     * @return response canonico de execute
+     * @return response canonico de verify
      */
     @Override
     public BaseTransactionResponse process(
@@ -88,18 +88,17 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
                 .authorization(request.getAuthorization())
                 .serialnumber(request.getSerialnumber())
                 .document(request.getDocument())
-                .amount(request.getAmount())
                 .build();
 
-        ExternalTransactionResponse externalResponse = bet593RechargePort.recharge(command, operation.getPath());
+        ExternalTransactionResponse externalResponse = bet593RechargeValidationPort.validateRecharge(command, operation.getPath());
         return buildResponse(request, externalResponse);
     }
 
-    private ExecuteResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
+    private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
         boolean isError = stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
 
-        ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
+        VerifyResponse.VerifyResponseBuilder<?, ?> builder = VerifyResponse.builder()
                 .chain(request.getChain())
                 .store(request.getStore())
                 .storeName(request.getStoreName())
@@ -114,11 +113,10 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(resolveValue(payload, "authorization", request.getAuthorization()))
-                .serialnumber(resolveValue(payload, "serialnumber", request.getSerialnumber()))
+                .authorization(resolveValue(payload, "authorization", null))
+                .serialnumber(resolveValue(payload, "serialnumber", null))
                 .userid(resolveValue(payload, "userid", request.getUserid()))
-                .document(resolveValue(payload, "document", request.getDocument()))
-                .amount(resolveAmount(payload, request));
+                .document(resolveValue(payload, "document", request.getDocument()));
 
         if (isError) {
             builder.error(ErrorDetail.builder()
@@ -126,10 +124,18 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
+            builder.status(new StatusDetail(externalResponse.getExternalCode(), resolveStatusMessage(payload)));
         }
 
         return builder.build();
+    }
+
+    private String resolveStatusMessage(Map<String, Object> payload) {
+        String status = stringValue(payload, "status");
+        if (COMMIT_STATUS.equalsIgnoreCase(status)) {
+            return "Transaccion ha sido ejecutada";
+        }
+        return "Transaccion correcta";
     }
 
     private void validateBusinessContext(
@@ -146,16 +152,13 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
 
     private void validateRequiredRequestFields(BaseTransactionRequest request) {
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
-            throw new IntegrationException("Loteria BET593 requiere authorization para confirmar recarga");
+            throw new IntegrationException("Loteria BET593 requiere authorization para validar recarga");
         }
         if (request.getSerialnumber() == null || request.getSerialnumber().isBlank()) {
-            throw new IntegrationException("Loteria BET593 requiere serialnumber para confirmar recarga");
+            throw new IntegrationException("Loteria BET593 requiere serialnumber para validar recarga");
         }
         if (request.getDocument() == null || request.getDocument().isBlank()) {
-            throw new IntegrationException("Loteria BET593 requiere document para confirmar recarga");
-        }
-        if (request.getAmount() == null) {
-            throw new IntegrationException("Loteria BET593 requiere amount para confirmar recarga");
+            throw new IntegrationException("Loteria BET593 requiere document para validar recarga");
         }
     }
 
@@ -235,8 +238,4 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
         return value == null ? null : String.valueOf(value);
     }
 
-    private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
-        String value = stringValue(payload, "amount");
-        return value == null || value.isBlank() ? request.getAmount() : new BigDecimal(value);
-    }
 }
