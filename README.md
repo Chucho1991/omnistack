@@ -115,7 +115,7 @@ Propiedades principales:
 mvn spring-boot:run
 ```
 
-Puerto por defecto de la aplicacion: `8185`.
+Puerto por defecto de la aplicacion: `8085`.
 
 ## Docker
 
@@ -135,7 +135,7 @@ docker build -t omnistack-backend:local .
 Ejecucion con Docker:
 
 ```bash
-docker run --name omnistack --env-file .env -p 8185:8185 omnistack-backend:local
+docker run --name omnistack --env-file .env -p 8085:8085 omnistack-backend:local
 ```
 
 Variables de entorno principales:
