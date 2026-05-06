@@ -64,13 +64,9 @@ public class BusinessLinesCatalogCacheService {
         }
     }
 
-    record RequestCacheKey(String chain, String store, String storeName, String pos, String channelPos) {
+    record RequestCacheKey(String channelPos) {
         static RequestCacheKey from(BusinessLinesRequest request) {
             return new RequestCacheKey(
-                    request.getChain(),
-                    request.getStore(),
-                    request.getStoreName(),
-                    request.getPos(),
                     Objects.requireNonNull(request.getChannelPos()).name());
         }
     }

@@ -52,4 +52,44 @@ class BusinessLinesCatalogCacheServiceTest {
         assertSame(snapshot, secondResponse);
         verify(sourcePort, times(1)).loadCatalogSnapshot(request);
     }
+
+    @Test
+    void shouldReuseSnapshotWhenPointOfSaleFieldsChangeBeforeDatabaseIntegration() {
+        BusinessLinesCatalogSourcePort sourcePort = Mockito.mock(BusinessLinesCatalogSourcePort.class);
+        AppProperties appProperties = new AppProperties();
+        appProperties.getBusinessLines().getCache().setTtlHours(6);
+        Clock clock = Clock.fixed(Instant.parse("2026-04-22T12:00:00Z"), ZoneId.of("America/Guayaquil"));
+        BusinessLinesCatalogCacheService service = new BusinessLinesCatalogCacheService(sourcePort, appProperties, clock);
+
+        BusinessLinesRequest firstRequest = BusinessLinesRequest.builder()
+                .chain("{{chain}}")
+                .store("4")
+                .storeName("{{storeName}}")
+                .pos("{{pos}}")
+                .channelPos(ChannelPos.POS)
+                .build();
+        BusinessLinesRequest secondRequest = BusinessLinesRequest.builder()
+                .chain("9")
+                .store("999")
+                .storeName("OTRA TIENDA")
+                .pos("POS-99")
+                .channelPos(ChannelPos.POS)
+                .build();
+
+        CatalogSnapshot snapshot = CatalogSnapshot.builder()
+                .categories(List.of())
+                .services(List.of())
+                .loadedAt(OffsetDateTime.now(clock))
+                .version("v1")
+                .build();
+
+        when(sourcePort.loadCatalogSnapshot(firstRequest)).thenReturn(snapshot);
+
+        CatalogSnapshot firstResponse = service.getCatalogSnapshot(firstRequest);
+        CatalogSnapshot secondResponse = service.getCatalogSnapshot(secondRequest);
+
+        assertSame(snapshot, firstResponse);
+        assertSame(snapshot, secondResponse);
+        verify(sourcePort, times(1)).loadCatalogSnapshot(firstRequest);
+    }
 }

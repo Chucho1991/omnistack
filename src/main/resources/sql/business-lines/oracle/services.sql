@@ -40,9 +40,5 @@ select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '6' as service_provider_code, '12001565829' as rms_item_code, 'MONEYGRAM RETIRO' as description, 1 as is_active, 'ABD61237' as jde_code, 'CASH_OUT' as movement_type, 0 as is_mixed_payment, 'RECA' as flg_item, 0 as is_refund, '1' as min_amount, '200' as max_amount, '10000' as timeout_ws_max, '3' as retries_ws_max, 1 as requires_consent, q'[<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Lorem Ipsum</title></head><body><h1>Lorem Ipsum</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p></body></html>]' as consent_text from dual
 ) catalog
-where chain = :chain
-  and store = :store
-  and store_name = :store_name
-  and pos = :pos
-  and channel_pos = :channel_pos
+where channel_pos = :channel_pos
 order by to_number(category_code), to_number(subcategory_code), to_number(service_provider_code), rms_item_code

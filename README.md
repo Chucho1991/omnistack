@@ -218,7 +218,8 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
-- Los `WHERE` de Oracle usan `chain`, `store`, `store_name`, `pos` y `channel_POS`
+- Mientras no exista integracion con base de datos real, los campos `chain`, `store`, `store_name` y `pos` se aceptan y se replican en la respuesta sin condicionar el catalogo devuelto.
+- Los `WHERE` del SQL mock de Oracle filtran temporalmente solo por `channel_POS`.
 
 ## Endpoints expuestos
 

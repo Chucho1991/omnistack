@@ -64,9 +64,5 @@ select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '6' as service_provider_code, '12001565829' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
 ) catalog
-where chain = :chain
-  and store = :store
-  and store_name = :store_name
-  and pos = :pos
-  and channel_pos = :channel_pos
+where channel_pos = :channel_pos
 order by to_number(category_code), to_number(subcategory_code), to_number(service_provider_code), rms_item_code, service_payment_method_id
