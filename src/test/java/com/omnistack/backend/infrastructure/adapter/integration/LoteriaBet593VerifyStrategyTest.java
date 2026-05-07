@@ -46,7 +46,7 @@ class LoteriaBet593VerifyStrategyTest {
         provider.setServiceProviderCode("2");
 
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565828");
+        capabilityProperties.getCashin().setItem("100708850");
         capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/ValidarBet593");
         capabilityProperties.getCashin().setCapabilities("VALIDA593");
         capabilityProperties.getCashin().setName("VALIDA593");
@@ -60,8 +60,8 @@ class LoteriaBet593VerifyStrategyTest {
 
     @Test
     void shouldSupportConfiguredBet593CashinVerify() {
-        ServiceDefinition bet593Service = serviceDefinition(MovementType.CASH_IN, "10001565828");
-        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "10001565829");
+        ServiceDefinition bet593Service = serviceDefinition(MovementType.CASH_IN, "100708850");
+        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "100708848");
 
         assertTrue(strategy.supports(bet593Service, Capability.VERIFY));
         assertFalse(strategy.supports(bet593Service, Capability.EXECUTE));
@@ -85,7 +85,7 @@ class LoteriaBet593VerifyStrategyTest {
 
         VerifyResponse response = (VerifyResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_IN, "10001565828"),
+                serviceDefinition(MovementType.CASH_IN, "100708850"),
                 Capability.VERIFY);
 
         ArgumentCaptor<Bet593RechargeCommand> captor = ArgumentCaptor.forClass(Bet593RechargeCommand.class);
@@ -108,7 +108,7 @@ class LoteriaBet593VerifyStrategyTest {
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565828"), Capability.VERIFY));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100708850"), Capability.VERIFY));
     }
 
     private VerifyRequest.VerifyRequestBuilder<?, ?> verifyRequestBuilder() {
@@ -123,7 +123,7 @@ class LoteriaBet593VerifyStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .authorization("9F968187-F436-4F19-8C1F-A7A4DA07A899")
                 .serialnumber("7366ea56284a06a2")
                 .document("0901111112");

@@ -41,11 +41,11 @@ class EcuabetPrecheckStrategyTest {
         AppProperties.ProviderProperties provider = new AppProperties.ProviderProperties();
         provider.setServiceProviderCode("1");
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565826");
+        capabilityProperties.getCashin().setItem("100713841");
         capabilityProperties.getCashin().setPath("/user/search");
         capabilityProperties.getCashin().setCapabilities("BUSCAR_USUARIO");
         capabilityProperties.getCashin().setName("BUSCAR_USUARIO");
-        capabilityProperties.getCashout().setItem("10001565827");
+        capabilityProperties.getCashout().setItem("100708846");
         capabilityProperties.getCashout().setPath("/user/searchwithdraw");
         capabilityProperties.getCashout().setCapabilities("BUSCAR_NOTA_RETIRO");
         capabilityProperties.getCashout().setName("BUSCAR_NOTA_RETIRO");
@@ -63,14 +63,14 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .movementType(MovementType.CASH_IN)
                 .build();
         ServiceDefinition otherProviderService = ServiceDefinition.builder()
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .movementType(MovementType.CASH_IN)
                 .build();
 
@@ -102,7 +102,7 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .userid("997561")
                 .phone("123456")
                 .document("0912345678")
@@ -113,7 +113,7 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .description("ECUABET CASH IN")
                 .movementType(MovementType.CASH_IN)
                 .capabilities(List.of(Capability.PRECHECK))
@@ -159,7 +159,7 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .withdrawId("7667")
                 .password("88422")
                 .build();
@@ -168,7 +168,7 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .description("ECUABET CASH OUT")
                 .movementType(MovementType.CASH_OUT)
                 .capabilities(List.of(Capability.PRECHECK))
@@ -199,7 +199,7 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("5")
                 .subcategoryCode("1")
                 .serviceProviderCode("9")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .userid("997561")
                 .build();
 
@@ -207,7 +207,7 @@ class EcuabetPrecheckStrategyTest {
                 .categoryCode("5")
                 .subcategoryCode("1")
                 .serviceProviderCode("9")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .description("Servicio incorrecto")
                 .movementType(MovementType.CASH_IN)
                 .capabilities(List.of(Capability.PRECHECK))

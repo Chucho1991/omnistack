@@ -53,6 +53,7 @@ public class AppProperties {
     @Data
     public static class BusinessLines {
         private String source = "oracle";
+        private int consentTextMaxLineLength = 56;
         private Cache cache = new Cache();
         private DefaultRequest defaultRequest = new DefaultRequest();
         private Oracle oracle = new Oracle();

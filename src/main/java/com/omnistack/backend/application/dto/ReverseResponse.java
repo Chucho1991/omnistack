@@ -48,7 +48,7 @@ public class ReverseResponse extends BaseTransactionResponse {
     private String serviceProviderCode;
 
     @JsonProperty("rms_item_code")
-    @Schema(example = "10001565829")
+    @Schema(example = "100708848")
     private String rmsItemCode;
 
     @Schema(example = "ca9b201a-a668-45ed-876c-00affcb18580")

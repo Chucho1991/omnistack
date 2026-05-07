@@ -80,7 +80,7 @@ class DefaultProviderFlowResolverTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .movementType(MovementType.CASH_IN)
                 .capabilities(List.of(Capability.PRECHECK))
                 .build();
@@ -96,7 +96,7 @@ class DefaultProviderFlowResolverTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("2");
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565828");
+        capabilityProperties.getCashin().setItem("100708850");
         capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/RecargarBet593");
         provider.getServices().put("PRECHECK", capabilityProperties);
         AppProperties appProperties = new AppProperties();
@@ -118,7 +118,7 @@ class DefaultProviderFlowResolverTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .amount(BigDecimal.TEN)
                 .document("0901111112")
                 .build();

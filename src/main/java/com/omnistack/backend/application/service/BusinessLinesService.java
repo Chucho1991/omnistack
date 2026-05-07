@@ -9,14 +9,15 @@ import com.omnistack.backend.application.dto.BusinessLinesRequest;
 import com.omnistack.backend.application.dto.BusinessLinesResponse;
 import com.omnistack.backend.application.mapper.ResponseFactory;
 import com.omnistack.backend.application.port.in.BusinessLinesUseCase;
+import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.CollectionSubcategory;
 import com.omnistack.backend.domain.model.InputField;
 import com.omnistack.backend.domain.model.PaymentMethod;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.domain.model.ServiceProvider;
-import java.util.Locale;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class BusinessLinesService implements BusinessLinesUseCase {
     private static final String DEFAULT_NUM_TICKETS = "3";
 
     private final BusinessLinesCatalogCacheService businessLinesCatalogCacheService;
+    private final AppProperties appProperties;
 
     @Override
     public BusinessLinesResponse getBusinessLines(BusinessLinesRequest request) {
@@ -98,8 +100,50 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                         ? Collections.emptyList()
                         : service.getPaymentMethods().stream().map(this::toPaymentMethodResponse).collect(Collectors.toList()))
                 .requiresConsent(service.isRequiresConsent())
-                .consentText(service.getConsentText())
+                .consentText(formatConsentText(service))
                 .build();
+    }
+
+    private String formatConsentText(ServiceDefinition service) {
+        if (!service.isRequiresConsent() || service.getConsentText() == null) {
+            return service.getConsentText();
+        }
+        return wrapText(service.getConsentText(), appProperties.getBusinessLines().getConsentTextMaxLineLength());
+    }
+
+    private String wrapText(String text, int maxLineLength) {
+        if (text.isBlank() || maxLineLength < 1) {
+            return text;
+        }
+
+        String[] words = text.trim().split("\\s+");
+        StringBuilder formattedText = new StringBuilder();
+        StringBuilder currentLine = new StringBuilder();
+
+        for (String word : words) {
+            if (currentLine.isEmpty()) {
+                currentLine.append(word);
+            } else if (currentLine.length() + 1 + word.length() <= maxLineLength) {
+                currentLine.append(' ').append(word);
+            } else {
+                appendLine(formattedText, currentLine);
+                currentLine.setLength(0);
+                currentLine.append(word);
+            }
+        }
+
+        appendLine(formattedText, currentLine);
+        return formattedText.toString();
+    }
+
+    private void appendLine(StringBuilder formattedText, StringBuilder line) {
+        if (line.isEmpty()) {
+            return;
+        }
+        if (!formattedText.isEmpty()) {
+            formattedText.append('\n');
+        }
+        formattedText.append(line);
     }
 
     private BusinessLineInputFieldResponse toInputFieldResponse(InputField inputField) {

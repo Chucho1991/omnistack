@@ -71,7 +71,7 @@ class EcuabetDepositWebClientAdapterTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .userid("997561")
                 .document("0912345678")
                 .amount(new BigDecimal("100000.00"))

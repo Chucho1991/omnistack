@@ -46,7 +46,7 @@ class LoteriaBet593PrecheckStrategyTest {
         provider.setServiceProviderCode("2");
 
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565828");
+        capabilityProperties.getCashin().setItem("100708850");
         capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/RecargarBet593");
         capabilityProperties.getCashin().setCapabilities("RECARGA593");
         capabilityProperties.getCashin().setName("RECARGA593");
@@ -60,8 +60,8 @@ class LoteriaBet593PrecheckStrategyTest {
 
     @Test
     void shouldSupportConfiguredBet593CashinPrecheck() {
-        ServiceDefinition bet593Service = serviceDefinition(MovementType.CASH_IN, "10001565828");
-        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "10001565829");
+        ServiceDefinition bet593Service = serviceDefinition(MovementType.CASH_IN, "100708850");
+        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "100708848");
 
         assertTrue(strategy.supports(bet593Service, Capability.PRECHECK));
         assertFalse(strategy.supports(bet593Service, Capability.EXECUTE));
@@ -95,12 +95,12 @@ class LoteriaBet593PrecheckStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .document("0901111112")
                 .amount(new BigDecimal("9.99"))
                 .build();
 
-        var response = strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565828"), Capability.PRECHECK);
+        var response = strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100708850"), Capability.PRECHECK);
 
         ArgumentCaptor<Bet593RechargeCommand> captor = ArgumentCaptor.forClass(Bet593RechargeCommand.class);
         verify(bet593RechargePort).recharge(captor.capture(), org.mockito.ArgumentMatchers.eq(
@@ -125,13 +125,13 @@ class LoteriaBet593PrecheckStrategyTest {
                 .categoryCode("9")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .document("0901111112")
                 .amount(new BigDecimal("9.99"))
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565828"), Capability.PRECHECK));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100708850"), Capability.PRECHECK));
     }
 
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {

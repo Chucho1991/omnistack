@@ -49,7 +49,7 @@ public class PrecheckResponse extends BaseTransactionResponse {
     private String serviceProviderCode;
 
     @JsonProperty("rms_item_code")
-    @Schema(example = "10001565826")
+    @Schema(example = "100713841")
     private String rmsItemCode;
 
     @Schema(example = "Carlos")

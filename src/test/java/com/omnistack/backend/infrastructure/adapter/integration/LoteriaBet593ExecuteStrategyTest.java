@@ -47,7 +47,7 @@ class LoteriaBet593ExecuteStrategyTest {
         provider.setServiceProviderCode("2");
 
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565828");
+        capabilityProperties.getCashin().setItem("100708850");
         capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/ConfirmarBet593");
         capabilityProperties.getCashin().setCapabilities("CONFIRMA593");
         capabilityProperties.getCashin().setName("CONFIRMA593");
@@ -61,8 +61,8 @@ class LoteriaBet593ExecuteStrategyTest {
 
     @Test
     void shouldSupportConfiguredBet593CashinExecute() {
-        ServiceDefinition bet593Service = serviceDefinition(MovementType.CASH_IN, "10001565828");
-        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "10001565829");
+        ServiceDefinition bet593Service = serviceDefinition(MovementType.CASH_IN, "100708850");
+        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "100708848");
 
         assertTrue(strategy.supports(bet593Service, Capability.EXECUTE));
         assertFalse(strategy.supports(bet593Service, Capability.PRECHECK));
@@ -90,7 +90,7 @@ class LoteriaBet593ExecuteStrategyTest {
 
         ExecuteResponse response = (ExecuteResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_IN, "10001565828"),
+                serviceDefinition(MovementType.CASH_IN, "100708850"),
                 Capability.EXECUTE);
 
         ArgumentCaptor<Bet593RechargeCommand> captor = ArgumentCaptor.forClass(Bet593RechargeCommand.class);
@@ -116,7 +116,7 @@ class LoteriaBet593ExecuteStrategyTest {
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565828"), Capability.EXECUTE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100708850"), Capability.EXECUTE));
     }
 
     private ExecuteRequest.ExecuteRequestBuilder<?, ?> executeRequestBuilder() {
@@ -131,7 +131,7 @@ class LoteriaBet593ExecuteStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .authorization("9F968187-F436-4F19-8C1F-A7A4DA07A899")
                 .serialnumber("7366ea56284a06a2")
                 .document("0901111112")

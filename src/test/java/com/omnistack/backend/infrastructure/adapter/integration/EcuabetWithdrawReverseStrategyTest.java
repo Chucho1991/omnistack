@@ -47,7 +47,7 @@ class EcuabetWithdrawReverseStrategyTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("1");
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashout().setItem("10001565827");
+        capabilityProperties.getCashout().setItem("100708846");
         capabilityProperties.getCashout().setPath("/rollback/withdraw");
         capabilityProperties.getCashout().setCapabilities("REVERSO_NOTA_RETIRO");
         capabilityProperties.getCashout().setName("REVERSO_NOTA_RETIRO");
@@ -61,11 +61,11 @@ class EcuabetWithdrawReverseStrategyTest {
 
     @Test
     void shouldSupportConfiguredEcuabetCashoutReverse() {
-        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_OUT, "10001565827");
+        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_OUT, "100708846");
 
         assertTrue(strategy.supports(serviceDefinition, Capability.REVERSE));
         assertFalse(strategy.supports(serviceDefinition, Capability.EXECUTE));
-        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_IN, "10001565826"), Capability.REVERSE));
+        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_IN, "100713841"), Capability.REVERSE));
     }
 
     @Test
@@ -92,7 +92,7 @@ class EcuabetWithdrawReverseStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .withdrawId("7671")
                 .password("03448")
                 .document("0912345678")
@@ -103,7 +103,7 @@ class EcuabetWithdrawReverseStrategyTest {
 
         ReverseResponse response = (ReverseResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_OUT, "10001565827"),
+                serviceDefinition(MovementType.CASH_OUT, "100708846"),
                 Capability.REVERSE);
 
         ArgumentCaptor<EcuabetWithdrawCommand> captor = ArgumentCaptor.forClass(EcuabetWithdrawCommand.class);
@@ -131,14 +131,14 @@ class EcuabetWithdrawReverseStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .withdrawId("7671")
                 .amount(new BigDecimal("25.50"))
                 .motivo("Reverso de nota de retiro")
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "10001565827"), Capability.REVERSE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708846"), Capability.REVERSE));
     }
 
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {

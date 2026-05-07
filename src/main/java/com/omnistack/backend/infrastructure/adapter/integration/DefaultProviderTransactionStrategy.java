@@ -45,7 +45,7 @@ public class DefaultProviderTransactionStrategy
         return capability == Capability.PRECHECK
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && "2".equalsIgnoreCase(serviceDefinition.getServiceProviderCode())
-                && "10001565828".equalsIgnoreCase(serviceDefinition.getRmsItemCode());
+                && "100708850".equalsIgnoreCase(serviceDefinition.getRmsItemCode());
     }
 
     @Override

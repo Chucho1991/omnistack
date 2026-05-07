@@ -47,7 +47,7 @@ class LoteriaBet593WithdrawReverseStrategyTest {
         provider.setServiceProviderCode("2");
 
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashout().setItem("10001565829");
+        capabilityProperties.getCashout().setItem("100708848");
         capabilityProperties.getCashout().setPath("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
         capabilityProperties.getCashout().setCapabilities("REVRETIROOL");
         capabilityProperties.getCashout().setName("REVRETIROOL");
@@ -61,8 +61,8 @@ class LoteriaBet593WithdrawReverseStrategyTest {
 
     @Test
     void shouldSupportConfiguredBet593CashoutReverse() {
-        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "10001565829");
-        ServiceDefinition cashinService = serviceDefinition(MovementType.CASH_IN, "10001565828");
+        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "100708848");
+        ServiceDefinition cashinService = serviceDefinition(MovementType.CASH_IN, "100708850");
 
         assertTrue(strategy.supports(cashoutService, Capability.REVERSE));
         assertFalse(strategy.supports(cashoutService, Capability.EXECUTE));
@@ -86,7 +86,7 @@ class LoteriaBet593WithdrawReverseStrategyTest {
 
         ReverseResponse response = (ReverseResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_OUT, "10001565829"),
+                serviceDefinition(MovementType.CASH_OUT, "100708848"),
                 Capability.REVERSE);
 
         ArgumentCaptor<Bet593WithdrawCommand> captor = ArgumentCaptor.forClass(Bet593WithdrawCommand.class);
@@ -110,7 +110,7 @@ class LoteriaBet593WithdrawReverseStrategyTest {
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "10001565829"), Capability.REVERSE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708848"), Capability.REVERSE));
     }
 
     private ReverseRequest.ReverseRequestBuilder<?, ?> reverseRequestBuilder() {
@@ -125,7 +125,7 @@ class LoteriaBet593WithdrawReverseStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565829")
+                .rmsItemCode("100708848")
                 .withdrawId("82319")
                 .authorization("ca9b201a-a668-45ed-876c-00affcb18580")
                 .document("0901111112")

@@ -46,7 +46,7 @@ class EcuabetDepositReverseStrategyTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("1");
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565826");
+        capabilityProperties.getCashin().setItem("100713841");
         capabilityProperties.getCashin().setPath("/rollback/deposit");
         capabilityProperties.getCashin().setCapabilities("REVERSO_DEPOSITO");
         capabilityProperties.getCashin().setName("REVERSO_DEPOSITO");
@@ -60,11 +60,11 @@ class EcuabetDepositReverseStrategyTest {
 
     @Test
     void shouldSupportConfiguredEcuabetCashinReverse() {
-        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_IN, "10001565826");
+        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_IN, "100713841");
 
         assertTrue(strategy.supports(serviceDefinition, Capability.REVERSE));
         assertFalse(strategy.supports(serviceDefinition, Capability.EXECUTE));
-        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_OUT, "10001565827"), Capability.REVERSE));
+        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_OUT, "100708846"), Capability.REVERSE));
     }
 
     @Test
@@ -95,7 +95,7 @@ class EcuabetDepositReverseStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .userid("997561")
                 .phone("123456")
                 .document("0912345678")
@@ -106,7 +106,7 @@ class EcuabetDepositReverseStrategyTest {
 
         ReverseResponse response = (ReverseResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_IN, "10001565826"),
+                serviceDefinition(MovementType.CASH_IN, "100713841"),
                 Capability.REVERSE);
 
         ArgumentCaptor<EcuabetDepositCommand> captor = ArgumentCaptor.forClass(EcuabetDepositCommand.class);
@@ -135,14 +135,14 @@ class EcuabetDepositReverseStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .amount(new BigDecimal("100000.00"))
                 .authorization("AUTH-001")
                 .motivo("Reverso por timeout")
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565826"), Capability.REVERSE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100713841"), Capability.REVERSE));
     }
 
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {

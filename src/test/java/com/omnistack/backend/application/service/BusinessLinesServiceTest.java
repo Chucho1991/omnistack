@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.omnistack.backend.application.dto.BusinessLinesRequest;
+import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.enums.FlgItem;
@@ -30,7 +31,7 @@ class BusinessLinesServiceTest {
     @Test
     void shouldReturnCatalogFromCache() {
         BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
-        BusinessLinesService service = new BusinessLinesService(cacheService);
+        BusinessLinesService service = new BusinessLinesService(cacheService, new AppProperties());
         BusinessLinesRequest request = BusinessLinesRequest.builder()
                 .chain("001")
                 .store("0001")
@@ -73,6 +74,7 @@ class BusinessLinesServiceTest {
                         .description("Pago en efectivo")
                         .build()))
                 .requiresConsent(false)
+                .consentText("Texto sin formato requerido")
                 .build();
 
         ServiceDefinition cashOutService = ServiceDefinition.builder()
@@ -133,7 +135,73 @@ class BusinessLinesServiceTest {
         assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
         assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getNumTickets());
         assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRequiresConsent());
+        assertEquals("Texto sin formato requerido", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText());
         assertEquals("phone", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getInputFields().get(0).getId());
         assertEquals("EFECTIVO", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode());
+    }
+
+    @Test
+    void shouldFormatConsentTextWithoutCuttingWordsWhenConsentIsRequired() {
+        BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
+        AppProperties appProperties = new AppProperties();
+        appProperties.getBusinessLines().setConsentTextMaxLineLength(20);
+        BusinessLinesService service = new BusinessLinesService(cacheService, appProperties);
+        BusinessLinesRequest request = BusinessLinesRequest.builder()
+                .chain("001")
+                .store("0001")
+                .storeName("Tienda Centro")
+                .pos("POS-01")
+                .channelPos(ChannelPos.POS)
+                .build();
+        ServiceDefinition serviceDefinition = ServiceDefinition.builder()
+                .categoryCode("REC")
+                .subcategoryCode("CEL")
+                .serviceProviderCode("CLARO")
+                .rmsItemCode("900001")
+                .description("Recarga Claro")
+                .active(true)
+                .jdeCode("JDE-REC-001")
+                .movementType(MovementType.CASH_IN)
+                .mixedPayment(false)
+                .flgItem(FlgItem.RECA)
+                .refund(false)
+                .minAmount(new BigDecimal("1.00"))
+                .maxAmount(new BigDecimal("200.00"))
+                .timeoutWsMax("10000")
+                .retriesWsMax("3")
+                .numTickets("3")
+                .capabilities(List.of(Capability.EXECUTE))
+                .inputFields(List.of())
+                .paymentMethods(List.of())
+                .requiresConsent(true)
+                .consentText("Autorizo de forma expresa la creacion de mi registro")
+                .build();
+
+        when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
+                .categories(List.of(Category.builder()
+                        .categoryCode("REC")
+                        .categoryName("Recargas")
+                        .subcategories(List.of(CollectionSubcategory.builder()
+                                .subcategoryCode("CEL")
+                                .subcategoryName("Recargas celulares")
+                                .active(true)
+                                .providers(List.of(ServiceProvider.builder()
+                                        .serviceProviderCode("CLARO")
+                                        .providerName("Claro")
+                                        .active(true)
+                                        .services(List.of(serviceDefinition))
+                                        .build()))
+                                .build()))
+                        .build()))
+                .services(List.of(serviceDefinition))
+                .loadedAt(OffsetDateTime.now())
+                .version("v1")
+                .build());
+
+        var response = service.getBusinessLines(request);
+
+        String consentText = response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText();
+        assertEquals("Autorizo de forma\nexpresa la creacion\nde mi registro", consentText);
+        assertTrue(consentText.lines().allMatch(line -> line.length() <= 20));
     }
 }

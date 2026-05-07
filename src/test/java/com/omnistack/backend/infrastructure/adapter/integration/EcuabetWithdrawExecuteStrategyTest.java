@@ -47,7 +47,7 @@ class EcuabetWithdrawExecuteStrategyTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("1");
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashout().setItem("10001565827");
+        capabilityProperties.getCashout().setItem("100708846");
         capabilityProperties.getCashout().setPath("/user/withdraw");
         capabilityProperties.getCashout().setCapabilities("EJECUCION_NOTA_RETIRO");
         capabilityProperties.getCashout().setName("EJECUCION_NOTA_RETIRO");
@@ -61,11 +61,11 @@ class EcuabetWithdrawExecuteStrategyTest {
 
     @Test
     void shouldSupportConfiguredEcuabetCashoutExecute() {
-        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_OUT, "10001565827");
+        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_OUT, "100708846");
 
         assertTrue(strategy.supports(serviceDefinition, Capability.EXECUTE));
         assertFalse(strategy.supports(serviceDefinition, Capability.PRECHECK));
-        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_IN, "10001565826"), Capability.EXECUTE));
+        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_IN, "100713841"), Capability.EXECUTE));
     }
 
     @Test
@@ -93,7 +93,7 @@ class EcuabetWithdrawExecuteStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .withdrawId("7668")
                 .password("77992")
                 .document("0912345678")
@@ -102,7 +102,7 @@ class EcuabetWithdrawExecuteStrategyTest {
 
         ExecuteResponse response = (ExecuteResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_OUT, "10001565827"),
+                serviceDefinition(MovementType.CASH_OUT, "100708846"),
                 Capability.EXECUTE);
 
         ArgumentCaptor<EcuabetWithdrawCommand> captor = ArgumentCaptor.forClass(EcuabetWithdrawCommand.class);
@@ -130,13 +130,13 @@ class EcuabetWithdrawExecuteStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .password("77992")
                 .amount(new BigDecimal("25.50"))
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "10001565827"), Capability.EXECUTE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708846"), Capability.EXECUTE));
     }
 
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {

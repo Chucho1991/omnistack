@@ -47,7 +47,7 @@ public class VerifyResponse extends BaseTransactionResponse {
     private String serviceProviderCode;
 
     @JsonProperty("rms_item_code")
-    @Schema(example = "10001565828")
+    @Schema(example = "100708850")
     private String rmsItemCode;
 
     @Schema(example = "Carlos")

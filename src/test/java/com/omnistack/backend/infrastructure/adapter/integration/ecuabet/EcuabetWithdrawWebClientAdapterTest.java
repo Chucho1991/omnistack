@@ -68,7 +68,7 @@ class EcuabetWithdrawWebClientAdapterTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565827")
+                .rmsItemCode("100708846")
                 .withdrawId("7668")
                 .password("77992")
                 .document("0912345678")

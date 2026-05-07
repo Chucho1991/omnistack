@@ -47,7 +47,7 @@ class LoteriaBet593RechargeReverseStrategyTest {
         provider.setServiceProviderCode("2");
 
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565828");
+        capabilityProperties.getCashin().setItem("100708850");
         capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
         capabilityProperties.getCashin().setCapabilities("REVRETIROOL");
         capabilityProperties.getCashin().setName("REVRETIROOL");
@@ -61,8 +61,8 @@ class LoteriaBet593RechargeReverseStrategyTest {
 
     @Test
     void shouldSupportConfiguredBet593CashinReverse() {
-        ServiceDefinition cashinService = serviceDefinition(MovementType.CASH_IN, "10001565828");
-        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "10001565829");
+        ServiceDefinition cashinService = serviceDefinition(MovementType.CASH_IN, "100708850");
+        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "100708848");
 
         assertTrue(strategy.supports(cashinService, Capability.REVERSE));
         assertFalse(strategy.supports(cashinService, Capability.EXECUTE));
@@ -85,7 +85,7 @@ class LoteriaBet593RechargeReverseStrategyTest {
 
         ReverseResponse response = (ReverseResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_IN, "10001565828"),
+                serviceDefinition(MovementType.CASH_IN, "100708850"),
                 Capability.REVERSE);
 
         ArgumentCaptor<Bet593RechargeCommand> captor = ArgumentCaptor.forClass(Bet593RechargeCommand.class);
@@ -108,7 +108,7 @@ class LoteriaBet593RechargeReverseStrategyTest {
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565828"), Capability.REVERSE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100708850"), Capability.REVERSE));
     }
 
     private ReverseRequest.ReverseRequestBuilder<?, ?> reverseRequestBuilder() {
@@ -123,7 +123,7 @@ class LoteriaBet593RechargeReverseStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565828")
+                .rmsItemCode("100708850")
                 .authorization("4E26639D-DB2E-4E07-90E0-7C2B16DDA5FE")
                 .serialnumber("serial-1")
                 .document("0901111112")

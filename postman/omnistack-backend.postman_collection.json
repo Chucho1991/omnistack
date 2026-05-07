@@ -629,7 +629,7 @@
                 "reverse"
               ]
             },
-            "description": "Ejecuta un reverso generico parametrizable. Para ECUABET CASH_IN use category_code=1, subcategory_code=1, service_provider_code=1, rms_item_code=10001565826, authorization numerico, amount y motivo. Para LOTERIA BET593 CASH_IN use category_code=1, subcategory_code=1, service_provider_code=2, rms_item_code=10001565828, uuid, document y motivo. Para CASH_OUT use rms_item_code=10001565829, document, authorization y motivo.",
+            "description": "Ejecuta un reverso generico parametrizable. Para ECUABET CASH_IN use category_code=1, subcategory_code=1, service_provider_code=1, rms_item_code=100713841, authorization numerico, amount y motivo. Para LOTERIA BET593 CASH_IN use category_code=1, subcategory_code=1, service_provider_code=2, rms_item_code=100708850, uuid, document y motivo. Para CASH_OUT use rms_item_code=100708848, document, authorization y motivo.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"authorization\": \"{{loteriaReverseAuthorization}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
@@ -733,11 +733,11 @@
     },
     {
       "key": "rmsItemCodeEcuabetCashin",
-      "value": "10001565826"
+      "value": "100713841"
     },
     {
       "key": "rmsItemCodeEcuabetCashout",
-      "value": "10001565827"
+      "value": "100708846"
     },
     {
       "key": "ecuabetUserId",
@@ -817,11 +817,11 @@
     },
     {
       "key": "rmsItemCodeLoteriaBet593Cashin",
-      "value": "10001565828"
+      "value": "100708850"
     },
     {
       "key": "rmsItemCodeLoteriaBet593Cashout",
-      "value": "10001565829"
+      "value": "100708848"
     },
     {
       "key": "loteriaCustomerDocument",
@@ -877,7 +877,7 @@
     },
     {
       "key": "genericRmsItemCode",
-      "value": "10001565826"
+      "value": "100713841"
     },
     {
       "key": "genericAmount",

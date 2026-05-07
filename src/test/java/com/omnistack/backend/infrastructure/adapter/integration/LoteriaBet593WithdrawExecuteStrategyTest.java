@@ -47,7 +47,7 @@ class LoteriaBet593WithdrawExecuteStrategyTest {
         provider.setServiceProviderCode("2");
 
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashout().setItem("10001565829");
+        capabilityProperties.getCashout().setItem("100708848");
         capabilityProperties.getCashout().setPath("/APIVentasLoteria/api/Ventas/RetirarBet593");
         capabilityProperties.getCashout().setCapabilities("RETIROOL");
         capabilityProperties.getCashout().setName("RETIROOL");
@@ -61,8 +61,8 @@ class LoteriaBet593WithdrawExecuteStrategyTest {
 
     @Test
     void shouldSupportConfiguredBet593CashoutExecute() {
-        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "10001565829");
-        ServiceDefinition cashinService = serviceDefinition(MovementType.CASH_IN, "10001565828");
+        ServiceDefinition cashoutService = serviceDefinition(MovementType.CASH_OUT, "100708848");
+        ServiceDefinition cashinService = serviceDefinition(MovementType.CASH_IN, "100708850");
 
         assertTrue(strategy.supports(cashoutService, Capability.EXECUTE));
         assertFalse(strategy.supports(cashoutService, Capability.PRECHECK));
@@ -87,7 +87,7 @@ class LoteriaBet593WithdrawExecuteStrategyTest {
 
         ExecuteResponse response = (ExecuteResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_OUT, "10001565829"),
+                serviceDefinition(MovementType.CASH_OUT, "100708848"),
                 Capability.EXECUTE);
 
         ArgumentCaptor<Bet593WithdrawCommand> captor = ArgumentCaptor.forClass(Bet593WithdrawCommand.class);
@@ -111,7 +111,7 @@ class LoteriaBet593WithdrawExecuteStrategyTest {
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "10001565829"), Capability.EXECUTE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708848"), Capability.EXECUTE));
     }
 
     private ExecuteRequest.ExecuteRequestBuilder<?, ?> executeRequestBuilder() {
@@ -126,7 +126,7 @@ class LoteriaBet593WithdrawExecuteStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565829")
+                .rmsItemCode("100708848")
                 .withdrawId("20240430800100007")
                 .document("0911274165")
                 .amount(new BigDecimal("17.00"));

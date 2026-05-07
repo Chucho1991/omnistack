@@ -19,7 +19,7 @@ public final class ApiExamples {
               "category_code":"1",
               "subcategory_code":"1",
               "service_provider_code":"2",
-              "rms_item_code":"10001565828",
+              "rms_item_code":"100708850",
               "document":"0901111112",
               "amount":9.99
             }

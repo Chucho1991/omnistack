@@ -50,7 +50,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                         "1",
                         "1",
                         "1",
-                        "10001565826",
+                        "100713841",
                         "ECUABET CASH IN",
                         true,
                         "ABC1234",
@@ -66,14 +66,14 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                         true,
                         "<html>consent</html>")));
         when(jdbcTemplate.query(eq("capability"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.CapabilityRow("1", "1", "1", "10001565826", "PRECHECK"),
-                new OracleBusinessLinesCatalogSourceAdapter.CapabilityRow("1", "1", "1", "10001565826", "CREATE_TICKET")));
+                new OracleBusinessLinesCatalogSourceAdapter.CapabilityRow("1", "1", "1", "100713841", "PRECHECK"),
+                new OracleBusinessLinesCatalogSourceAdapter.CapabilityRow("1", "1", "1", "100713841", "CREATE_TICKET")));
         when(jdbcTemplate.query(eq("inputField"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.InputFieldRow(
                         "1",
                         "1",
                         "1",
-                        "10001565826",
+                        "100713841",
                         "document",
                         "Documento Usuario",
                         "STRING",
@@ -86,7 +86,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                         "1",
                         "1",
                         "1",
-                        "10001565826",
+                        "100713841",
                         2,
                         "TARJETA CREDITO",
                         true)));

@@ -47,7 +47,7 @@ class EcuabetDepositExecuteStrategyTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("1");
         AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("10001565826");
+        capabilityProperties.getCashin().setItem("100713841");
         capabilityProperties.getCashin().setPath("/user/deposit");
         capabilityProperties.getCashin().setCapabilities("DEPOSITO");
         capabilityProperties.getCashin().setName("DEPOSITO");
@@ -61,11 +61,11 @@ class EcuabetDepositExecuteStrategyTest {
 
     @Test
     void shouldSupportConfiguredEcuabetCashinExecute() {
-        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_IN, "10001565826");
+        ServiceDefinition serviceDefinition = serviceDefinition(MovementType.CASH_IN, "100713841");
 
         assertTrue(strategy.supports(serviceDefinition, Capability.EXECUTE));
         assertFalse(strategy.supports(serviceDefinition, Capability.PRECHECK));
-        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_OUT, "10001565827"), Capability.EXECUTE));
+        assertFalse(strategy.supports(serviceDefinition(MovementType.CASH_OUT, "100708846"), Capability.EXECUTE));
     }
 
     @Test
@@ -95,7 +95,7 @@ class EcuabetDepositExecuteStrategyTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .userid("997561")
                 .phone("123456")
                 .document("0912345678")
@@ -104,7 +104,7 @@ class EcuabetDepositExecuteStrategyTest {
 
         ExecuteResponse response = (ExecuteResponse) strategy.process(
                 request,
-                serviceDefinition(MovementType.CASH_IN, "10001565826"),
+                serviceDefinition(MovementType.CASH_IN, "100713841"),
                 Capability.EXECUTE);
 
         ArgumentCaptor<EcuabetDepositCommand> captor = ArgumentCaptor.forClass(EcuabetDepositCommand.class);
@@ -134,13 +134,13 @@ class EcuabetDepositExecuteStrategyTest {
                 .categoryCode("9")
                 .subcategoryCode("1")
                 .serviceProviderCode("1")
-                .rmsItemCode("10001565826")
+                .rmsItemCode("100713841")
                 .userid("997561")
                 .amount(new BigDecimal("100000.00"))
                 .build();
 
         assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "10001565826"), Capability.EXECUTE));
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100713841"), Capability.EXECUTE));
     }
 
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {

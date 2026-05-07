@@ -135,7 +135,7 @@ docker build -t omnistack-backend:local .
 Ejecucion con Docker:
 
 ```bash
-docker run --name omnistack --env-file .env -p 8085:8085 omnistack-backend:local
+docker run -d --name omnistack --env-file .env -p 8085:8085 omnistack-backend:local
 ```
 
 Variables de entorno principales:
@@ -215,6 +215,7 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 
 - Conexion Oracle configurada en `app.business-lines.oracle.datasource1.*`
 - Cache de 6 horas configurable en `app.business-lines.cache.ttl-hours`
+- Longitud maxima por linea de `consent_text` configurable en `app.business-lines.consent-text-max-line-length` (`APP_BUSINESS_LINES_CONSENT_TEXT_MAX_LINE_LENGTH`, por defecto 56)
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
@@ -302,7 +303,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
           "is_active": true,
           "services": [
             {
-              "rms_item_code": "10001565826",
+              "rms_item_code": "100713841",
               "description": "ECUABET CASH IN",
               "is_active": true,
               "jde_code": "ABC1234",
@@ -353,7 +354,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
                 }
               ],
               "requires_consent": true,
-              "consent_text": "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><title>Lorem Ipsum</title></head><body><h1>Lorem Ipsum</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></body></html>"
+              "consent_text": "Autorizo de forma expresa la creación de mi registro y el uso de mis datos personales para acceder a los servicios digitales de Lotería Nacional, incluyendo la validación de mi identidad, la gestión de apuestas y el procesamiento de pagos. Declaro que acepto los términos y condiciones del servicio y la política de tratamiento de datos personales, reconociendo mi responsabilidad en el uso de este servicio."
             }
           ]
         }
@@ -376,7 +377,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565828",
+  "rms_item_code": "100708850",
   "document": "0901111112",
   "amount": 9.99
 }
@@ -394,7 +395,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565826",
+  "rms_item_code": "100713841",
   "is_error": false,
   "status": {
     "code": "00",
@@ -425,7 +426,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565826",
+  "rms_item_code": "100713841",
   "userid": "997561",
   "phone": "123456",
   "document": "0912345678",
@@ -445,7 +446,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565826",
+  "rms_item_code": "100713841",
   "is_error": false,
   "status": {
     "code": "0",
@@ -541,7 +542,7 @@ ECUABET queda configurado con `auth.mode=STATIC`, por lo que el token se resuelv
 
 ### ECUABET PRECHECK CASH_OUT
 
-Este bloque complementa la descripcion anterior con el flujo de Nota de Retiro para `service_provider_code=1` y `rms_item_code=10001565827`.
+Este bloque complementa la descripcion anterior con el flujo de Nota de Retiro para `service_provider_code=1` y `rms_item_code=100708846`.
 
 - endpoint externo: `POST /user/searchwithdraw`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
@@ -562,7 +563,7 @@ Ejemplo `PRECHECK CASH_OUT`:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565827",
+  "rms_item_code": "100708846",
   "userid": "",
   "phone": "",
   "withdrawId": "7667",
@@ -585,7 +586,7 @@ El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/use
 
 ### ECUABET EXECUTE CASH_IN
 
-La recarga de saldos ECUABET usa `service_provider_code=1` y `rms_item_code=10001565826` para ejecutar el deposito externo.
+La recarga de saldos ECUABET usa `service_provider_code=1` y `rms_item_code=100713841` para ejecutar el deposito externo.
 
 - endpoint externo: `POST /user/deposit`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
@@ -613,7 +614,7 @@ Request externo generado:
 
 ### ECUABET REVERSE CASH_IN
 
-El reverso de recarga ECUABET usa `service_provider_code=1` y `rms_item_code=10001565826` para invocar el rollback externo de deposito.
+El reverso de recarga ECUABET usa `service_provider_code=1` y `rms_item_code=100713841` para invocar el rollback externo de deposito.
 
 - endpoint externo: `POST /rollback/deposit`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
@@ -636,7 +637,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565826",
+  "rms_item_code": "100713841",
   "authorization": "91081",
   "document": "0912345678",
   "amount": 100000.00,
@@ -658,7 +659,7 @@ Request externo generado:
 
 ### ECUABET EXECUTE CASH_OUT
 
-La ejecucion de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_item_code` CASH_OUT expuesto por business-lines (`10001565827` en el catalogo actual).
+La ejecucion de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_item_code` CASH_OUT expuesto por business-lines (`100708846` en el catalogo actual).
 
 - endpoint externo: `POST /user/withdraw`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
@@ -682,7 +683,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565827",
+  "rms_item_code": "100708846",
   "withdrawId": "7668",
   "password": "77992",
   "document": "0912345678",
@@ -707,7 +708,7 @@ Request externo generado:
 
 ### ECUABET REVERSE CASH_OUT
 
-El reverso de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_item_code` CASH_OUT expuesto por business-lines (`10001565827` en el catalogo actual).
+El reverso de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_item_code` CASH_OUT expuesto por business-lines (`100708846` en el catalogo actual).
 
 - endpoint externo: `POST /rollback/withdraw`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
@@ -729,7 +730,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "1",
-  "rms_item_code": "10001565827",
+  "rms_item_code": "100708846",
   "withdrawId": "7671",
   "password": "03448",
   "document": "0912345678",
@@ -753,7 +754,7 @@ Request externo generado:
 
 ### LOTERIA BET593 PRECHECK CASH_IN
 
-La recarga de saldos BET593 usa el proveedor Loteria Nacional con resolucion por catalogo `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+La recarga de saldos BET593 usa el proveedor Loteria Nacional con resolucion por catalogo `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/RecargarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -778,7 +779,7 @@ Request externo generado:
 
 ### LOTERIA BET593 EXECUTE CASH_IN
 
-La confirmacion de recarga de saldos BET593 usa el mismo contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+La confirmacion de recarga de saldos BET593 usa el mismo contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConfirmarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -799,7 +800,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565828",
+  "rms_item_code": "100708850",
   "authorization": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
   "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
   "document": "0901111112",
@@ -826,7 +827,7 @@ Request externo generado:
 
 ### LOTERIA BET593 VERIFY CASH_IN
 
-La validacion de recarga BET593 consulta el estado de una recarga CASH_IN con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+La validacion de recarga BET593 consulta el estado de una recarga CASH_IN con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ValidarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -847,7 +848,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565828",
+  "rms_item_code": "100708850",
   "authorization": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
   "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
   "document": "0901111112"
@@ -871,7 +872,7 @@ Request externo generado:
 
 ### LOTERIA BET593 EXECUTE CASH_OUT
 
-La nota de retiro BET593 usa Loteria Nacional con resolucion por catalogo `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565829`.
+La nota de retiro BET593 usa Loteria Nacional con resolucion por catalogo `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708848`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/RetirarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -892,7 +893,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565829",
+  "rms_item_code": "100708848",
   "document": "0911274165",
   "withdrawId": "20240430800100007",
   "amount": 17.00
@@ -918,7 +919,7 @@ Request externo generado:
 
 ### LOTERIA BET593 VERIFY CASH_OUT
 
-La validacion de nota de retiro BET593 consulta el estado de una orden CASH_OUT con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565829`.
+La validacion de nota de retiro BET593 consulta el estado de una orden CASH_OUT con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708848`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConsultarRetiroBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -940,7 +941,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565829",
+  "rms_item_code": "100708848",
   "document": "0901111112",
   "withdrawId": "340468406359"
 }
@@ -965,7 +966,7 @@ Request externo generado:
 
 ### LOTERIA BET593 REVERSE CASH_IN
 
-El reverso de recarga BET593 usa Loteria Nacional con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565828`.
+El reverso de recarga BET593 usa Loteria Nacional con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ReversarRetiroBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -987,7 +988,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565828",
+  "rms_item_code": "100708850",
   "document": "0901111112",
   "motivo": "Demora en obtener respuesta"
 }
@@ -1012,7 +1013,7 @@ Request externo generado:
 
 ### LOTERIA BET593 REVERSE CASH_OUT
 
-El reverso de nota de retiro BET593 usa Loteria Nacional con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=10001565829`.
+El reverso de nota de retiro BET593 usa Loteria Nacional con el contexto comercial `category_code=1`, `subcategory_code=1`, `service_provider_code=2` y `rms_item_code=100708848`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ReversarRetiroBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -1033,7 +1034,7 @@ Request interno:
   "category_code": "1",
   "subcategory_code": "1",
   "service_provider_code": "2",
-  "rms_item_code": "10001565829",
+  "rms_item_code": "100708848",
   "authorization": "ca9b201a-a668-45ed-876c-00affcb18580",
   "document": "0901111112",
   "motivo": "Demora en obtener respuesta"

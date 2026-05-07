@@ -29,7 +29,7 @@ class TransactionOrchestrationServiceTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565829")
+                .rmsItemCode("100708848")
                 .movementType(MovementType.CASH_OUT)
                 .capabilities(List.of(Capability.EXECUTE))
                 .build();
@@ -70,7 +70,7 @@ class TransactionOrchestrationServiceTest {
                 .categoryCode("1")
                 .subcategoryCode("1")
                 .serviceProviderCode("2")
-                .rmsItemCode("10001565829")
+                .rmsItemCode("100708848")
                 .withdrawId("20240430800100007")
                 .document("0911274165")
                 .amount(new BigDecimal("17.00"))
