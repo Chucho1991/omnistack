@@ -55,7 +55,7 @@
                 "business-lines"
               ]
             },
-            "description": "Consulta la oferta comercial disponible por punto de venta.",
+            "description": "Consulta la oferta comercial disponible por punto de venta. La respuesta incluye ruc_provider en cada service_providers.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"movement_type_filter\": \"{{movementTypeFilter}}\"\n}"

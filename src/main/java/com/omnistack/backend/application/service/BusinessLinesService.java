@@ -67,6 +67,7 @@ public class BusinessLinesService implements BusinessLinesUseCase {
     private BusinessLineProviderResponse toProviderResponse(ServiceProvider provider, BusinessLinesRequest request) {
         return BusinessLineProviderResponse.builder()
                 .serviceProviderCode(provider.getServiceProviderCode())
+                .rucProvider(provider.getRucProvider())
                 .providerName(provider.getProviderName())
                 .active(provider.isActive())
                 .services(provider.getServices().stream()

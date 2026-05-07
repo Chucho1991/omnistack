@@ -57,6 +57,7 @@ public class InMemoryCatalogSourceAdapter implements CatalogSourcePort {
 
         ServiceProvider provider = ServiceProvider.builder()
                 .serviceProviderCode("CLARO")
+                .rucProvider("9999999999001")
                 .providerName("Claro")
                 .active(true)
                 .services(List.of(claroRecarga))

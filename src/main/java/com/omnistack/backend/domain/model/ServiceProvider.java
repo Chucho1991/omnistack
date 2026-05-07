@@ -13,6 +13,8 @@ import lombok.Value;
 public class ServiceProvider {
     @JsonProperty("service_provider_code")
     String serviceProviderCode;
+    @JsonProperty("ruc_provider")
+    String rucProvider;
     @JsonProperty("provider_name")
     String providerName;
     @JsonProperty("is_active")

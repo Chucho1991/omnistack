@@ -132,6 +132,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                         Collectors.mapping(
                                 row -> ServiceProvider.builder()
                                         .serviceProviderCode(row.serviceProviderCode())
+                                        .rucProvider(row.rucProvider())
                                         .providerName(row.providerName())
                                         .active(row.active())
                                         .services(servicesByProvider.getOrDefault(row.providerKey(), List.of()))
@@ -230,6 +231,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getString("category_code"),
                 rs.getString("subcategory_code"),
                 rs.getString("service_provider_code"),
+                rs.getString("ruc_provider"),
                 rs.getString("provider_name"),
                 rs.getInt("is_active") == 1);
     }
@@ -312,6 +314,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             String categoryCode,
             String subcategoryCode,
             String serviceProviderCode,
+            String rucProvider,
             String providerName,
             boolean active) {
         SubcategoryKey subcategoryKey() {

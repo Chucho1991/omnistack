@@ -299,6 +299,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
       "service_providers": [
         {
           "service_provider_code": "1",
+          "ruc_provider": "9999999999001",
           "provider_name": "ECUABET",
           "is_active": true,
           "services": [

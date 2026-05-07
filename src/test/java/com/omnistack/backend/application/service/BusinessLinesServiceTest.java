@@ -108,6 +108,7 @@ class BusinessLinesServiceTest {
                                 .active(true)
                                 .providers(List.of(ServiceProvider.builder()
                                         .serviceProviderCode("CLARO")
+                                        .rucProvider("9999999999001")
                                         .providerName("Claro")
                                         .active(true)
                                         .services(List.of(cashInService, cashOutService))
@@ -129,6 +130,7 @@ class BusinessLinesServiceTest {
         assertEquals("REC", response.getCollectionSubcategory().get(0).getCategoryCode());
         assertTrue(response.getCollectionSubcategory().get(0).isActive());
         assertEquals(1, response.getCollectionSubcategory().get(0).getServiceProviders().size());
+        assertEquals("9999999999001", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getRucProvider());
         assertEquals(1, response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().size());
         assertEquals("900001", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRmsItemCode());
         assertEquals("10000", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
@@ -187,6 +189,7 @@ class BusinessLinesServiceTest {
                                 .active(true)
                                 .providers(List.of(ServiceProvider.builder()
                                         .serviceProviderCode("CLARO")
+                                        .rucProvider("9999999999001")
                                         .providerName("Claro")
                                         .active(true)
                                         .services(List.of(serviceDefinition))

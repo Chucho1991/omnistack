@@ -44,7 +44,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(jdbcTemplate.query(eq("category"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.CategorySubcategoryRow("1", "ENTRETENIMIENTO", "1", "APUESTAS", true)));
         when(jdbcTemplate.query(eq("provider"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.ServiceProviderRow("1", "1", "1", "ECUABET", true)));
+                new OracleBusinessLinesCatalogSourceAdapter.ServiceProviderRow("1", "1", "1", "9999999999001", "ECUABET", true)));
         when(jdbcTemplate.query(eq("service"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.ServiceRow(
                         "1",
@@ -97,6 +97,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertEquals("ENTRETENIMIENTO", snapshot.getCategories().get(0).getCategoryName());
         assertEquals(1, snapshot.getCategories().get(0).getSubcategories().size());
         assertEquals(1, snapshot.getCategories().get(0).getSubcategories().get(0).getProviders().size());
+        assertEquals("9999999999001", snapshot.getCategories().get(0).getSubcategories().get(0).getProviders().get(0).getRucProvider());
         assertEquals(1, snapshot.getServices().size());
         assertEquals(2, snapshot.getServices().get(0).getCapabilities().size());
         assertEquals("10000", snapshot.getServices().get(0).getTimeoutWsMax());
