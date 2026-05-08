@@ -346,7 +346,8 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
         if (amount == null) {
             throw new IntegrationException("Loteria BET593 requiere el campo amount");
         }
-        return amount.stripTrailingZeros().toPlainString();
+        String normalizedAmount = amount.stripTrailingZeros().toPlainString();
+        return normalizedAmount.contains(".") ? normalizedAmount : normalizedAmount + ".0";
     }
 
     private String requiredValue(String value, String fieldName) {

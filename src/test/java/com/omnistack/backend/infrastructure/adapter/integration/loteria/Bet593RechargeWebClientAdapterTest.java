@@ -54,7 +54,7 @@ class Bet593RechargeWebClientAdapterTest {
                   "nombre": "Usuario",
                   "apellido": "Prueba uno",
                   "tipoDocumento": "CI",
-                  "valor": "9.99",
+                  "valor": "10.0",
                   "fecharecarga": "2026-04-24T11:17:17",
                   "recargaid": "4E26639D-DB2E-4E07-90E0-7C2B16DDA5FE",
                   "serialnumber": "serial-1",
@@ -77,7 +77,7 @@ class Bet593RechargeWebClientAdapterTest {
                 .authorization("9F968187-F436-4F19-8C1F-A7A4DA07A899")
                 .serialnumber("7366ea56284a06a2")
                 .document("0901111112")
-                .amount(new BigDecimal("9.99"))
+                .amount(new BigDecimal("10"))
                 .build(), "/APIVentasLoteria/api/Ventas/RecargarBet593");
 
         assertEquals("/APIVentasLoteria/api/Ventas/RecargarBet593", capturedPath.get());
@@ -89,7 +89,7 @@ class Bet593RechargeWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"cuentaweb\":\"0901111112\""));
         assertTrue(capturedBody.get().contains("\"recargaid\":\"9F968187-F436-4F19-8C1F-A7A4DA07A899\""));
         assertTrue(capturedBody.get().contains("\"serialnumber\":\"7366ea56284a06a2\""));
-        assertTrue(capturedBody.get().contains("\"valor\":\"9.99\""));
+        assertTrue(capturedBody.get().contains("\"valor\":\"10.0\""));
         assertTrue(capturedBody.get().contains("\"codigotrn\":\"uuid-bet593\""));
         assertTrue(response.isApproved());
         assertEquals("0", response.getExternalCode());
