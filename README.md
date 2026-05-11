@@ -219,8 +219,8 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
-- ECUABET CASH_OUT (`rms_item_code=100708846`) expone en `input_fields` solo `withdrawId`, `password` y `currency` para `PRECHECK`; los campos de reverso no forman parte del contrato de catalogo.
-- BET 593 CASH_OUT (`rms_item_code=100708848`) expone en `input_fields` solo `document`, `withdrawId` y `currency` para `EXECUTE`; los campos de validacion y reverso no forman parte del contrato de catalogo.
+- ECUABET CASH_OUT (`rms_item_code=100708846`) expone en `input_fields` solo `withdrawId`, `password` y `amount` para `PRECHECK`; los campos de reverso no forman parte del contrato de catalogo.
+- BET 593 CASH_OUT (`rms_item_code=100708848`) expone en `input_fields` solo `document`, `withdrawId` y `amount` para `EXECUTE`; los campos de validacion y reverso no forman parte del contrato de catalogo.
 - Mientras no exista integracion con base de datos real, los campos `chain`, `store`, `store_name` y `pos` se aceptan y se replican en la respuesta sin condicionar el catalogo devuelto.
 - Los `WHERE` del SQL mock de Oracle filtran temporalmente solo por `channel_POS`.
 

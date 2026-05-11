@@ -119,9 +119,9 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertTrue(inputFieldsSql.contains(
                 "'100708846' as rms_item_code, 'password' as input_field_id, 'Contrase\u00f1a asignado a retiro' as label"));
         assertTrue(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'currency' as input_field_id, 'Moneda' as label, "
-                        + "'STRING' as field_type, 'PRECHECK' as capability_code, 1 as is_required, "
-                        + "'CURRENCY' as field_group"));
+                "'100708846' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
+                        + "'DOUBLE' as field_type, 'PRECHECK' as capability_code, 1 as is_required, "
+                        + "'AMOUNT' as field_group"));
         assertTrue(inputFieldsSql.contains("'PASS' as field_group"));
         assertFalse(inputFieldsSql.contains(
                 "'100708846' as rms_item_code, 'amount' as input_field_id, 'Monto reverso' as label"));
@@ -151,9 +151,9 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                 "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'N\u00famero asignado a retiro' as label, "
                         + "'STRING' as field_type, 'EXECUTE' as capability_code"));
         assertTrue(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'currency' as input_field_id, 'Moneda' as label, "
-                        + "'STRING' as field_type, 'EXECUTE' as capability_code, 1 as is_required, "
-                        + "'CURRENCY' as field_group"));
+                "'100708848' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
+                        + "'DOUBLE' as field_type, 'EXECUTE' as capability_code, 1 as is_required, "
+                        + "'AMOUNT' as field_group"));
         assertFalse(inputFieldsSql.contains(
                 "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
                         + "'STRING' as field_type, 'VERIFY' as capability_code"));
