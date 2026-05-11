@@ -1,6 +1,7 @@
 package com.omnistack.backend.infrastructure.adapter.catalog;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -106,5 +107,58 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertEquals("document", snapshot.getServices().get(0).getInputFields().get(0).getId());
         assertEquals("TARJETA_CREDITO", snapshot.getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode().name());
         assertTrue(snapshot.getServices().get(0).isRequiresConsent());
+    }
+
+    @Test
+    void shouldExposeOnlyPrecheckInputFieldsForEcuabetCashOutCatalog() {
+        OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
+
+        String inputFieldsSql = sqlProvider.getInputFieldsSql();
+
+        assertTrue(inputFieldsSql.contains("'100708846' as rms_item_code, 'withdrawId' as input_field_id"));
+        assertTrue(inputFieldsSql.contains(
+                "'100708846' as rms_item_code, 'password' as input_field_id, 'Contrase\u00f1a asignado a retiro' as label"));
+        assertTrue(inputFieldsSql.contains("'PASS' as field_group"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708846' as rms_item_code, 'amount' as input_field_id, 'Monto reverso' as label"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708846' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
+                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708846' as rms_item_code, 'motivo' as input_field_id, 'Motivo del reverso' as label"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708846' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
+                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708846' as rms_item_code, 'password' as input_field_id, 'Clave de retiro' as label, "
+                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
+    }
+
+    @Test
+    void shouldExposeOnlyExecuteInputFieldsForBet593CashOutCatalog() {
+        OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
+
+        String inputFieldsSql = sqlProvider.getInputFieldsSql();
+
+        assertTrue(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
+                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
+        assertTrue(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'N\u00famero asignado a retiro' as label, "
+                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
+                        + "'STRING' as field_type, 'VERIFY' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
+                        + "'STRING' as field_type, 'VERIFY' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'authorization' as input_field_id, "
+                        + "'Numero de transaccion original' as label"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
+                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'motivo' as input_field_id, 'Motivo del reverso' as label"));
     }
 }
