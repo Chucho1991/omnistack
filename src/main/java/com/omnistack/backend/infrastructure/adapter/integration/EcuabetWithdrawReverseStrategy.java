@@ -16,7 +16,6 @@ import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,8 +27,6 @@ import org.springframework.stereotype.Component;
 public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
 
     private static final String PROVIDER_KEY = "ecuabet";
-    private static final int MIN_TRANSACTION_ID = 10_000;
-    private static final int MAX_TRANSACTION_ID = 999_999_999;
 
     private final EcuabetWithdrawReversePort ecuabetWithdrawReversePort;
     private final AppProperties appProperties;
@@ -68,7 +65,7 @@ public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
         AppProperties.ProviderProperties provider = getProviderProperties();
         validateRequest(request, serviceDefinition, provider);
         AppProperties.ProviderOperationProperties operation = getRequiredOperation(provider, capability, serviceDefinition);
-        Integer transactionId = generateTransactionId();
+        Integer transactionId = requiredTransactionId(request);
 
         EcuabetWithdrawCommand command = EcuabetWithdrawCommand.builder()
                 .uuid(request.getUuid())
@@ -117,7 +114,7 @@ public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(String.valueOf(transactionId))
+                .authorization(resolveValue(payload, "authorization", String.valueOf(transactionId)))
                 .document(request.getDocument())
                 .amount(resolveAmount(payload, request));
 
@@ -149,6 +146,9 @@ public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
         }
         if (request.getAmount() == null) {
             throw new IntegrationException("ECUABET requiere amount para reverso de nota de retiro");
+        }
+        if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
+            throw new IntegrationException("ECUABET requiere authorization para reverso de nota de retiro");
         }
     }
 
@@ -216,16 +216,17 @@ public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
         return movementType == MovementType.CASH_IN ? capabilityProperties.getCashin() : capabilityProperties.getCashout();
     }
 
-    private Integer generateTransactionId() {
-        return ThreadLocalRandom.current().nextInt(MIN_TRANSACTION_ID, MAX_TRANSACTION_ID);
-    }
-
     private String stringValue(Map<String, Object> payload, String key) {
         if (payload == null) {
             return null;
         }
         Object value = payload.get(key);
         return value == null ? null : String.valueOf(value);
+    }
+
+    private String resolveValue(Map<String, Object> payload, String key, String fallback) {
+        String value = stringValue(payload, key);
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
@@ -236,5 +237,13 @@ public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
     private Integer integerValue(Map<String, Object> payload, String key) {
         String value = stringValue(payload, key);
         return value == null || value.isBlank() ? null : Integer.valueOf(value);
+    }
+
+    private Integer requiredTransactionId(BaseTransactionRequest request) {
+        try {
+            return Integer.valueOf(request.getAuthorization());
+        } catch (NumberFormatException exception) {
+            throw new IntegrationException("ECUABET requiere authorization numerico para reverso de nota de retiro", exception);
+        }
     }
 }

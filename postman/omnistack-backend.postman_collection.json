@@ -263,7 +263,7 @@
                 "description": "Reversa la nota de retiro ECUABET por flujo CASH_OUT.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdReverse}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordReverse}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
+                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"authorization\": \"{{ecuabetCashoutReverseAuthorization}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdReverse}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordReverse}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
                 }
               },
               "response": []
@@ -794,6 +794,10 @@
     {
       "key": "ecuabetWithdrawIdReverse",
       "value": "7671"
+    },
+    {
+      "key": "ecuabetCashoutReverseAuthorization",
+      "value": "65530303"
     },
     {
       "key": "ecuabetWithdrawPasswordReverse",

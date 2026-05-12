@@ -716,8 +716,8 @@ El reverso de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_ite
 - endpoint externo: `POST /rollback/withdraw`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
 - body externo: `shop`, `token`, `country`, `withdrawId`, `password`, `transactionId`
-- `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET y lo devuelve como `authorization`; el `transactionId` retornado por ECUABET se registra como dato de proveedor y no reemplaza la autorizacion del flujo
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId generado`, `document <- document`, `amount <- amount`
+- `transactionId`: se mapea desde `authorization` del request interno y debe ser numerico; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request interno:
@@ -734,6 +734,7 @@ Request interno:
   "subcategory_code": "1",
   "service_provider_code": "1",
   "rms_item_code": "100708846",
+  "authorization": "65530303",
   "withdrawId": "7671",
   "password": "03448",
   "document": "0912345678",
@@ -751,7 +752,7 @@ Request externo generado:
   "country": 66,
   "withdrawId": "7671",
   "password": "03448",
-  "transactionId": 10980
+  "transactionId": 65530303
 }
 ```
 

@@ -87,7 +87,7 @@ class EcuabetWithdrawReverseWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"withdrawId\":\"7671\""));
         assertTrue(capturedBody.get().contains("\"password\":\"03448\""));
         assertTrue(capturedBody.get().contains("\"transactionId\":10980"));
-        assertEquals("10980", String.valueOf(response.getPayload().get("authorization")));
+        assertEquals("41472", String.valueOf(response.getPayload().get("authorization")));
         assertEquals("41472", String.valueOf(response.getPayload().get("providerTransactionId")));
     }
 

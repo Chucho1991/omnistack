@@ -2,11 +2,11 @@ package com.omnistack.backend.infrastructure.adapter.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,7 +69,7 @@ class EcuabetWithdrawReverseStrategyTest {
     }
 
     @Test
-    void shouldBuildReverseWithdrawCommandAndReturnGeneratedAuthorization() {
+    void shouldBuildReverseWithdrawCommandWithAuthorizationAsTransactionId() {
         when(ecuabetWithdrawReversePort.reverseWithdraw(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
                 .approved(true)
                 .externalCode("0")
@@ -78,6 +78,7 @@ class EcuabetWithdrawReverseStrategyTest {
                         "error", 0,
                         "code", "0",
                         "amount", new BigDecimal("20.00"),
+                        "authorization", "41472",
                         "providerTransactionId", "41472"))
                 .build());
 
@@ -97,7 +98,7 @@ class EcuabetWithdrawReverseStrategyTest {
                 .password("03448")
                 .document("0912345678")
                 .amount(new BigDecimal("25.50"))
-                .authorization("original-auth")
+                .authorization("65530303")
                 .motivo("Reverso de nota de retiro")
                 .build();
 
@@ -112,8 +113,8 @@ class EcuabetWithdrawReverseStrategyTest {
         assertEquals("7671", captor.getValue().getWithdrawId());
         assertEquals("03448", captor.getValue().getPassword());
         assertEquals(new BigDecimal("25.50"), captor.getValue().getAmount());
-        assertNotNull(captor.getValue().getTransactionId());
-        assertEquals(String.valueOf(captor.getValue().getTransactionId()), response.getAuthorization());
+        assertEquals(65530303, captor.getValue().getTransactionId());
+        assertEquals("41472", response.getAuthorization());
         assertEquals("0912345678", response.getDocument());
         assertEquals(new BigDecimal("20.00"), response.getAmount());
         assertEquals("0", response.getStatus().getCode());
@@ -139,6 +140,31 @@ class EcuabetWithdrawReverseStrategyTest {
 
         assertThrows(IntegrationException.class,
                 () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708846"), Capability.REVERSE));
+    }
+
+    @Test
+    void shouldFailWhenAuthorizationIsNotNumeric() {
+        ReverseRequest request = ReverseRequest.builder()
+                .uuid("uuid-cashout-reverse")
+                .chain("1")
+                .store("148")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_OUT)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100708846")
+                .withdrawId("7671")
+                .password("03448")
+                .amount(new BigDecimal("25.50"))
+                .authorization("original-auth")
+                .motivo("Reverso de nota de retiro")
+                .build();
+
+        assertThrows(IntegrationException.class,
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708846"), Capability.REVERSE));
+        verify(ecuabetWithdrawReversePort, never()).reverseWithdraw(any(), anyString());
     }
 
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {
