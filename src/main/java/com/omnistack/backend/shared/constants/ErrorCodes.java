@@ -6,25 +6,17 @@ package com.omnistack.backend.shared.constants;
 public final class ErrorCodes {
 
     /**
-     * Error por validacion de entrada.
+     * Operacion exitosa.
      */
-    public static final String VALIDATION_ERROR = "VAL-001";
+    public static final String OK = "00";
     /**
-     * Error funcional de negocio.
+     * Descripcion de error obtenida.
      */
-    public static final String BUSINESS_ERROR = "BUS-001";
+    public static final String ERROR_DESCRIPTION_OBTAINED = "01";
     /**
-     * Error en integracion externa.
+     * Usuario invalido.
      */
-    public static final String INTEGRATION_ERROR = "INT-001";
-    /**
-     * Error por catalogo no encontrado.
-     */
-    public static final String CATALOG_NOT_FOUND = "CAT-404";
-    /**
-     * Error interno no controlado.
-     */
-    public static final String INTERNAL_ERROR = "GEN-500";
+    public static final String INVALID_USER = "02";
 
     private ErrorCodes() {
     }

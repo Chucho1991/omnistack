@@ -580,10 +580,19 @@ Ejemplo `PRECHECK CASH_OUT`:
 
 ```json
 {
-  "code": "VAL-001",
-  "message": "La solicitud no cumple las validaciones requeridas"
+  "is_error": true,
+  "error": {
+    "code": "01",
+    "message": "La solicitud no cumple las validaciones requeridas"
+  }
 }
 ```
+
+Codigos estandar de respuesta:
+
+- `00`: OK - Operacion exitosa.
+- `01`: Descripcion Error obtenida.
+- `02`: Usuario invalido.
 
 El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/user/searchwithdraw` cuando el servicio resuelto corresponde a `CASH_OUT`.
 

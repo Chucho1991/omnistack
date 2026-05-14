@@ -2,7 +2,7 @@ package com.omnistack.backend.controller;
 
 import com.omnistack.backend.application.dto.BusinessLinesRequest;
 import com.omnistack.backend.application.dto.BusinessLinesResponse;
-import com.omnistack.backend.application.dto.ErrorDetail;
+import com.omnistack.backend.application.dto.ErrorResponse;
 import com.omnistack.backend.application.port.in.BusinessLinesUseCase;
 import com.omnistack.backend.shared.constants.ApiPaths;
 import io.swagger.v3.oas.annotations.Operation;
@@ -103,7 +103,7 @@ public class BusinessLinesController {
                                           ]
                                         }
                                         """))),
-                @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
+                @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
             })
     public ResponseEntity<BusinessLinesResponse> getBusinessLines(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(

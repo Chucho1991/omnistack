@@ -12,7 +12,9 @@ import com.omnistack.backend.application.dto.ReverseResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.dto.VerifyResponse;
 import com.omnistack.backend.application.port.in.TransactionUseCase;
+import com.omnistack.backend.shared.exception.CatalogNotFoundException;
 import com.omnistack.backend.shared.exception.GlobalExceptionHandler;
+import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -239,5 +241,64 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.document").value("0912345678"))
                 .andExpect(jsonPath("$.amount").value(100000.00))
                 .andExpect(jsonPath("$.status.code").value("0"));
+    }
+
+    @Test
+    void shouldReturnUniformErrorResponseWhenCatalogIsNotFound() throws Exception {
+        when(transactionUseCase.execute(any()))
+                .thenThrow(new CatalogNotFoundException("No se encontro configuracion del servicio solicitada"));
+
+        mockMvc.perform(post("/v1/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "uuid":"uuid-catalog",
+                                  "chain":"1",
+                                  "store":"148",
+                                  "store_name":"FYBECA EL BATAN",
+                                  "pos":"1",
+                                  "channel_POS":"POS",
+                                  "category_code":"1",
+                                  "subcategory_code":"1",
+                                  "service_provider_code":"1",
+                                  "rms_item_code":"100713841",
+                                  "userid":"998378",
+                                  "amount":3.00
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.is_error").value(true))
+                .andExpect(jsonPath("$.error.code").value("01"))
+                .andExpect(jsonPath("$.error.message").value("No se encontro configuracion del servicio solicitada"))
+                .andExpect(jsonPath("$.code").doesNotExist())
+                .andExpect(jsonPath("$.message").doesNotExist());
+    }
+
+    @Test
+    void shouldMapInvalidUserErrorCode() throws Exception {
+        when(transactionUseCase.precheck(any()))
+                .thenThrow(new IntegrationException("Usuario invalido."));
+
+        mockMvc.perform(post("/v1/precheck")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "uuid":"uuid-invalid-user",
+                                  "chain":"1",
+                                  "store":"148",
+                                  "store_name":"FYBECA EL BATAN",
+                                  "pos":"1",
+                                  "channel_POS":"POS",
+                                  "category_code":"1",
+                                  "subcategory_code":"1",
+                                  "service_provider_code":"1",
+                                  "rms_item_code":"100713841",
+                                  "userid":"998378"
+                                }
+                                """))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.is_error").value(true))
+                .andExpect(jsonPath("$.error.code").value("02"))
+                .andExpect(jsonPath("$.error.message").value("Usuario invalido."));
     }
 }

@@ -1,6 +1,6 @@
 package com.omnistack.backend.controller;
 
-import com.omnistack.backend.application.dto.ErrorDetail;
+import com.omnistack.backend.application.dto.ErrorResponse;
 import com.omnistack.backend.application.dto.ProviderTokenRefreshRequest;
 import com.omnistack.backend.application.dto.ProviderTokenRefreshResponse;
 import com.omnistack.backend.application.port.in.ProviderTokenAdministrationUseCase;
@@ -37,8 +37,8 @@ public class ProviderTokenController {
     @PostMapping(ApiPaths.V1_PROVIDER_TOKEN_REFRESH)
     @Operation(summary = "Refresco manual de token por proveedor", responses = {
         @ApiResponse(responseCode = "200", description = "Token actualizado correctamente"),
-        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class))),
-        @ApiResponse(responseCode = "422", description = "Proveedor no aplicable para refresh", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "422", description = "Proveedor no aplicable para refresh", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<ProviderTokenRefreshResponse> refreshToken(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = ApiExamples.PROVIDER_TOKEN_REFRESH_REQUEST)))

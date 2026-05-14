@@ -122,9 +122,11 @@ class BusinessLinesControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VAL-001"))
-                .andExpect(jsonPath("$.message").value("La solicitud no cumple las validaciones requeridas"))
+                .andExpect(jsonPath("$.is_error").value(true))
+                .andExpect(jsonPath("$.error.code").value("01"))
+                .andExpect(jsonPath("$.error.message").value("La solicitud no cumple las validaciones requeridas"))
                 .andExpect(jsonPath("$.status").doesNotExist())
-                .andExpect(jsonPath("$.is_error").doesNotExist());
+                .andExpect(jsonPath("$.code").doesNotExist())
+                .andExpect(jsonPath("$.message").doesNotExist());
     }
 }

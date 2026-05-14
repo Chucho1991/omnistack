@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "Detalle uniforme del error")
 public class ErrorDetail {
-    @Schema(example = "BUS-001")
+    @Schema(example = "01")
     private String code;
 
     @Schema(example = "No existe configuracion para el servicio solicitado")

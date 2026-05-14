@@ -70,6 +70,7 @@ class ProviderTokenControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VAL-001"));
+                .andExpect(jsonPath("$.is_error").value(true))
+                .andExpect(jsonPath("$.error.code").value("01"));
     }
 }
