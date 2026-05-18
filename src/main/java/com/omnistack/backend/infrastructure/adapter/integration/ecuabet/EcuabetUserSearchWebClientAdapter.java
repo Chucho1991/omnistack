@@ -70,9 +70,9 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
         traceToConsole("External web service response", url, JsonUtil.toJsonSilently(response));
 
         return ExternalTransactionResponse.builder()
-                .approved(response.getError() == null || response.getError() == 0)
+                .approved(!hasBusinessError(command, response))
                 .externalCode(resolveExternalCode(response))
-                .externalMessage(resolveExternalMessage(response))
+                .externalMessage(resolveExternalMessage(command, response))
                 .payload(buildPayload(response))
                 .build();
     }
@@ -118,13 +118,39 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
         return response.getCode() != null && !response.getCode().isBlank() ? response.getCode() : "00";
     }
 
-    private String resolveExternalMessage(EcuabetUserSearchResponse response) {
+    private String resolveExternalMessage(EcuabetUserSearchCommand command, EcuabetUserSearchResponse response) {
         if (response.getError() != null && response.getError() != 0) {
             return String.valueOf(response.getError());
         }
-        return response.getMessage() != null && !response.getMessage().isBlank()
-                ? response.getMessage()
+        if (response.getMessage() != null && !response.getMessage().isBlank()) {
+            return response.getMessage();
+        }
+        return isMissingLookupData(command, response)
+                ? "ECUABET no retorno datos para aprobar el precheck"
                 : "Operacion procesada por ECUABET";
+    }
+
+    private boolean hasBusinessError(EcuabetUserSearchCommand command, EcuabetUserSearchResponse response) {
+        if (response.getError() != null && response.getError() != 0) {
+            return true;
+        }
+        String code = response.getCode();
+        return code != null && !code.isBlank() && !isSuccessfulCode(code)
+                || isMissingLookupData(command, response);
+    }
+
+    private boolean isSuccessfulCode(String code) {
+        return "0".equals(code.trim()) || "00".equals(code.trim());
+    }
+
+    private boolean isMissingLookupData(EcuabetUserSearchCommand command, EcuabetUserSearchResponse response) {
+        if (command.getMovementType() == MovementType.CASH_OUT) {
+            return isBlank(response.getName())
+                    && isBlank(response.getUserid())
+                    && response.getRaw().get("amount") == null
+                    && response.getRaw().get("currency") == null;
+        }
+        return isBlank(response.getName()) && isBlank(response.getUserid());
     }
 
     private String buildErrorMessage(String body, String operationName) {
@@ -174,6 +200,10 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
     private String nullIfBlank(String value) {
         return value == null || value.isBlank() ? null : value;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private String requiredValue(String value, String fieldName) {

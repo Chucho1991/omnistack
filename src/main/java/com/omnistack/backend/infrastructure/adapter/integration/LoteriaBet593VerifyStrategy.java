@@ -96,7 +96,8 @@ public class LoteriaBet593VerifyStrategy implements VerifyStrategy {
 
     private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
-        boolean isError = stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
+        boolean isError = !externalResponse.isApproved()
+                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
 
         VerifyResponse.VerifyResponseBuilder<?, ?> builder = VerifyResponse.builder()
                 .chain(request.getChain())
@@ -113,8 +114,6 @@ public class LoteriaBet593VerifyStrategy implements VerifyStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(resolveValue(payload, "authorization", null))
-                .serialnumber(resolveValue(payload, "serialnumber", null))
                 .userid(resolveValue(payload, "userid", request.getUserid()))
                 .document(resolveValue(payload, "document", request.getDocument()));
 
@@ -124,7 +123,9 @@ public class LoteriaBet593VerifyStrategy implements VerifyStrategy {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), resolveStatusMessage(payload)));
+            builder.authorization(resolveValue(payload, "authorization", null))
+                    .serialnumber(resolveValue(payload, "serialnumber", null))
+                    .status(new StatusDetail(externalResponse.getExternalCode(), resolveStatusMessage(payload)));
         }
 
         return builder.build();

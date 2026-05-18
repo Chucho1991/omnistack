@@ -85,7 +85,7 @@ public final class ResponseFactory {
             ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
         Integer providerError = integerValue(payload, "error");
-        boolean isError = providerError != null && providerError != 0;
+        boolean isError = !externalResponse.isApproved() || providerError != null && providerError != 0;
 
         PrecheckResponse.PrecheckResponseBuilder<?, ?> builder = PrecheckResponse.builder()
                 .chain(request.getChain())
@@ -102,7 +102,6 @@ public final class ResponseFactory {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(resolveAuthorization(payload))
                 .serialnumber(stringValue(payload, "serialnumber"))
                 .userid(stringValue(payload, "userid"))
                 .document(stringValue(payload, "document"))
@@ -114,7 +113,8 @@ public final class ResponseFactory {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));
+            builder.authorization(resolveAuthorization(payload))
+                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));
         }
 
         return builder.build();

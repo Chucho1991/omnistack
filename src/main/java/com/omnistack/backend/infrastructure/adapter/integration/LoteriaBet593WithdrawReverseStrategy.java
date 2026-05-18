@@ -98,7 +98,8 @@ public class LoteriaBet593WithdrawReverseStrategy implements ReverseStrategy {
 
     private ReverseResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
-        boolean isError = stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
+        boolean isError = !externalResponse.isApproved()
+                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
 
         ReverseResponse.ReverseResponseBuilder<?, ?> builder = ReverseResponse.builder()
                 .chain(request.getChain())
@@ -112,7 +113,6 @@ public class LoteriaBet593WithdrawReverseStrategy implements ReverseStrategy {
                 .serviceProviderCode(request.getServiceProviderCode())
                 .rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
-                .authorization(resolveValue(payload, "transactionNumber", request.getAuthorization()))
                 .document(resolveValue(payload, "document", request.getDocument()));
 
         if (isError) {
@@ -121,7 +121,8 @@ public class LoteriaBet593WithdrawReverseStrategy implements ReverseStrategy {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));
+            builder.authorization(resolveValue(payload, "transactionNumber", request.getAuthorization()))
+                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));
         }
 
         return builder.build();

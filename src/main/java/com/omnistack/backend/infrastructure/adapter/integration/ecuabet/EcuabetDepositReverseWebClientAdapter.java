@@ -75,7 +75,8 @@ public class EcuabetDepositReverseWebClientAdapter implements EcuabetDepositReve
         traceToConsole("ECUABET deposit reverse response", url, JsonUtil.toJsonSilently(response));
 
         return ExternalTransactionResponse.builder()
-                .approved(response.getError() == null || response.getError() == 0)
+                .approved((response.getError() == null || response.getError() == 0)
+                        && isSuccessfulCode(resolveExternalCode(response)))
                 .externalCode(resolveExternalCode(response))
                 .externalMessage(resolveExternalMessage(response))
                 .payload(buildPayload(command, response))
@@ -137,6 +138,10 @@ public class EcuabetDepositReverseWebClientAdapter implements EcuabetDepositReve
         return response.getError() != null && response.getError() != 0
                 ? String.valueOf(response.getError())
                 : "Transaccion correcta";
+    }
+
+    private boolean isSuccessfulCode(String code) {
+        return "0".equals(code.trim()) || "00".equals(code.trim());
     }
 
     private String buildErrorMessage(String body) {

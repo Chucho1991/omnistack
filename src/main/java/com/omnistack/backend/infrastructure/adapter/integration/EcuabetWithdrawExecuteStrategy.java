@@ -99,7 +99,7 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
             Integer transactionId) {
         Map<String, Object> payload = externalResponse.getPayload();
         Integer providerError = integerValue(payload, "error");
-        boolean isError = providerError != null && providerError != 0;
+        boolean isError = !externalResponse.isApproved() || providerError != null && providerError != 0;
 
         ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
                 .chain(request.getChain())
@@ -116,7 +116,6 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(resolveValue(payload, "authorization", String.valueOf(transactionId)))
                 .document(request.getDocument())
                 .amount(resolveAmount(payload, request));
 
@@ -126,7 +125,8 @@ public class EcuabetWithdrawExecuteStrategy implements ExecuteStrategy {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
+            builder.authorization(resolveValue(payload, "authorization", String.valueOf(transactionId)))
+                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
         }
 
         return builder.build();

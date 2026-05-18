@@ -1,6 +1,7 @@
 package com.omnistack.backend.infrastructure.adapter.integration.ecuabet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,6 +84,78 @@ class EcuabetUserSearchWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"token\":\"token-test\""));
         assertEquals("998765", String.valueOf(response.getPayload().get("userid")));
         assertEquals("USD", String.valueOf(response.getPayload().get("currency")));
+    }
+
+    @Test
+    void shouldRejectBusinessErrorResponseWithoutErrorField() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/user/search", exchange -> respondJson(exchange,
+                """
+                {
+                  "code": "101",
+                  "message": "Usuario invalido"
+                }
+                """));
+        server.start();
+
+        EcuabetUserSearchWebClientAdapter adapter = new EcuabetUserSearchWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test");
+
+        var response = adapter.searchUser(EcuabetUserSearchCommand.builder()
+                .chain("60")
+                .store("4")
+                .storeName("Local 4")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_IN)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .document("2912912912")
+                .build(), "/user/search");
+
+        assertFalse(response.isApproved());
+        assertEquals("101", response.getExternalCode());
+        assertEquals("Usuario invalido", response.getExternalMessage());
+    }
+
+    @Test
+    void shouldRejectUppercaseResponseWithoutLookupData() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/user/search-1", exchange -> respondJson(exchange,
+                """
+                {
+                  "Error": false,
+                  "Code": "0",
+                  "message": null
+                }
+                """));
+        server.start();
+
+        EcuabetUserSearchWebClientAdapter adapter = new EcuabetUserSearchWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test");
+
+        var response = adapter.searchUser(EcuabetUserSearchCommand.builder()
+                .chain("60")
+                .store("4")
+                .storeName("Local 4")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_IN)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .document("2912912912")
+                .build(), "/user/search-1");
+
+        assertFalse(response.isApproved());
+        assertEquals("0", response.getExternalCode());
+        assertEquals("ECUABET no retorno datos para aprobar el precheck", response.getExternalMessage());
+        assertEquals(0, response.getPayload().get("error"));
     }
 
     private void respondJson(HttpExchange exchange, String body) throws IOException {

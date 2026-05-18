@@ -534,7 +534,7 @@ La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST 
 - identidad del proveedor: `service_provider_code`
 - `category_code` y `subcategory_code` siguen viajando en el contrato, pero no definen el proveedor; un mismo `service_provider_code` puede existir en varias subcategorias
 - response interna: replica `chain`, `store`, `store_name`, `pos`, `channel_POS`, `uuid`, `category_code`, `subcategory_code`, `service_provider_code` y `rms_item_code`
-- mapeo funcional: `is_error <- error`, `error.code <- code`, `error.message <- error`, `username <- name`, `status.code <- code`, `status.message <- "Transacción correcta"`
+- mapeo funcional: `is_error <- error != 0 o code distinto de 0/00`, `error.code <- code`, `error.message <- message/error`, `username <- name`, `status.code <- code`, `status.message <- "Transacción correcta"`
 - `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
 - `movement_type` no es requerido en los endpoints transaccionales; la aplicacion resuelve CASH_IN o CASH_OUT desde la definicion del servicio en catalogo/business-lines segun `rms_item_code`
 - resolucion de ruta: OMNISTACK usa `provider -> capability -> flow(cashin/cashout)`, validando el `item` configurado contra el `rms_item_code` del servicio
@@ -550,7 +550,7 @@ Este bloque complementa la descripcion anterior con el flujo de Nota de Retiro p
 - endpoint externo: `POST /user/searchwithdraw`
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
 - body externo: `shop`, `token`, `withdrawId`, `country`, `password`
-- mapeo de response: `is_error <- error`, `error.code <- code`, `error.message <- error`, `username <- name`, `currency <- currency`, `amount <- amount`, `userid <- userId|userid`
+- mapeo de response: `is_error <- error != 0 o code distinto de 0/00`, `error.code <- code`, `error.message <- message/error`, `username <- name`, `currency <- currency`, `amount <- amount`, `userid <- userId|userid`
 - `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
 
 Ejemplo `PRECHECK CASH_OUT`:

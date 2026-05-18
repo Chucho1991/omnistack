@@ -135,6 +135,52 @@ class EcuabetPrecheckStrategyTest {
     }
 
     @Test
+    void shouldReturnErrorWhenExternalPrecheckIsRejected() {
+        when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(false)
+                .externalCode("101")
+                .externalMessage("Usuario invalido")
+                .payload(java.util.Map.of(
+                        "code", "101",
+                        "message", "Usuario invalido"))
+                .build());
+
+        PrecheckRequest request = PrecheckRequest.builder()
+                .uuid("uuid-rejected")
+                .chain("1")
+                .store("148")
+                .storeName("FYBECA AMAZONAS")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_IN)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100713841")
+                .document("2912912912")
+                .amount(new BigDecimal("0.0010"))
+                .build();
+
+        ServiceDefinition serviceDefinition = ServiceDefinition.builder()
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100713841")
+                .description("ECUABET CASH IN")
+                .movementType(MovementType.CASH_IN)
+                .capabilities(List.of(Capability.PRECHECK))
+                .build();
+
+        var response = (com.omnistack.backend.application.dto.PrecheckResponse)
+                strategy.process(request, serviceDefinition, Capability.PRECHECK);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("101", response.getError().getCode());
+        assertEquals("Usuario invalido", response.getError().getMessage());
+        assertEquals(null, response.getAuthorization());
+    }
+
+    @Test
     void shouldUseCashoutOperationForWithdrawalPrecheck() {
         when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
                 .approved(true)

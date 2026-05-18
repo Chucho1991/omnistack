@@ -95,7 +95,7 @@ public class EcuabetDepositReverseStrategy implements ReverseStrategy {
             Integer transactionId) {
         Map<String, Object> payload = externalResponse.getPayload();
         Integer providerError = integerValue(payload, "error");
-        boolean isError = providerError != null && providerError != 0;
+        boolean isError = !externalResponse.isApproved() || providerError != null && providerError != 0;
 
         ReverseResponse.ReverseResponseBuilder<?, ?> builder = ReverseResponse.builder()
                 .chain(request.getChain())
@@ -112,7 +112,6 @@ public class EcuabetDepositReverseStrategy implements ReverseStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(String.valueOf(transactionId))
                 .document(request.getDocument())
                 .amount(resolveAmount(payload, request));
 
@@ -122,7 +121,8 @@ public class EcuabetDepositReverseStrategy implements ReverseStrategy {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
+            builder.authorization(String.valueOf(transactionId))
+                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
         }
 
         return builder.build();

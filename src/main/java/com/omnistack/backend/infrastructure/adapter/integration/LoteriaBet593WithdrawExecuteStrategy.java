@@ -97,7 +97,8 @@ public class LoteriaBet593WithdrawExecuteStrategy implements ExecuteStrategy {
 
     private ExecuteResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
-        boolean isError = stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
+        boolean isError = !externalResponse.isApproved()
+                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
 
         ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
                 .chain(request.getChain())
@@ -114,8 +115,6 @@ public class LoteriaBet593WithdrawExecuteStrategy implements ExecuteStrategy {
                 .username(stringValue(payload, "name"))
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
-                .authorization(resolveValue(payload, "authorization", request.getAuthorization()))
-                .serialnumber(resolveValue(payload, "serialnumber", request.getSerialnumber()))
                 .userid(resolveValue(payload, "userid", request.getUserid()))
                 .document(resolveValue(payload, "document", request.getDocument()))
                 .amount(resolveAmount(payload, request));
@@ -126,7 +125,9 @@ public class LoteriaBet593WithdrawExecuteStrategy implements ExecuteStrategy {
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
+            builder.authorization(resolveValue(payload, "authorization", request.getAuthorization()))
+                    .serialnumber(resolveValue(payload, "serialnumber", request.getSerialnumber()))
+                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
         }
 
         return builder.build();
