@@ -234,6 +234,80 @@ class EcuabetPrecheckStrategyTest {
     }
 
     @Test
+    void shouldRejectCashoutPrecheckWhenRequestedAmountIsGreaterThanProviderAmount() {
+        when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("00")
+                .externalMessage("Nota encontrada")
+                .payload(java.util.Map.of(
+                        "error", 0,
+                        "name", "USU FEMSA",
+                        "currency", "USD",
+                        "amount", "10.00",
+                        "userid", "998765"))
+                .build());
+
+        var response = (com.omnistack.backend.application.dto.PrecheckResponse) strategy.process(
+                cashoutRequest(new BigDecimal("12.50")),
+                cashoutServiceDefinition(),
+                Capability.PRECHECK);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("01", response.getError().getCode());
+        assertEquals("El monto solicitado 12.50 es mayor que el monto retornado por ECUABET 10.00",
+                response.getError().getMessage());
+        assertEquals(new BigDecimal("10.00"), response.getAmount());
+    }
+
+    @Test
+    void shouldRejectCashoutPrecheckWhenRequestedAmountIsLessThanProviderAmount() {
+        when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("00")
+                .externalMessage("Nota encontrada")
+                .payload(java.util.Map.of(
+                        "error", 0,
+                        "name", "USU FEMSA",
+                        "currency", "USD",
+                        "amount", "10.00",
+                        "userid", "998765"))
+                .build());
+
+        var response = (com.omnistack.backend.application.dto.PrecheckResponse) strategy.process(
+                cashoutRequest(new BigDecimal("8.00")),
+                cashoutServiceDefinition(),
+                Capability.PRECHECK);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("01", response.getError().getCode());
+        assertEquals("El monto solicitado 8.00 es menor que el monto retornado por ECUABET 10.00",
+                response.getError().getMessage());
+    }
+
+    @Test
+    void shouldApproveCashoutPrecheckWhenRequestedAmountMatchesProviderAmountWithDifferentScale() {
+        when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("00")
+                .externalMessage("Nota encontrada")
+                .payload(java.util.Map.of(
+                        "error", 0,
+                        "name", "USU FEMSA",
+                        "currency", "USD",
+                        "amount", "10",
+                        "userid", "998765"))
+                .build());
+
+        var response = (com.omnistack.backend.application.dto.PrecheckResponse) strategy.process(
+                cashoutRequest(new BigDecimal("10.00")),
+                cashoutServiceDefinition(),
+                Capability.PRECHECK);
+
+        assertFalse(response.isErrorFlag());
+        assertEquals(new BigDecimal("10"), response.getAmount());
+    }
+
+    @Test
     void shouldFailWhenProviderCodeDoesNotMatch() {
         PrecheckRequest request = PrecheckRequest.builder()
                 .uuid("uuid-1")
@@ -260,5 +334,36 @@ class EcuabetPrecheckStrategyTest {
                 .build();
 
         assertThrows(IntegrationException.class, () -> strategy.process(request, serviceDefinition, Capability.PRECHECK));
+    }
+
+    private PrecheckRequest cashoutRequest(BigDecimal amount) {
+        return PrecheckRequest.builder()
+                .uuid("uuid-cashout")
+                .chain("1")
+                .store("148")
+                .storeName("FYBECA AMAZONAS")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_OUT)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100708846")
+                .withdrawId("7667")
+                .password("88422")
+                .amount(amount)
+                .build();
+    }
+
+    private ServiceDefinition cashoutServiceDefinition() {
+        return ServiceDefinition.builder()
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100708846")
+                .description("ECUABET CASH OUT")
+                .movementType(MovementType.CASH_OUT)
+                .capabilities(List.of(Capability.PRECHECK))
+                .build();
     }
 }

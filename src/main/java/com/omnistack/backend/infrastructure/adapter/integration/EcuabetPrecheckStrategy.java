@@ -11,7 +11,9 @@ import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.EcuabetUserSearchCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -66,8 +68,47 @@ public class EcuabetPrecheckStrategy implements PrecheckStrategy {
                 .amount(request.getAmount())
                 .build();
 
-        ExternalTransactionResponse externalResponse = ecuabetUserSearchPort.searchUser(command, operation.getPath());
+        ExternalTransactionResponse externalResponse = validateCashoutAmount(
+                request,
+                serviceDefinition,
+                ecuabetUserSearchPort.searchUser(command, operation.getPath()));
         return ResponseFactory.transactionResponse(request, externalResponse, capability);
+    }
+
+    private ExternalTransactionResponse validateCashoutAmount(
+            BaseTransactionRequest request,
+            ServiceDefinition serviceDefinition,
+            ExternalTransactionResponse externalResponse) {
+        if (serviceDefinition.getMovementType() != MovementType.CASH_OUT
+                || request.getAmount() == null
+                || externalResponse == null
+                || externalResponse.getPayload() == null
+                || !externalResponse.isApproved()) {
+            return externalResponse;
+        }
+
+        BigDecimal providerAmount = decimalValue(externalResponse.getPayload().get("amount"));
+        if (providerAmount == null || request.getAmount().compareTo(providerAmount) == 0) {
+            return externalResponse;
+        }
+
+        String direction = request.getAmount().compareTo(providerAmount) > 0 ? "mayor" : "menor";
+        return ExternalTransactionResponse.builder()
+                .approved(false)
+                .externalCode(StatusCodes.VALIDATION_FAILED)
+                .externalMessage("El monto solicitado " + request.getAmount()
+                        + " es " + direction
+                        + " que el monto retornado por ECUABET " + providerAmount)
+                .payload(externalResponse.getPayload())
+                .build();
+    }
+
+    private BigDecimal decimalValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String textValue = String.valueOf(value).trim();
+        return textValue.isBlank() ? null : new BigDecimal(textValue);
     }
 
     private void validateProviderCode(
