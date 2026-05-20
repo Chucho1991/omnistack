@@ -11,9 +11,11 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetErrorResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetUserSearchRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetUserSearchResponse;
+import com.omnistack.backend.shared.constants.ErrorCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import com.omnistack.backend.shared.util.JsonUtil;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,15 +117,21 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
     }
 
     private String resolveExternalCode(EcuabetUserSearchResponse response) {
+        if (isInvalidUserMessage(response.getMessage())) {
+            return ErrorCodes.INVALID_USER;
+        }
+        if (response.getError() != null && response.getError() != 0) {
+            return ErrorCodes.ERROR_DESCRIPTION_OBTAINED;
+        }
         return response.getCode() != null && !response.getCode().isBlank() ? response.getCode() : "00";
     }
 
     private String resolveExternalMessage(EcuabetUserSearchCommand command, EcuabetUserSearchResponse response) {
-        if (response.getError() != null && response.getError() != 0) {
-            return String.valueOf(response.getError());
-        }
         if (response.getMessage() != null && !response.getMessage().isBlank()) {
             return response.getMessage();
+        }
+        if (response.getError() != null && response.getError() != 0) {
+            return String.valueOf(response.getError());
         }
         return isMissingLookupData(command, response)
                 ? "ECUABET no retorno datos para aprobar el precheck"
@@ -141,6 +149,18 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
     private boolean isSuccessfulCode(String code) {
         return "0".equals(code.trim()) || "00".equals(code.trim());
+    }
+
+    private boolean isInvalidUserMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return false;
+        }
+        String normalized = message.toLowerCase(Locale.ROOT);
+        return normalized.contains("usuario")
+                && (normalized.contains("invalido")
+                || normalized.contains("inválido")
+                || normalized.contains("no encontrado")
+                || normalized.contains("no existe"));
     }
 
     private boolean isMissingLookupData(EcuabetUserSearchCommand command, EcuabetUserSearchResponse response) {
@@ -176,6 +196,7 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("code", response.getCode());
         payload.put("error", response.getError());
+        payload.put("message", response.getMessage());
         payload.put("name", response.getName());
         payload.putAll(response.getRaw());
         payload.put("userid", response.getUserid());

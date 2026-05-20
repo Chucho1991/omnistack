@@ -216,6 +216,7 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - Conexion Oracle configurada en `app.business-lines.oracle.datasource1.*`
 - Cache de 6 horas configurable en `app.business-lines.cache.ttl-hours`
 - Longitud maxima por linea de `consent_text` configurable en `app.business-lines.consent-text-max-line-length` (`APP_BUSINESS_LINES_CONSENT_TEXT_MAX_LINE_LENGTH`, por defecto 56)
+- El placeholder `{{provider_name}}` en `consent_text` se resuelve con el `provider_name` del proveedor antes de responder.
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
@@ -357,7 +358,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
                 }
               ],
               "requires_consent": true,
-              "consent_text": "Autorizo de forma expresa la creación de mi registro y el uso de mis datos personales para acceder a los servicios digitales de Lotería Nacional, incluyendo la validación de mi identidad, la gestión de apuestas y el procesamiento de pagos. Declaro que acepto los términos y condiciones del servicio y la política de tratamiento de datos personales, reconociendo mi responsabilidad en el uso de este servicio."
+              "consent_text": "Autorizo de forma expresa la creación de mi registro y el uso de mis datos personales para acceder a los servicios digitales de ECUABET, incluyendo la validación de mi identidad, la gestión de apuestas y el procesamiento de pagos. Declaro que acepto los términos y condiciones del servicio y la política de tratamiento de datos personales, reconociendo mi responsabilidad en el uso de este servicio."
             }
           ]
         }
@@ -535,7 +536,7 @@ La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST 
 - identidad del proveedor: `service_provider_code`
 - `category_code` y `subcategory_code` siguen viajando en el contrato, pero no definen el proveedor; un mismo `service_provider_code` puede existir en varias subcategorias
 - response interna: replica `chain`, `store`, `store_name`, `pos`, `channel_POS`, `uuid`, `category_code`, `subcategory_code`, `service_provider_code` y `rms_item_code`
-- mapeo funcional: `is_error <- error != 0 o code distinto de 0/00`, `error.code <- code`, `error.message <- message/error`, `username <- name`, `status.code <- code`, `status.message <- "Transacción correcta"`
+- mapeo funcional: `is_error <- error != 0 o code distinto de 0/00`, `error.code <- 02 para usuario invalido/no encontrado, 01 para otros errores, 00 para exito`, `error.message <- message/error`, `username <- name`, `status.code <- 00`, `status.message <- "Transacción correcta"`
 - `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
 - `movement_type` no es requerido en los endpoints transaccionales; la aplicacion resuelve CASH_IN o CASH_OUT desde la definicion del servicio en catalogo/business-lines segun `rms_item_code`
 - resolucion de ruta: OMNISTACK usa `provider -> capability -> flow(cashin/cashout)`, validando el `item` configurado contra el `rms_item_code` del servicio

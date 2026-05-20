@@ -207,4 +207,69 @@ class BusinessLinesServiceTest {
         assertEquals("Autorizo de forma\nexpresa la creacion\nde mi registro", consentText);
         assertTrue(consentText.lines().allMatch(line -> line.length() <= 20));
     }
+
+    @Test
+    void shouldResolveProviderNamePlaceholderInConsentText() {
+        BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
+        AppProperties appProperties = new AppProperties();
+        appProperties.getBusinessLines().setConsentTextMaxLineLength(200);
+        BusinessLinesService service = new BusinessLinesService(cacheService, appProperties);
+        BusinessLinesRequest request = BusinessLinesRequest.builder()
+                .chain("001")
+                .store("0001")
+                .storeName("Tienda Centro")
+                .pos("POS-01")
+                .channelPos(ChannelPos.POS)
+                .build();
+        ServiceDefinition serviceDefinition = ServiceDefinition.builder()
+                .categoryCode("REC")
+                .subcategoryCode("BET")
+                .serviceProviderCode("ECUABET")
+                .rmsItemCode("900001")
+                .description("Recarga Ecuabet")
+                .active(true)
+                .jdeCode("JDE-REC-001")
+                .movementType(MovementType.CASH_IN)
+                .mixedPayment(false)
+                .flgItem(FlgItem.RECA)
+                .refund(false)
+                .minAmount(new BigDecimal("1.00"))
+                .maxAmount(new BigDecimal("200.00"))
+                .timeoutWsMax("10000")
+                .retriesWsMax("3")
+                .numTickets("3")
+                .capabilities(List.of(Capability.EXECUTE))
+                .inputFields(List.of())
+                .paymentMethods(List.of())
+                .requiresConsent(true)
+                .consentText("Autorizo servicios digitales de {{provider_name}}")
+                .build();
+
+        when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
+                .categories(List.of(Category.builder()
+                        .categoryCode("REC")
+                        .categoryName("Recargas")
+                        .subcategories(List.of(CollectionSubcategory.builder()
+                                .subcategoryCode("BET")
+                                .subcategoryName("Apuestas")
+                                .active(true)
+                                .providers(List.of(ServiceProvider.builder()
+                                        .serviceProviderCode("ECUABET")
+                                        .rucProvider("9999999999001")
+                                        .providerName("ECUABET")
+                                        .active(true)
+                                        .services(List.of(serviceDefinition))
+                                        .build()))
+                                .build()))
+                        .build()))
+                .services(List.of(serviceDefinition))
+                .loadedAt(OffsetDateTime.now())
+                .version("v1")
+                .build());
+
+        var response = service.getBusinessLines(request);
+
+        String consentText = response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText();
+        assertEquals("Autorizo servicios digitales de ECUABET", consentText);
+    }
 }

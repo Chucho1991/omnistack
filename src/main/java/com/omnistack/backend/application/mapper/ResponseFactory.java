@@ -13,8 +13,11 @@ import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.dto.VerifyResponse;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
+import com.omnistack.backend.shared.constants.ErrorCodes;
 import com.omnistack.backend.shared.constants.StatusCodes;
 import java.math.BigDecimal;
+import java.text.Normalizer;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -109,7 +112,7 @@ public final class ResponseFactory {
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(externalResponse.getExternalCode())
+                    .code(resolveCanonicalErrorCode(externalResponse))
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
@@ -143,5 +146,30 @@ public final class ResponseFactory {
     private static Integer integerValue(Map<String, Object> payload, String key) {
         String value = stringValue(payload, key);
         return value == null || value.isBlank() ? null : Integer.valueOf(value);
+    }
+
+    private static String resolveCanonicalErrorCode(ExternalTransactionResponse externalResponse) {
+        String externalCode = externalResponse.getExternalCode();
+        if (ErrorCodes.OK.equals(externalCode)
+                || ErrorCodes.ERROR_DESCRIPTION_OBTAINED.equals(externalCode)
+                || ErrorCodes.INVALID_USER.equals(externalCode)) {
+            return externalCode;
+        }
+        return isInvalidUserMessage(externalResponse.getExternalMessage())
+                ? ErrorCodes.INVALID_USER
+                : ErrorCodes.ERROR_DESCRIPTION_OBTAINED;
+    }
+
+    private static boolean isInvalidUserMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return false;
+        }
+        String normalized = Normalizer.normalize(message, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT);
+        return normalized.contains("usuario")
+                && (normalized.contains("invalido")
+                || normalized.contains("no encontrado")
+                || normalized.contains("no existe"));
     }
 }

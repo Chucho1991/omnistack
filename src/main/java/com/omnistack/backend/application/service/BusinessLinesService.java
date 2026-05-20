@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 public class BusinessLinesService implements BusinessLinesUseCase {
 
     private static final String DEFAULT_NUM_TICKETS = "3";
+    private static final String PROVIDER_NAME_PLACEHOLDER = "{{provider_name}}";
 
     private final BusinessLinesCatalogCacheService businessLinesCatalogCacheService;
     private final AppProperties appProperties;
@@ -73,12 +74,12 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .services(provider.getServices().stream()
                         .filter(service -> request.getMovementTypeFilter() == null
                                 || service.getMovementType() == request.getMovementTypeFilter())
-                        .map(this::toServiceResponse)
+                        .map(service -> toServiceResponse(service, provider.getProviderName()))
                         .collect(Collectors.toList()))
                 .build();
     }
 
-    private BusinessLineServiceResponse toServiceResponse(ServiceDefinition service) {
+    private BusinessLineServiceResponse toServiceResponse(ServiceDefinition service, String providerName) {
         return BusinessLineServiceResponse.builder()
                 .rmsItemCode(service.getRmsItemCode())
                 .description(service.getDescription())
@@ -101,15 +102,17 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                         ? Collections.emptyList()
                         : service.getPaymentMethods().stream().map(this::toPaymentMethodResponse).collect(Collectors.toList()))
                 .requiresConsent(service.isRequiresConsent())
-                .consentText(formatConsentText(service))
+                .consentText(formatConsentText(service, providerName))
                 .build();
     }
 
-    private String formatConsentText(ServiceDefinition service) {
+    private String formatConsentText(ServiceDefinition service, String providerName) {
         if (!service.isRequiresConsent() || service.getConsentText() == null) {
             return service.getConsentText();
         }
-        return wrapText(service.getConsentText(), appProperties.getBusinessLines().getConsentTextMaxLineLength());
+        String resolvedProviderName = providerName == null ? "" : providerName;
+        String consentText = service.getConsentText().replace(PROVIDER_NAME_PLACEHOLDER, resolvedProviderName);
+        return wrapText(consentText, appProperties.getBusinessLines().getConsentTextMaxLineLength());
     }
 
     private String wrapText(String text, int maxLineLength) {

@@ -117,8 +117,48 @@ class EcuabetUserSearchWebClientAdapterTest {
                 .build(), "/user/search");
 
         assertFalse(response.isApproved());
-        assertEquals("101", response.getExternalCode());
+        assertEquals("02", response.getExternalCode());
         assertEquals("Usuario invalido", response.getExternalMessage());
+    }
+
+    @Test
+    void shouldMapBusinessErrorCodeFromErrorFieldAndMessageFromMessageField() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/user/search", exchange -> respondJson(exchange,
+                """
+                {
+                  "code": "101",
+                  "error": 1,
+                  "name": null,
+                  "userid": null,
+                  "raw": {},
+                  "message": "Usuario no encontrado"
+                }
+                """));
+        server.start();
+
+        EcuabetUserSearchWebClientAdapter adapter = new EcuabetUserSearchWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test");
+
+        var response = adapter.searchUser(EcuabetUserSearchCommand.builder()
+                .chain("60")
+                .store("4")
+                .storeName("Local 4")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_IN)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .document("2912912912")
+                .build(), "/user/search");
+
+        assertFalse(response.isApproved());
+        assertEquals("02", response.getExternalCode());
+        assertEquals("Usuario no encontrado", response.getExternalMessage());
+        assertEquals("Usuario no encontrado", response.getPayload().get("message"));
     }
 
     @Test

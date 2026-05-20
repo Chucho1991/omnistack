@@ -21,6 +21,7 @@ import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -175,8 +176,46 @@ class EcuabetPrecheckStrategyTest {
                 strategy.process(request, serviceDefinition, Capability.PRECHECK);
 
         assertTrue(response.isErrorFlag());
-        assertEquals("101", response.getError().getCode());
+        assertEquals("02", response.getError().getCode());
         assertEquals("Usuario invalido", response.getError().getMessage());
+        assertEquals(null, response.getAuthorization());
+    }
+
+    @Test
+    void shouldPreserveEcuabetBusinessErrorCodeAndMessageInCanonicalResponse() {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("code", "101");
+        payload.put("error", 1);
+        payload.put("message", "Usuario no encontrado");
+
+        when(ecuabetUserSearchPort.searchUser(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(false)
+                .externalCode("02")
+                .externalMessage("Usuario no encontrado")
+                .payload(payload)
+                .build());
+
+        PrecheckRequest request = PrecheckRequest.builder()
+                .uuid("uuid-rejected")
+                .chain("60")
+                .store("4")
+                .storeName("Local 4")
+                .pos("1")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_IN)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100713841")
+                .document("2912912912")
+                .build();
+
+        var response = (com.omnistack.backend.application.dto.PrecheckResponse)
+                strategy.process(request, cashinServiceDefinition(), Capability.PRECHECK);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("02", response.getError().getCode());
+        assertEquals("Usuario no encontrado", response.getError().getMessage());
         assertEquals(null, response.getAuthorization());
     }
 
@@ -352,6 +391,18 @@ class EcuabetPrecheckStrategyTest {
                 .withdrawId("7667")
                 .password("88422")
                 .amount(amount)
+                .build();
+    }
+
+    private ServiceDefinition cashinServiceDefinition() {
+        return ServiceDefinition.builder()
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("1")
+                .rmsItemCode("100713841")
+                .description("ECUABET CASH IN")
+                .movementType(MovementType.CASH_IN)
+                .capabilities(List.of(Capability.PRECHECK))
                 .build();
     }
 
