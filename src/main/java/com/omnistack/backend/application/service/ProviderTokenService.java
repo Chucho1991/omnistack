@@ -58,6 +58,23 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
     }
 
     /**
+     * Regenera el token vigente para el proveedor indicado y actualiza el cache.
+     *
+     * @param categoryCode categoria comercial
+     * @param subcategoryCode subcategoria comercial
+     * @param serviceProviderCode codigo de proveedor
+     * @return token regenerado
+     */
+    @Override
+    public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+        AppProperties.ProviderProperties provider = getRequiredProvider(categoryCode, subcategoryCode, serviceProviderCode);
+        if (usesStaticToken(provider)) {
+            return getStaticToken(provider);
+        }
+        return getDynamicToken(provider, true).getToken();
+    }
+
+    /**
      * Fuerza el refresco manual del token para el proveedor indicado.
      *
      * @param request solicitud de refresco

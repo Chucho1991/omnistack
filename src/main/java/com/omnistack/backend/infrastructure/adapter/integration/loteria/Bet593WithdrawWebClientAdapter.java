@@ -14,7 +14,9 @@ import com.omnistack.backend.infrastructure.adapter.integration.loteria.dto.Bet5
 import com.omnistack.backend.shared.exception.IntegrationException;
 import com.omnistack.backend.shared.util.JsonUtil;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -84,9 +86,49 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
             String operationKey,
             String traceLabel) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        Bet593WithdrawRequest request = buildExternalRequest(command, provider, operationKey);
         String url = resolveUrl(provider.getBaseUrl(), operationPath);
+        Function<Boolean, Bet593WithdrawRequest> requestFactory =
+                forceRefreshToken -> buildExternalRequest(command, provider, operationKey, forceRefreshToken);
+        Bet593WithdrawRequest request = requestFactory.apply(false);
+        Bet593WithdrawResponse response;
+        try {
+            response = executeWithdrawRequest(request, url, traceLabel);
+        } catch (IntegrationException exception) {
+            if (!isInvalidTokenException(exception)) {
+                throw exception;
+            }
+            traceToConsole(traceLabel + " token refresh", url,
+                    "Token invalido detectado; regenerando token y reintentando");
+            request = requestFactory.apply(true);
+            response = executeWithdrawRequest(request, url, traceLabel + " retry");
+        }
 
+        if (isInvalidTokenResponse(response)) {
+            traceToConsole(traceLabel + " token refresh", url,
+                    "Token invalido detectado; regenerando token y reintentando");
+            request = requestFactory.apply(true);
+            response = executeWithdrawRequest(request, url, traceLabel + " retry");
+        }
+
+        if (response == null) {
+            throw new IntegrationException("Loteria no retorno contenido para nota de retiro BET593");
+        }
+        applyRequestFallbacks(response, request);
+
+        traceToConsole(traceLabel + " response", url, JsonUtil.toJsonSilently(response));
+
+        return ExternalTransactionResponse.builder()
+                .approved(!hasBusinessError(response))
+                .externalCode(resolveExternalCode(response))
+                .externalMessage(resolveExternalMessage(response))
+                .payload(buildPayload(response, request))
+                .build();
+    }
+
+    private Bet593WithdrawResponse executeWithdrawRequest(
+            Bet593WithdrawRequest request,
+            String url,
+            String traceLabel) {
         traceToConsole(traceLabel + " request", url, JsonUtil.toJsonSilently(request));
 
         Bet593WithdrawResponse response;
@@ -109,31 +151,16 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
             traceErrorToConsole(traceLabel + " transport error", url, rootCauseMessage(exception));
             throw new IntegrationException(buildTransportErrorMessage(url, exception), exception);
         }
-
-        if (response == null) {
-            throw new IntegrationException("Loteria no retorno contenido para nota de retiro BET593");
-        }
-        applyRequestFallbacks(response, request);
-
-        traceToConsole(traceLabel + " response", url, JsonUtil.toJsonSilently(response));
-
-        return ExternalTransactionResponse.builder()
-                .approved(!hasBusinessError(response))
-                .externalCode(resolveExternalCode(response))
-                .externalMessage(resolveExternalMessage(response))
-                .payload(buildPayload(response, request))
-                .build();
+        return response;
     }
 
     private Bet593WithdrawRequest buildExternalRequest(
             Bet593WithdrawCommand command,
             AppProperties.ProviderProperties provider,
-            String operationKey) {
+            String operationKey,
+            boolean forceRefreshToken) {
         validateProviderConfiguration(provider, operationKey);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = resolveProviderToken(command, provider, forceRefreshToken);
         String username = provider.getAuth().getLogin().getUsername();
         AppProperties.ProviderOperationProperties operation = provider.getServices().get(operationKey).getCashout();
 
@@ -150,6 +177,22 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
                 .numeroRetiro(resolveWithdrawNumber(command, operationKey))
                 .motivo(resolveMotivo(command, operationKey))
                 .build();
+    }
+
+    private String resolveProviderToken(
+            Bet593WithdrawCommand command,
+            AppProperties.ProviderProperties provider,
+            boolean forceRefreshToken) {
+        if (forceRefreshToken) {
+            return providerTokenResolverUseCase.refreshToken(
+                    command.getCategoryCode(),
+                    command.getSubcategoryCode(),
+                    provider.getServiceProviderCode());
+        }
+        return providerTokenResolverUseCase.getToken(
+                command.getCategoryCode(),
+                command.getSubcategoryCode(),
+                provider.getServiceProviderCode());
     }
 
     private String resolveTransactionNumber(Bet593WithdrawCommand command, String operationKey) {
@@ -208,6 +251,29 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
 
     private String resolveExternalMessage(Bet593WithdrawResponse response) {
         return response.getMsgError() != null ? response.getMsgError() : "";
+    }
+
+    private boolean isInvalidTokenResponse(Bet593WithdrawResponse response) {
+        if (response == null || response.getMsgError() == null) {
+            return false;
+        }
+        return isInvalidTokenMessage(response.getMsgError());
+    }
+
+    private boolean isInvalidTokenException(IntegrationException exception) {
+        return exception.getMessage() != null && isInvalidTokenMessage(exception.getMessage());
+    }
+
+    private boolean isInvalidTokenMessage(String value) {
+        String message = value.toLowerCase(Locale.ROOT);
+        return message.contains("token")
+                && (message.contains("invalid")
+                || message.contains("inval")
+                || message.contains("expir")
+                || message.contains("venc")
+                || message.contains("caduc")
+                || message.contains("autoriz")
+                || message.contains("sesion"));
     }
 
     private String buildErrorMessage(String body) {

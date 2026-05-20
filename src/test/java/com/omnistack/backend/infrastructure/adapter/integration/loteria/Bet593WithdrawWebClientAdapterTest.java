@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -132,6 +133,64 @@ class Bet593WithdrawWebClientAdapterTest {
         assertTrue(capturedBody.get().contains("\"numeroTransaccion\":\"" + GENERATED_UUID + "\""));
         assertEquals("400022", response.getExternalCode());
         assertEquals(GENERATED_UUID, String.valueOf(response.getPayload().get("transactionNumber")));
+    }
+
+    @Test
+    void shouldRefreshTokenAndRetryWithdrawWhenProviderReportsInvalidToken() throws Exception {
+        AtomicInteger requestCount = new AtomicInteger();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/APIVentasLoteria/api/Ventas/RetirarBet593", exchange -> {
+            if (requestCount.incrementAndGet() == 1) {
+                respondJson(exchange,
+                        """
+                        {
+                          "codError": 401,
+                          "msgError": "Token invalido",
+                          "token": "token-vencido",
+                          "numeroTransaccion": null
+                        }
+                        """);
+                return;
+            }
+            respondJson(exchange,
+                    """
+                    {
+                      "codError": 0,
+                      "msgError": "",
+                      "usuario": "USRFEMSAPREP",
+                      "operacion": "RETIROOL",
+                      "token": "token-regenerado",
+                      "ordenPagoId": 71787,
+                      "identificacion": "0911274165",
+                      "valor": "17.000000",
+                      "numeroTransaccion": "f0908f64-9145-45cf-a22c-c36bca604372",
+                      "nombre": null,
+                      "fecha": "2026-04-27T18:53:00"
+                    }
+                    """);
+        });
+        server.start();
+
+        Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                new ProviderTokenResolverUseCaseStub("token-vencido", "token-regenerado"));
+
+        var response = adapter.withdraw(Bet593WithdrawCommand.builder()
+                .uuid(GENERATED_UUID)
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("2")
+                .document("0911274165")
+                .withdrawId("20240430800100007")
+                .build(), "/APIVentasLoteria/api/Ventas/RetirarBet593");
+
+        assertEquals(2, requestCount.get());
+        assertTrue(capturedBody.get().contains("\"token\":\"token-regenerado\""));
+        assertTrue(response.isApproved());
+        assertEquals("0", response.getExternalCode());
+        assertEquals("71787", String.valueOf(response.getPayload().get("authorization")));
     }
 
     @Test
@@ -301,5 +360,19 @@ class Bet593WithdrawWebClientAdapterTest {
         AppProperties appProperties = new AppProperties();
         appProperties.getIntegration().getProviders().put("loteria", provider);
         return appProperties;
+    }
+
+    private record ProviderTokenResolverUseCaseStub(String token, String refreshedToken)
+            implements com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase {
+
+        @Override
+        public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            return token;
+        }
+
+        @Override
+        public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            return refreshedToken;
+        }
     }
 }

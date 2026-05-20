@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -157,6 +158,63 @@ class Bet593RechargeWebClientAdapterTest {
     }
 
     @Test
+    void shouldRefreshTokenAndRetryRechargeWhenProviderReportsInvalidToken() throws Exception {
+        AtomicInteger requestCount = new AtomicInteger();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/APIVentasLoteria/api/Ventas/RecargarBet593", exchange -> {
+            if (requestCount.incrementAndGet() == 1) {
+                respondJson(exchange,
+                        """
+                        {
+                          "usuario": "usrfemsaprep",
+                          "token": "token-vencido",
+                          "codError": 401,
+                          "msgError": "Token invalido"
+                        }
+                        """);
+                return;
+            }
+            respondJson(exchange,
+                    """
+                    {
+                      "usuario": "usrfemsaprep",
+                      "token": "token-regenerado",
+                      "codError": 0,
+                      "msgError": "",
+                      "cuentaweb": "0901111112",
+                      "nombre": "Usuario",
+                      "apellido": "Prueba uno",
+                      "valor": "10.0",
+                      "recargaid": "recarga-ok",
+                      "serialnumber": "serial-1"
+                    }
+                    """);
+        });
+        server.start();
+
+        Bet593RechargeWebClientAdapter adapter = new Bet593RechargeWebClientAdapter(
+                WebClient.builder().build(),
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                new ProviderTokenResolverUseCaseStub("token-vencido", "token-regenerado"));
+
+        var response = adapter.recharge(Bet593RechargeCommand.builder()
+                .uuid("uuid-bet593")
+                .categoryCode("1")
+                .subcategoryCode("1")
+                .serviceProviderCode("2")
+                .document("0901111112")
+                .amount(new BigDecimal("10"))
+                .build(), "/APIVentasLoteria/api/Ventas/RecargarBet593");
+
+        assertEquals(2, requestCount.get());
+        assertTrue(capturedBody.get().contains("\"token\":\"token-regenerado\""));
+        assertTrue(response.isApproved());
+        assertEquals("0", response.getExternalCode());
+        assertEquals("recarga-ok", String.valueOf(response.getPayload().get("authorization")));
+    }
+
+    @Test
     void shouldSendBet593RechargeReversePayloadAndNormalizeBusinessError() throws Exception {
         server = HttpServer.create(new InetSocketAddress(0), 0);
         server.createContext("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593", exchange -> respondJson(exchange,
@@ -284,5 +342,19 @@ class Bet593RechargeWebClientAdapterTest {
         AppProperties appProperties = new AppProperties();
         appProperties.getIntegration().getProviders().put("loteria", provider);
         return appProperties;
+    }
+
+    private record ProviderTokenResolverUseCaseStub(String token, String refreshedToken)
+            implements com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase {
+
+        @Override
+        public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            return token;
+        }
+
+        @Override
+        public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            return refreshedToken;
+        }
     }
 }

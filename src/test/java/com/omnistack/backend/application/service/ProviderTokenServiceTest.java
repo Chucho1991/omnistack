@@ -48,6 +48,27 @@ class ProviderTokenServiceTest {
     }
 
     @Test
+    void shouldForceRefreshDynamicTokenEvenWhenCachedTokenIsStillValid() {
+        AtomicInteger loginCalls = new AtomicInteger();
+        ProviderTokenLoginPort loginPort = command -> ProviderTokenLoginResult.builder()
+                .token("dynamic-token-" + loginCalls.incrementAndGet())
+                .build();
+        ProviderTokenService service = new ProviderTokenService(
+                appPropertiesWithDynamicProvider(),
+                loginPort,
+                fixedClock());
+
+        String firstToken = service.getToken("1", "1", "2");
+        String refreshedToken = service.refreshToken("1", "1", "2");
+        String cachedToken = service.getToken("1", "1", "2");
+
+        assertEquals("dynamic-token-1", firstToken);
+        assertEquals("dynamic-token-2", refreshedToken);
+        assertEquals("dynamic-token-2", cachedToken);
+        assertEquals(2, loginCalls.get());
+    }
+
+    @Test
     void shouldPreferMostSpecificConfigurationForContext() {
         AtomicInteger loginCalls = new AtomicInteger();
         ProviderTokenLoginPort loginPort = command -> ProviderTokenLoginResult.builder()

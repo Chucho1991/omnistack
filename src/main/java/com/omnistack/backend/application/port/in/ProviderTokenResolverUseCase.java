@@ -15,4 +15,16 @@ public interface ProviderTokenResolverUseCase {
      * @return token vigente para la integracion
      */
     String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode);
+
+    /**
+     * Fuerza la regeneracion del token aplicable para el proveedor solicitado.
+     *
+     * @param categoryCode categoria comercial
+     * @param subcategoryCode subcategoria comercial
+     * @param serviceProviderCode codigo del proveedor
+     * @return token regenerado para la integracion
+     */
+    default String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+        return getToken(categoryCode, subcategoryCode, serviceProviderCode);
+    }
 }

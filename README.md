@@ -508,6 +508,7 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
 - Un mismo `service_provider_code` puede tener multiples mecanismos de token; la resolucion toma la configuracion mas especifica para la categoria/subcategoria solicitada.
 - Los proveedores con `auth.refresh-on-startup=true` se refrescan automaticamente al iniciar la aplicacion.
 - Cuando un token dinamico expira, se regenera automaticamente en la siguiente solicitud que lo necesite.
+- En consumos LOTERIA, si el proveedor responde un error de negocio asociado a token invalido, vencido, caducado o no autorizado, OMNISTACK fuerza la regeneracion del token y reintenta una sola vez la misma operacion con el nuevo token.
 - `POST /v1/provider-token/refresh` fuerza el refresh manual del proveedor solicitado.
 - El endpoint manual solo aplica a proveedores con `auth.mode=LOGIN`; si el proveedor usa token estatico responde error de negocio.
 

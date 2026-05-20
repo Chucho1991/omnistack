@@ -16,7 +16,9 @@ import com.omnistack.backend.shared.exception.IntegrationException;
 import com.omnistack.backend.shared.util.JsonUtil;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -52,8 +54,12 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
     @Override
     public ExternalTransactionResponse recharge(Bet593RechargeCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        Bet593RechargeRequest request = buildExternalRequest(command, provider);
-        return invokeLoteria(operationPath, provider, request, "recharge", "recarga BET593");
+        return invokeLoteria(
+                operationPath,
+                provider,
+                forceRefreshToken -> buildExternalRequest(command, provider, forceRefreshToken),
+                "recharge",
+                "recarga BET593");
     }
 
     /**
@@ -66,8 +72,12 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
     @Override
     public ExternalTransactionResponse validateRecharge(Bet593RechargeCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        Bet593RechargeRequest request = buildExternalValidationRequest(command, provider);
-        return invokeLoteria(operationPath, provider, request, "validate recharge", "validacion de recarga BET593");
+        return invokeLoteria(
+                operationPath,
+                provider,
+                forceRefreshToken -> buildExternalValidationRequest(command, provider, forceRefreshToken),
+                "validate recharge",
+                "validacion de recarga BET593");
     }
 
     /**
@@ -80,18 +90,61 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
     @Override
     public ExternalTransactionResponse reverseRecharge(Bet593RechargeCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        Bet593RechargeReverseRequest request = buildExternalReverseRequest(command, provider);
-        return invokeLoteria(operationPath, provider, request, "reverse recharge", "reverso de recarga BET593");
+        return invokeLoteria(
+                operationPath,
+                provider,
+                forceRefreshToken -> buildExternalReverseRequest(command, provider, forceRefreshToken),
+                "reverse recharge",
+                "reverso de recarga BET593");
     }
 
     private ExternalTransactionResponse invokeLoteria(
             String operationPath,
             AppProperties.ProviderProperties provider,
-            Object request,
+            Function<Boolean, Object> requestFactory,
             String logOperation,
             String errorOperation) {
         String url = resolveUrl(provider.getBaseUrl(), operationPath);
+        Object request = requestFactory.apply(false);
+        Bet593RechargeResponse response;
+        try {
+            response = executeLoteriaRequest(request, url, logOperation, errorOperation);
+        } catch (IntegrationException exception) {
+            if (!isInvalidTokenException(exception)) {
+                throw exception;
+            }
+            traceToConsole("Loteria BET593 " + logOperation + " token refresh", url,
+                    "Token invalido detectado; regenerando token y reintentando");
+            request = requestFactory.apply(true);
+            response = executeLoteriaRequest(request, url, logOperation + " retry", errorOperation);
+        }
 
+        if (isInvalidTokenResponse(response)) {
+            traceToConsole("Loteria BET593 " + logOperation + " token refresh", url,
+                    "Token invalido detectado; regenerando token y reintentando");
+            request = requestFactory.apply(true);
+            response = executeLoteriaRequest(request, url, logOperation + " retry", errorOperation);
+        }
+
+        if (response == null) {
+            throw new IntegrationException("Loteria no retorno contenido para " + errorOperation);
+        }
+
+        traceToConsole("Loteria BET593 " + logOperation + " response", url, JsonUtil.toJsonSilently(response));
+
+        return ExternalTransactionResponse.builder()
+                .approved(!hasBusinessError(response))
+                .externalCode(resolveExternalCode(response))
+                .externalMessage(resolveExternalMessage(response))
+                .payload(buildPayload(response))
+                .build();
+    }
+
+    private Bet593RechargeResponse executeLoteriaRequest(
+            Object request,
+            String url,
+            String logOperation,
+            String errorOperation) {
         traceToConsole("Loteria BET593 " + logOperation + " request", url, JsonUtil.toJsonSilently(request));
 
         Bet593RechargeResponse response;
@@ -114,29 +167,15 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
             traceErrorToConsole("Loteria BET593 " + logOperation + " transport error", url, rootCauseMessage(exception));
             throw new IntegrationException(buildTransportErrorMessage(url, exception, errorOperation), exception);
         }
-
-        if (response == null) {
-            throw new IntegrationException("Loteria no retorno contenido para " + errorOperation);
-        }
-
-        traceToConsole("Loteria BET593 " + logOperation + " response", url, JsonUtil.toJsonSilently(response));
-
-        return ExternalTransactionResponse.builder()
-                .approved(!hasBusinessError(response))
-                .externalCode(resolveExternalCode(response))
-                .externalMessage(resolveExternalMessage(response))
-                .payload(buildPayload(response))
-                .build();
+        return response;
     }
 
     private Bet593RechargeRequest buildExternalRequest(
             Bet593RechargeCommand command,
-            AppProperties.ProviderProperties provider) {
+            AppProperties.ProviderProperties provider,
+            boolean forceRefreshToken) {
         validateProviderConfiguration(provider);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = resolveProviderToken(command, provider, forceRefreshToken);
 
         return Bet593RechargeRequest.builder()
                 .usuario(provider.getAuth().getLogin().getUsername())
@@ -154,12 +193,10 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
 
     private Bet593RechargeReverseRequest buildExternalReverseRequest(
             Bet593RechargeCommand command,
-            AppProperties.ProviderProperties provider) {
+            AppProperties.ProviderProperties provider,
+            boolean forceRefreshToken) {
         validateReverseProviderConfiguration(provider);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = resolveProviderToken(command, provider, forceRefreshToken);
         String username = provider.getAuth().getLogin().getUsername();
         AppProperties.ProviderOperationProperties operation = provider.getServices().get(REVERSE_OPERATION).getCashin();
 
@@ -179,12 +216,10 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
 
     private Bet593RechargeRequest buildExternalValidationRequest(
             Bet593RechargeCommand command,
-            AppProperties.ProviderProperties provider) {
+            AppProperties.ProviderProperties provider,
+            boolean forceRefreshToken) {
         validateProviderConfiguration(provider);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = resolveProviderToken(command, provider, forceRefreshToken);
 
         return Bet593RechargeRequest.builder()
                 .usuario(provider.getAuth().getLogin().getUsername())
@@ -196,6 +231,22 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
                 .recargaid(requiredValue(command.getAuthorization(), "authorization"))
                 .serialnumber(requiredValue(command.getSerialnumber(), "serialnumber"))
                 .build();
+    }
+
+    private String resolveProviderToken(
+            Bet593RechargeCommand command,
+            AppProperties.ProviderProperties provider,
+            boolean forceRefreshToken) {
+        if (forceRefreshToken) {
+            return providerTokenResolverUseCase.refreshToken(
+                    command.getCategoryCode(),
+                    command.getSubcategoryCode(),
+                    provider.getServiceProviderCode());
+        }
+        return providerTokenResolverUseCase.getToken(
+                command.getCategoryCode(),
+                command.getSubcategoryCode(),
+                provider.getServiceProviderCode());
     }
 
     private Map<String, Object> buildPayload(Bet593RechargeResponse response) {
@@ -225,6 +276,29 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
 
     private String resolveExternalMessage(Bet593RechargeResponse response) {
         return response.getMsgError() != null ? response.getMsgError() : "";
+    }
+
+    private boolean isInvalidTokenResponse(Bet593RechargeResponse response) {
+        if (response == null || response.getMsgError() == null) {
+            return false;
+        }
+        return isInvalidTokenMessage(response.getMsgError());
+    }
+
+    private boolean isInvalidTokenException(IntegrationException exception) {
+        return exception.getMessage() != null && isInvalidTokenMessage(exception.getMessage());
+    }
+
+    private boolean isInvalidTokenMessage(String value) {
+        String message = value.toLowerCase(Locale.ROOT);
+        return message.contains("token")
+                && (message.contains("invalid")
+                || message.contains("inval")
+                || message.contains("expir")
+                || message.contains("venc")
+                || message.contains("caduc")
+                || message.contains("autoriz")
+                || message.contains("sesion"));
     }
 
     private String buildErrorMessage(String body, String operation) {
