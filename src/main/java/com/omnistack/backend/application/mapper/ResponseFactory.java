@@ -117,7 +117,7 @@ public final class ResponseFactory {
                     .build());
         } else {
             builder.authorization(resolveAuthorization(payload))
-                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));
+                    .status(new StatusDetail(StatusCodes.SUCCESS, "Transacci\u00F3n correcta"));
         }
 
         return builder.build();

@@ -13,6 +13,7 @@ import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.Bet593RechargeCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -125,7 +126,7 @@ public class LoteriaBet593VerifyStrategy implements VerifyStrategy {
         } else {
             builder.authorization(resolveValue(payload, "authorization", null))
                     .serialnumber(resolveValue(payload, "serialnumber", null))
-                    .status(new StatusDetail(externalResponse.getExternalCode(), resolveStatusMessage(payload)));
+                    .status(new StatusDetail(StatusCodes.SUCCESS, resolveStatusMessage(payload)));
         }
 
         return builder.build();

@@ -13,6 +13,7 @@ import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.Bet593RechargeCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -127,7 +128,7 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
         } else {
             builder.authorization(resolveValue(payload, "authorization", request.getAuthorization()))
                     .serialnumber(resolveValue(payload, "serialnumber", request.getSerialnumber()))
-                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transaccion correcta"));
+                    .status(new StatusDetail(StatusCodes.SUCCESS, "Transaccion correcta"));
         }
 
         return builder.build();

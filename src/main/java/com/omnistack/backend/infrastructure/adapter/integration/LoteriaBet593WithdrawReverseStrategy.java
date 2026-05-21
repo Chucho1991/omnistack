@@ -14,6 +14,7 @@ import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.Bet593WithdrawCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -122,7 +123,7 @@ public class LoteriaBet593WithdrawReverseStrategy implements ReverseStrategy {
                     .build());
         } else {
             builder.authorization(resolveValue(payload, "transactionNumber", request.getAuthorization()))
-                    .status(new StatusDetail(externalResponse.getExternalCode(), "Transacci\u00F3n correcta"));
+                    .status(new StatusDetail(StatusCodes.SUCCESS, "Transacci\u00F3n correcta"));
         }
 
         return builder.build();
