@@ -96,7 +96,7 @@ class LoteriaBet593VerifyStrategyTest {
         assertEquals("9F968187-F436-4F19-8C1F-A7A4DA07A899", captor.getValue().getAuthorization());
         assertEquals("7366ea56284a06a2", captor.getValue().getSerialnumber());
         assertEquals("0901111112", captor.getValue().getDocument());
-        assertEquals("0", response.getStatus().getCode());
+        assertEquals("00", response.getStatus().getCode());
         assertEquals("Transaccion ha sido ejecutada", response.getStatus().getMessage());
         assertEquals("0901111112", response.getDocument());
     }

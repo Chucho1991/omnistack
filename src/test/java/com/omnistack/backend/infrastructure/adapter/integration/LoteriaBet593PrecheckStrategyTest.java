@@ -109,7 +109,7 @@ class LoteriaBet593PrecheckStrategyTest {
         assertEquals("uuid-bet593", captor.getValue().getUuid());
         assertEquals("0901111112", captor.getValue().getDocument());
         assertEquals(new BigDecimal("9.99"), captor.getValue().getAmount());
-        assertEquals("0", response.getStatus().getCode());
+        assertEquals("00", response.getStatus().getCode());
         assertEquals("Usuario", ((com.omnistack.backend.application.dto.PrecheckResponse) response).getUsername());
         assertEquals("Prueba uno", ((com.omnistack.backend.application.dto.PrecheckResponse) response).getLastname());
     }

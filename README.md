@@ -609,7 +609,7 @@ La recarga de saldos ECUABET usa `service_provider_code=1` y `rms_item_code=1007
 - `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - `shop_info`: se mapea desde `store_name`
 - `shop_ip`: usa `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` si esta configurado; si no, se resuelve desde la IP local del servidor
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- 00`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request externo generado:
@@ -636,7 +636,7 @@ El reverso de recarga ECUABET usa `service_provider_code=1` y `rms_item_code=100
 - body externo: `shop`, `token`, `country`, `amount`, `transactionId`
 - `transactionId`: se mapea desde `authorization` del request interno y debe ser numerico
 - `authorization`: en la respuesta interna se conserva el `transactionId` enviado al request externo; el `transactionId` retornado por ECUABET se registra como dato de proveedor y no reemplaza la autorizacion del flujo
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- authorization interno`, `document <- document`, `amount <- amount`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `username <- nombre|name`, `lastname <- apellido|lastname`, `currency <- currency`, `status.code <- 00`, `status.message <- "Transaccion correcta"`, `authorization <- authorization interno`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request interno:
@@ -682,7 +682,7 @@ La ejecucion de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_i
 - `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - `shop_info`: se mapea desde `store_name`
 - `shop_ip`: usa `APP_INTEGRATION_PROVIDERS_ECUABET_SHOP_IP` si esta configurado; si no, se resuelve desde la IP local del servidor
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- 00`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request interno:
@@ -729,7 +729,7 @@ El reverso de nota de retiro ECUABET usa `service_provider_code=1` y el `rms_ite
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
 - body externo: `shop`, `token`, `country`, `withdrawId`, `password`, `transactionId`
 - `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
-- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- code`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
+- mapeo response: `is_error <- error`, `error.code <- code`, `error.message <- error/message`, `status.code <- 00`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`
 - seguridad: el endpoint interno conserva el mecanismo actual del backend; la autorizacion por rol queda como pendiente tecnico mientras no exista un modulo de seguridad configurado en el proyecto
 
 Request interno:
@@ -775,7 +775,7 @@ La recarga de saldos BET593 usa el proveedor Loteria Nacional con resolucion por
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario`, `canal=BMV`, `medioId=23`, `puntooperacionId=52132`
 - mapeo request: `uuid -> codigotrn`, `document -> cuentaweb`, `amount -> valor`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `nombre -> username`, `apellido -> lastname`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`, `valor -> amount`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `nombre -> username`, `apellido -> lastname`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`, `valor -> amount`
 
 Request externo generado:
 
@@ -800,7 +800,7 @@ La confirmacion de recarga de saldos BET593 usa el mismo contexto comercial `cat
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario`, `canal=BMV`, `medioId=23`, `puntooperacionId=52132`
 - mapeo request: `uuid -> codigotrn`, `document -> cuentaweb`, `authorization -> recargaid`, `serialnumber -> serialnumber`, `amount -> valor`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `nombre -> username`, `apellido -> lastname`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`, `valor -> amount`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `nombre -> username`, `apellido -> lastname`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`, `valor -> amount`
 
 Request interno:
 
@@ -848,7 +848,7 @@ La validacion de recarga BET593 consulta el estado de una recarga CASH_IN con el
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario`, `canal=BMV`, `medioId=23`, `puntooperacionId=52132`
 - mapeo request: `document -> cuentaweb`, `authorization -> recargaid`, `serialnumber -> serialnumber`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `estado=COMMIT -> status.message=Transaccion ha sido ejecutada`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `estado=COMMIT -> status.message=Transaccion ha sido ejecutada`, `recargaid -> authorization`, `serialnumber -> serialnumber`, `cuentaweb -> document`
 
 Request interno:
 
@@ -893,7 +893,7 @@ La nota de retiro BET593 usa Loteria Nacional con resolucion por catalogo `categ
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=RETIROOL`, `clienteId=58542`, `medioId=23`
 - mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `withdrawId -> numeroRetiro`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `ordenPagoId -> authorization`, `identificacion -> document`, `valor -> amount`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `ordenPagoId -> authorization`, `identificacion -> document`, `valor -> amount`
 
 Request interno:
 
@@ -940,8 +940,8 @@ La validacion de nota de retiro BET593 consulta el estado de una orden CASH_OUT 
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=CONRETIROOL`, `clienteId=58542`, `medioId=23`
 - mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `withdrawId -> numeroRetiro`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `identificacion -> document`
-- regla especial: `codError=400022` se interpreta como transaccion ejecutada y responde `status.code=400022`, `status.message=Transaccion correcta`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `identificacion -> document`
+- regla especial: `codError=400022` se interpreta como transaccion ejecutada y responde `status.code=00`, `status.message=Transaccion correcta`
 
 Request interno:
 
@@ -987,7 +987,7 @@ El reverso de recarga BET593 usa Loteria Nacional con el contexto comercial `cat
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario/usuarioId=USRFEMSAPREP`, `maquina=192.168.3.230`, `operacion=REVRETIROOL`, `clienteId=58542`, `medioId=23`
 - mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `motivo -> motivo`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `cuentaweb -> document`, `recargaid -> authorization`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `cuentaweb -> document`, `recargaid -> authorization`
 - respuesta exitosa interna: `status.message="Transacción correcta"`
 
 Request interno:
@@ -1034,7 +1034,7 @@ El reverso de nota de retiro BET593 usa Loteria Nacional con el contexto comerci
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
 - constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=REVRETIROOL`, `clienteId=58542`, `medioId=23`
 - mapeo request: `authorization -> numeroTransaccion`, `document -> identificacion`, `motivo -> motivo`
-- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code/status.code`, `identificacion -> document`, `numeroTransaccion -> authorization`
+- mapeo response: `msgError -> is_error/error.message`, `codError -> error.code`, `status.code <- 00`, `identificacion -> document`, `numeroTransaccion -> authorization`
 
 Request interno:
 

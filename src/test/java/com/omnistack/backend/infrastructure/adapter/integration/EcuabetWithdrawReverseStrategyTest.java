@@ -117,7 +117,7 @@ class EcuabetWithdrawReverseStrategyTest {
         assertEquals("41472", response.getAuthorization());
         assertEquals("0912345678", response.getDocument());
         assertEquals(new BigDecimal("20.00"), response.getAmount());
-        assertEquals("0", response.getStatus().getCode());
+        assertEquals("00", response.getStatus().getCode());
     }
 
     @Test

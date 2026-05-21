@@ -48,7 +48,7 @@ class TransactionOrchestrationServiceTest {
                 return ExecuteResponse.builder()
                         .uuid(request.getUuid())
                         .errorFlag(false)
-                        .status(new StatusDetail("0", "Transaccion correcta"))
+                        .status(new StatusDetail("00", "Transaccion correcta"))
                         .build();
             }
         };

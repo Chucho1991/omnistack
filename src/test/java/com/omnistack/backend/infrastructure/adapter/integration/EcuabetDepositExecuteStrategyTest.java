@@ -119,7 +119,7 @@ class EcuabetDepositExecuteStrategyTest {
         assertEquals("USD", response.getCurrency());
         assertEquals("0912345678", response.getDocument());
         assertEquals(new BigDecimal("99999.00"), response.getAmount());
-        assertEquals("0", response.getStatus().getCode());
+        assertEquals("00", response.getStatus().getCode());
     }
 
     @Test

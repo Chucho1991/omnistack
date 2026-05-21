@@ -106,7 +106,7 @@ class TransactionControllerTest {
                 .uuid("uuid-cashout-execute")
                 .errorFlag(false)
                 .authorization("10980")
-                .status(new StatusDetail("0", "Transacci\u00F3n correcta"))
+                .status(new StatusDetail("00", "Transacci\u00F3n correcta"))
                 .build());
 
         mockMvc.perform(post("/v1/execute")
@@ -133,7 +133,7 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.uuid").value("uuid-cashout-execute"))
                 .andExpect(jsonPath("$.transactionId").doesNotExist())
                 .andExpect(jsonPath("$.authorization").value("10980"))
-                .andExpect(jsonPath("$.status.code").value("0"));
+                .andExpect(jsonPath("$.status.code").value("00"));
     }
 
     @Test
@@ -141,7 +141,7 @@ class TransactionControllerTest {
         when(transactionUseCase.verify(any())).thenReturn(VerifyResponse.builder()
                 .uuid("uuid-verify")
                 .errorFlag(false)
-                .status(new StatusDetail("0", "Transaccion ha sido ejecutada"))
+                .status(new StatusDetail("00", "Transaccion ha sido ejecutada"))
                 .build());
 
         mockMvc.perform(post("/v1/verify")
@@ -165,7 +165,7 @@ class TransactionControllerTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uuid").value("uuid-verify"))
-                .andExpect(jsonPath("$.status.code").value("0"));
+                .andExpect(jsonPath("$.status.code").value("00"));
     }
 
     @Test
@@ -175,7 +175,7 @@ class TransactionControllerTest {
                 .errorFlag(false)
                 .authorization("ca9b201a-a668-45ed-876c-00affcb18580")
                 .document("0901111112")
-                .status(new StatusDetail("0", "Transaccion correcta"))
+                .status(new StatusDetail("00", "Transaccion correcta"))
                 .build());
 
         mockMvc.perform(post("/v1/reverse")
@@ -201,7 +201,7 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.uuid").value("uuid-reverse"))
                 .andExpect(jsonPath("$.authorization").value("ca9b201a-a668-45ed-876c-00affcb18580"))
                 .andExpect(jsonPath("$.document").value("0901111112"))
-                .andExpect(jsonPath("$.status.code").value("0"));
+                .andExpect(jsonPath("$.status.code").value("00"));
     }
 
     @Test
@@ -212,7 +212,7 @@ class TransactionControllerTest {
                 .authorization("91081")
                 .document("0912345678")
                 .amount(new BigDecimal("100000.00"))
-                .status(new StatusDetail("0", "Transaccion correcta"))
+                .status(new StatusDetail("00", "Transaccion correcta"))
                 .build());
 
         mockMvc.perform(post("/v1/reverse")
@@ -240,7 +240,7 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.authorization").value("91081"))
                 .andExpect(jsonPath("$.document").value("0912345678"))
                 .andExpect(jsonPath("$.amount").value(100000.00))
-                .andExpect(jsonPath("$.status.code").value("0"));
+                .andExpect(jsonPath("$.status.code").value("00"));
     }
 
     @Test

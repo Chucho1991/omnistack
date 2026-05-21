@@ -97,7 +97,7 @@ class LoteriaBet593WithdrawReverseStrategyTest {
         assertEquals("ca9b201a-a668-45ed-876c-00affcb18580", captor.getValue().getAuthorization());
         assertEquals("0901111112", captor.getValue().getDocument());
         assertEquals("Demora en obtener respuesta", captor.getValue().getMotivo());
-        assertEquals("0", response.getStatus().getCode());
+        assertEquals("00", response.getStatus().getCode());
         assertEquals("Transacci\u00F3n correcta", response.getStatus().getMessage());
         assertEquals("ca9b201a-a668-45ed-876c-00affcb18580", response.getAuthorization());
         assertEquals("0901111112", response.getDocument());

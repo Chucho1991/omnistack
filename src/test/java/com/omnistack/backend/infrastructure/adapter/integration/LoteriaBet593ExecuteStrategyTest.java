@@ -102,7 +102,7 @@ class LoteriaBet593ExecuteStrategyTest {
         assertEquals("7366ea56284a06a2", captor.getValue().getSerialnumber());
         assertEquals("0901111112", captor.getValue().getDocument());
         assertEquals(new BigDecimal("9.99"), captor.getValue().getAmount());
-        assertEquals("0", response.getStatus().getCode());
+        assertEquals("00", response.getStatus().getCode());
         assertEquals("Usuario", response.getUsername());
         assertEquals("Prueba uno", response.getLastname());
         assertEquals("9F968187-F436-4F19-8C1F-A7A4DA07A899", response.getAuthorization());
