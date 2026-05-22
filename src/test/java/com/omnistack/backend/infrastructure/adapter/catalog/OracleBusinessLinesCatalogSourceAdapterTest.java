@@ -139,21 +139,30 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
     }
 
     @Test
-    void shouldExposeOnlyExecuteInputFieldsForBet593CashOutCatalog() {
+    void shouldExposeOnlyPrecheckInputFieldsForBet593CashOutCatalog() {
         OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
 
         String inputFieldsSql = sqlProvider.getInputFieldsSql();
 
         assertTrue(inputFieldsSql.contains(
                 "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
-                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
+                        + "'STRING' as field_type, 'PRECHECK' as capability_code"));
         assertTrue(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'N\u00famero asignado a retiro' as label, "
-                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
+                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
+                        + "'STRING' as field_type, 'PRECHECK' as capability_code"));
         assertTrue(inputFieldsSql.contains(
                 "'100708848' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
-                        + "'DOUBLE' as field_type, 'EXECUTE' as capability_code, 1 as is_required, "
+                        + "'DOUBLE' as field_type, 'PRECHECK' as capability_code, 1 as is_required, "
                         + "'AMOUNT' as field_group"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
+                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
+                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
+        assertFalse(inputFieldsSql.contains(
+                "'100708848' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
+                        + "'DOUBLE' as field_type, 'EXECUTE' as capability_code"));
         assertFalse(inputFieldsSql.contains(
                 "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
                         + "'STRING' as field_type, 'VERIFY' as capability_code"));

@@ -20,6 +20,8 @@ select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708850' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'PRECHECK' as capability_code from dual
+union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'VERIFY' as capability_code from dual

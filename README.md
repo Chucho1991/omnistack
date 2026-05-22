@@ -107,6 +107,10 @@ Propiedades principales:
 - `app.integration.providers.loteria.services.<CAPABILITY>.cashin.path`
 - `app.integration.providers.loteria.services.<CAPABILITY>.cashin.capabilities`
 - `app.integration.providers.loteria.services.<CAPABILITY>.cashin.name`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashout.item`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashout.path`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashout.capabilities`
+- `app.integration.providers.loteria.services.<CAPABILITY>.cashout.name`
 - `logging.level.com.omnistack.backend`
 
 ## Ejecucion local
@@ -202,6 +206,10 @@ Variables de entorno principales:
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_USERNAME`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_PASSWORD`
 - `APP_INTEGRATION_PROVIDERS_LOTERIA_AUTH_LOGIN_PRODUCT_TO_SELL`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHOUT_ITEM`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHOUT_PATH`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHOUT_CAPABILITIES`
+- `APP_INTEGRATION_PROVIDERS_LOTERIA_SERVICES_PRECHECK_CASHOUT_NAME`
 
 ## Build y pruebas
 
@@ -221,7 +229,7 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
 - ECUABET CASH_OUT (`rms_item_code=100708846`) expone en `input_fields` solo `withdrawId`, `password` y `amount` para `PRECHECK`; los campos de reverso no forman parte del contrato de catalogo.
-- BET 593 CASH_OUT (`rms_item_code=100708848`) expone en `input_fields` solo `document`, `withdrawId` y `amount` para `EXECUTE`; los campos de validacion y reverso no forman parte del contrato de catalogo.
+- BET 593 CASH_OUT (`rms_item_code=100708848`) expone `PRECHECK` y `VERIFY` para consultar retiro mediante `ConsultarRetiroBet593`; en `input_fields` expone solo `document`, `withdrawId` y `amount` para `PRECHECK`.
 - Mientras no exista integracion con base de datos real, los campos `chain`, `store`, `store_name` y `pos` se aceptan y se replican en la respuesta sin condicionar el catalogo devuelto.
 - Los `WHERE` del SQL mock de Oracle filtran temporalmente solo por `channel_POS`.
 
@@ -929,6 +937,36 @@ Request externo generado:
   "numeroTransaccion": "f0908f64-9145-45cf-a22c-c36bca604372",
   "identificacion": "0911274165",
   "numeroRetiro": "20240430800100007"
+}
+```
+
+### LOTERIA BET593 PRECHECK CASH_OUT
+
+El precheck de nota de retiro BET593 consulta la orden CASH_OUT con el mismo endpoint externo usado por `VERIFY`.
+
+- endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConsultarRetiroBet593`
+- token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
+- constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=CONRETIROOL`, `clienteId=58542`, `medioId=23`
+- mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `withdrawId -> numeroRetiro`
+- regla especial: `codError=400022` se interpreta como transaccion ejecutada y responde `status.code=00`, `status.message=Transaccion correcta`
+
+Request interno:
+
+```json
+{
+  "uuid": "ca9b201a-a668-45ed-876c-00affcb18580",
+  "chain": "1",
+  "store": "148",
+  "store_name": "FYBECA AMAZONAS",
+  "pos": "1",
+  "channel_POS": "POS",
+  "category_code": "1",
+  "subcategory_code": "1",
+  "service_provider_code": "2",
+  "rms_item_code": "100708848",
+  "document": "0901111112",
+  "withdrawId": "340468406359",
+  "amount": 17.00
 }
 ```
 
