@@ -15,6 +15,7 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import com.omnistack.backend.shared.validation.ExternalAmountValidation;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -99,7 +100,11 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
             Integer transactionId) {
         Map<String, Object> payload = externalResponse.getPayload();
         Integer providerError = integerValue(payload, "error");
-        boolean isError = !externalResponse.isApproved() || providerError != null && providerError != 0;
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, payload);
+        BigDecimal responseAmount = amountValidation.externalAmount() == null ? request.getAmount() : amountValidation.externalAmount();
+        boolean isError = !externalResponse.isApproved()
+                || providerError != null && providerError != 0
+                || amountValidation.hasMismatch();
 
         ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
                 .chain(request.getChain())
@@ -117,12 +122,14 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
                 .lastname(stringValue(payload, "lastname"))
                 .currency(stringValue(payload, "currency"))
                 .document(request.getDocument())
-                .amount(resolveAmount(payload, request));
+                .amount(responseAmount);
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(externalResponse.getExternalCode())
-                    .message(externalResponse.getExternalMessage())
+                    .code(amountValidation.hasMismatch() ? StatusCodes.VALIDATION_FAILED : externalResponse.getExternalCode())
+                    .message(amountValidation.hasMismatch()
+                            ? amountValidation.mismatchMessage()
+                            : externalResponse.getExternalMessage())
                     .build());
         } else {
             builder.authorization(resolveValue(payload, "authorization", String.valueOf(transactionId)))
@@ -227,11 +234,6 @@ public class EcuabetDepositExecuteStrategy implements ExecuteStrategy {
     private String resolveValue(Map<String, Object> payload, String key, String fallback) {
         String value = stringValue(payload, key);
         return value == null || value.isBlank() ? fallback : value;
-    }
-
-    private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
-        String value = stringValue(payload, "amount");
-        return value == null || value.isBlank() ? request.getAmount() : new BigDecimal(value);
     }
 
     private Integer integerValue(Map<String, Object> payload, String key) {

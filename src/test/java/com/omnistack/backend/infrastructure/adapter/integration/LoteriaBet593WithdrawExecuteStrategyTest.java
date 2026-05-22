@@ -105,6 +105,66 @@ class LoteriaBet593WithdrawExecuteStrategyTest {
     }
 
     @Test
+    void shouldReturnValidationErrorWhenRequestAmountIsGreaterThanProviderAmount() {
+        when(bet593WithdrawPort.withdraw(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("0")
+                .externalMessage("")
+                .payload(Map.of(
+                        "error", 0,
+                        "message", "",
+                        "authorization", 82346,
+                        "document", "0911274165",
+                        "amount", "50.0"))
+                .build());
+
+        ExecuteRequest request = executeRequestBuilder()
+                .amount(new BigDecimal("70.0000"))
+                .build();
+
+        ExecuteResponse response = (ExecuteResponse) strategy.process(
+                request,
+                serviceDefinition(MovementType.CASH_OUT, "100708848"),
+                Capability.EXECUTE);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("01", response.getError().getCode());
+        assertEquals("El monto solicitado 70.0000 es mayor que el monto retornado por el proveedor externo 50.0",
+                response.getError().getMessage());
+        assertEquals(new BigDecimal("50.0"), response.getAmount());
+    }
+
+    @Test
+    void shouldReturnValidationErrorWhenRequestAmountIsLowerThanProviderAmount() {
+        when(bet593WithdrawPort.withdraw(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("0")
+                .externalMessage("")
+                .payload(Map.of(
+                        "error", 0,
+                        "message", "",
+                        "authorization", 82346,
+                        "document", "0911274165",
+                        "amount", "75.00"))
+                .build());
+
+        ExecuteRequest request = executeRequestBuilder()
+                .amount(new BigDecimal("70.00"))
+                .build();
+
+        ExecuteResponse response = (ExecuteResponse) strategy.process(
+                request,
+                serviceDefinition(MovementType.CASH_OUT, "100708848"),
+                Capability.EXECUTE);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("01", response.getError().getCode());
+        assertEquals("El monto solicitado 70.00 es menor que el monto retornado por el proveedor externo 75.00",
+                response.getError().getMessage());
+        assertEquals(new BigDecimal("75.00"), response.getAmount());
+    }
+
+    @Test
     void shouldFailWhenWithdrawIdIsMissing() {
         ExecuteRequest request = executeRequestBuilder()
                 .withdrawId(null)

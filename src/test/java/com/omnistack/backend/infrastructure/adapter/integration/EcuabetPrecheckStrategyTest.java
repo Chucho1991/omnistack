@@ -293,7 +293,7 @@ class EcuabetPrecheckStrategyTest {
 
         assertTrue(response.isErrorFlag());
         assertEquals("01", response.getError().getCode());
-        assertEquals("El monto solicitado 12.50 es mayor que el monto retornado por ECUABET 10.00",
+        assertEquals("El monto solicitado 12.50 es mayor que el monto retornado por el proveedor externo 10.00",
                 response.getError().getMessage());
         assertEquals(new BigDecimal("10.00"), response.getAmount());
     }
@@ -319,7 +319,7 @@ class EcuabetPrecheckStrategyTest {
 
         assertTrue(response.isErrorFlag());
         assertEquals("01", response.getError().getCode());
-        assertEquals("El monto solicitado 8.00 es menor que el monto retornado por ECUABET 10.00",
+        assertEquals("El monto solicitado 8.00 es menor que el monto retornado por el proveedor externo 10.00",
                 response.getError().getMessage());
     }
 

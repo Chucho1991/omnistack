@@ -15,6 +15,7 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import com.omnistack.backend.shared.validation.ExternalAmountValidation;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
@@ -99,10 +100,12 @@ public class LoteriaBet593WithdrawVerifyStrategy implements VerifyStrategy {
     private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
         boolean executedWithdraw = EXECUTED_WITHDRAW_CODE.equals(externalResponse.getExternalCode());
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, payload);
         boolean isError = !executedWithdraw
                 && (!externalResponse.isApproved()
                 || stringValue(payload, "message") != null
-                && !stringValue(payload, "message").isBlank());
+                && !stringValue(payload, "message").isBlank())
+                || amountValidation.hasMismatch();
 
         VerifyResponse.VerifyResponseBuilder<?, ?> builder = VerifyResponse.builder()
                 .chain(request.getChain())
@@ -124,8 +127,10 @@ public class LoteriaBet593WithdrawVerifyStrategy implements VerifyStrategy {
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(externalResponse.getExternalCode())
-                    .message(externalResponse.getExternalMessage())
+                    .code(amountValidation.hasMismatch() ? StatusCodes.VALIDATION_FAILED : externalResponse.getExternalCode())
+                    .message(amountValidation.hasMismatch()
+                            ? amountValidation.mismatchMessage()
+                            : externalResponse.getExternalMessage())
                     .build());
         } else {
             builder.authorization(resolveValue(payload, "authorization", request.getAuthorization()))

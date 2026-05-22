@@ -553,7 +553,7 @@ Este bloque complementa la descripcion anterior con el flujo de Nota de Retiro p
 - headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
 - body externo: `shop`, `token`, `withdrawId`, `country`, `password`
 - mapeo de response: `is_error <- error != 0 o code distinto de 0/00`, `error.code <- code`, `error.message <- message/error`, `username <- name`, `currency <- currency`, `amount <- amount`, `userid <- userId|userid`
-- validacion de monto: si `amount` del request interno es mayor o menor que el `amount` retornado por ECUABET, OMNISTACK responde `is_error=true`, `error.code=01` y `error.message` describe si el monto solicitado es mayor o menor que el monto retornado
+- validacion transversal de monto: si cualquier integracion retorna `amount` y este es mayor o menor que el `amount` del request interno, OMNISTACK responde `is_error=true`, `error.code=01` y `error.message` describe si el monto solicitado es mayor o menor que el monto retornado por el proveedor externo
 - `authorization`: si ECUABET no la retorna, OMNISTACK la genera automaticamente
 
 Ejemplo `PRECHECK CASH_OUT`:

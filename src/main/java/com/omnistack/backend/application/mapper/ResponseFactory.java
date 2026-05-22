@@ -15,7 +15,7 @@ import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.shared.constants.ErrorCodes;
 import com.omnistack.backend.shared.constants.StatusCodes;
-import java.math.BigDecimal;
+import com.omnistack.backend.shared.validation.ExternalAmountValidation;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Map;
@@ -64,23 +64,77 @@ public final class ResponseFactory {
             Capability capability) {
         return switch (capability) {
             case PRECHECK -> precheckResponse(request, externalResponse);
-            case EXECUTE -> ExecuteResponse.builder()
-                    .uuid(request.getUuid())
-                    .errorFlag(false)
-                    .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
-                    .build();
-            case VERIFY -> VerifyResponse.builder()
-                    .uuid(request.getUuid())
-                    .errorFlag(false)
-                    .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
-                    .build();
-            case REVERSE -> ReverseResponse.builder()
-                    .uuid(request.getUuid())
-                    .errorFlag(false)
-                    .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
-                    .build();
+            case EXECUTE -> genericExecuteResponse(request, externalResponse, capability);
+            case VERIFY -> genericVerifyResponse(request, externalResponse, capability);
+            case REVERSE -> genericReverseResponse(request, externalResponse, capability);
             default -> throw new IllegalArgumentException("Capability no soportada: " + capability);
         };
+    }
+
+    private static ExecuteResponse genericExecuteResponse(
+            BaseTransactionRequest request,
+            ExternalTransactionResponse externalResponse,
+            Capability capability) {
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, externalResponse.getPayload());
+        boolean isError = !externalResponse.isApproved() || amountValidation.hasMismatch();
+        ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
+                .uuid(request.getUuid())
+                .errorFlag(isError)
+                .amount(amountValidation.externalAmount());
+        if (isError) {
+            builder.error(genericError(externalResponse, amountValidation));
+        } else {
+            builder.status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"));
+        }
+        return builder.build();
+    }
+
+    private static VerifyResponse genericVerifyResponse(
+            BaseTransactionRequest request,
+            ExternalTransactionResponse externalResponse,
+            Capability capability) {
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, externalResponse.getPayload());
+        boolean isError = !externalResponse.isApproved() || amountValidation.hasMismatch();
+        VerifyResponse.VerifyResponseBuilder<?, ?> builder = VerifyResponse.builder()
+                .uuid(request.getUuid())
+                .errorFlag(isError);
+        if (isError) {
+            builder.error(genericError(externalResponse, amountValidation));
+        } else {
+            builder.status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"));
+        }
+        return builder.build();
+    }
+
+    private static ReverseResponse genericReverseResponse(
+            BaseTransactionRequest request,
+            ExternalTransactionResponse externalResponse,
+            Capability capability) {
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, externalResponse.getPayload());
+        boolean isError = !externalResponse.isApproved() || amountValidation.hasMismatch();
+        ReverseResponse.ReverseResponseBuilder<?, ?> builder = ReverseResponse.builder()
+                .uuid(request.getUuid())
+                .errorFlag(isError)
+                .amount(amountValidation.externalAmount());
+        if (isError) {
+            builder.error(genericError(externalResponse, amountValidation));
+        } else {
+            builder.status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"));
+        }
+        return builder.build();
+    }
+
+    private static ErrorDetail genericError(
+            ExternalTransactionResponse externalResponse,
+            ExternalAmountValidation.Result amountValidation) {
+        return ErrorDetail.builder()
+                .code(amountValidation.hasMismatch()
+                        ? StatusCodes.VALIDATION_FAILED
+                        : externalResponse.getExternalCode())
+                .message(amountValidation.hasMismatch()
+                        ? amountValidation.mismatchMessage()
+                        : externalResponse.getExternalMessage())
+                .build();
     }
 
     private static PrecheckResponse precheckResponse(
@@ -88,7 +142,10 @@ public final class ResponseFactory {
             ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
         Integer providerError = integerValue(payload, "error");
-        boolean isError = !externalResponse.isApproved() || providerError != null && providerError != 0;
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, payload);
+        boolean isError = !externalResponse.isApproved()
+                || providerError != null && providerError != 0
+                || amountValidation.hasMismatch();
 
         PrecheckResponse.PrecheckResponseBuilder<?, ?> builder = PrecheckResponse.builder()
                 .chain(request.getChain())
@@ -108,12 +165,16 @@ public final class ResponseFactory {
                 .serialnumber(stringValue(payload, "serialnumber"))
                 .userid(stringValue(payload, "userid"))
                 .document(stringValue(payload, "document"))
-                .amount(decimalValue(payload, "amount"));
+                .amount(amountValidation.externalAmount());
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(resolveCanonicalErrorCode(externalResponse))
-                    .message(externalResponse.getExternalMessage())
+                    .code(amountValidation.hasMismatch()
+                            ? StatusCodes.VALIDATION_FAILED
+                            : resolveCanonicalErrorCode(externalResponse))
+                    .message(amountValidation.hasMismatch()
+                            ? amountValidation.mismatchMessage()
+                            : externalResponse.getExternalMessage())
                     .build());
         } else {
             builder.authorization(resolveAuthorization(payload))
@@ -136,11 +197,6 @@ public final class ResponseFactory {
         }
         Object value = payload.get(key);
         return value == null ? null : String.valueOf(value);
-    }
-
-    private static BigDecimal decimalValue(Map<String, Object> payload, String key) {
-        String value = stringValue(payload, key);
-        return value == null || value.isBlank() ? null : new BigDecimal(value);
     }
 
     private static Integer integerValue(Map<String, Object> payload, String key) {

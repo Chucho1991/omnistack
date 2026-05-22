@@ -16,6 +16,8 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import com.omnistack.backend.shared.validation.ExternalAmountValidation;
+import java.math.BigDecimal;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
@@ -99,8 +101,11 @@ public class LoteriaBet593RechargeReverseStrategy implements ReverseStrategy {
 
     private ReverseResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
+        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, payload);
+        BigDecimal responseAmount = amountValidation.externalAmount() == null ? request.getAmount() : amountValidation.externalAmount();
         boolean isError = !externalResponse.isApproved()
-                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
+                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank()
+                || amountValidation.hasMismatch();
 
         ReverseResponse.ReverseResponseBuilder<?, ?> builder = ReverseResponse.builder()
                 .chain(request.getChain())
@@ -114,12 +119,15 @@ public class LoteriaBet593RechargeReverseStrategy implements ReverseStrategy {
                 .serviceProviderCode(request.getServiceProviderCode())
                 .rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
-                .document(resolveValue(payload, "document", request.getDocument()));
+                .document(resolveValue(payload, "document", request.getDocument()))
+                .amount(responseAmount);
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(externalResponse.getExternalCode())
-                    .message(externalResponse.getExternalMessage())
+                    .code(amountValidation.hasMismatch() ? StatusCodes.VALIDATION_FAILED : externalResponse.getExternalCode())
+                    .message(amountValidation.hasMismatch()
+                            ? amountValidation.mismatchMessage()
+                            : externalResponse.getExternalMessage())
                     .build());
         } else {
             builder.authorization(resolveValue(payload, "authorization", request.getAuthorization()))
