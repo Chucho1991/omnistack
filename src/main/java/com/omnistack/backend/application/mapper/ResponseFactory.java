@@ -13,11 +13,9 @@ import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.dto.VerifyResponse;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
-import com.omnistack.backend.shared.constants.ErrorCodes;
 import com.omnistack.backend.shared.constants.StatusCodes;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.shared.validation.ExternalAmountValidation;
-import java.text.Normalizer;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -130,7 +128,7 @@ public final class ResponseFactory {
         return ErrorDetail.builder()
                 .code(amountValidation.hasMismatch()
                         ? StatusCodes.VALIDATION_FAILED
-                        : externalResponse.getExternalCode())
+                        : CanonicalErrorCodeMapper.resolve(externalResponse))
                 .message(amountValidation.hasMismatch()
                         ? amountValidation.mismatchMessage()
                         : externalResponse.getExternalMessage())
@@ -205,27 +203,7 @@ public final class ResponseFactory {
     }
 
     private static String resolveCanonicalErrorCode(ExternalTransactionResponse externalResponse) {
-        String externalCode = externalResponse.getExternalCode();
-        if (ErrorCodes.OK.equals(externalCode)
-                || ErrorCodes.ERROR_DESCRIPTION_OBTAINED.equals(externalCode)
-                || ErrorCodes.INVALID_USER.equals(externalCode)) {
-            return externalCode;
-        }
-        return isInvalidUserMessage(externalResponse.getExternalMessage())
-                ? ErrorCodes.INVALID_USER
-                : ErrorCodes.ERROR_DESCRIPTION_OBTAINED;
+        return CanonicalErrorCodeMapper.resolve(externalResponse);
     }
 
-    private static boolean isInvalidUserMessage(String message) {
-        if (message == null || message.isBlank()) {
-            return false;
-        }
-        String normalized = Normalizer.normalize(message, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .toLowerCase(Locale.ROOT);
-        return normalized.contains("usuario")
-                && (normalized.contains("invalido")
-                || normalized.contains("no encontrado")
-                || normalized.contains("no existe"));
-    }
 }

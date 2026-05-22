@@ -128,7 +128,9 @@ public class EcuabetWithdrawReverseStrategy implements ReverseStrategy {
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(amountValidation.hasMismatch() ? StatusCodes.VALIDATION_FAILED : externalResponse.getExternalCode())
+                    .code(amountValidation.hasMismatch()
+                            ? StatusCodes.VALIDATION_FAILED
+                            : com.omnistack.backend.shared.util.CanonicalErrorCodeMapper.resolve(externalResponse))
                     .message(amountValidation.hasMismatch()
                             ? amountValidation.mismatchMessage()
                             : externalResponse.getExternalMessage())

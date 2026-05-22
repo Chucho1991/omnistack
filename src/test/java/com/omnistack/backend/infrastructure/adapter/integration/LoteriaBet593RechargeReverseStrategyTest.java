@@ -96,7 +96,7 @@ class LoteriaBet593RechargeReverseStrategyTest {
         assertEquals("0901111112", captor.getValue().getDocument());
         assertEquals("Demora en obtener respuesta", captor.getValue().getMotivo());
         assertTrue(response.isErrorFlag());
-        assertEquals("400066", response.getError().getCode());
+        assertEquals("01", response.getError().getCode());
         assertEquals("Tiempo excedido para realizar un reverso de recarga", response.getError().getMessage());
         assertEquals("0901111112", response.getDocument());
     }
