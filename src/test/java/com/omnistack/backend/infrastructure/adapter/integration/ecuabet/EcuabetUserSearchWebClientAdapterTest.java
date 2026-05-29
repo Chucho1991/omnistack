@@ -2,6 +2,7 @@ package com.omnistack.backend.infrastructure.adapter.integration.ecuabet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,16 +10,20 @@ import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.EcuabetUserSearchCommand;
+import com.omnistack.backend.shared.exception.IntegrationException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 class EcuabetUserSearchWebClientAdapterTest {
 
@@ -196,6 +201,45 @@ class EcuabetUserSearchWebClientAdapterTest {
         assertEquals("0", response.getExternalCode());
         assertEquals("ECUABET no retorno datos para aprobar el precheck", response.getExternalMessage());
         assertEquals(0, response.getPayload().get("error"));
+    }
+
+    @Test
+    void shouldConvertTransportErrorIntoIntegrationException() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/user/search", exchange -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        server.start();
+
+        WebClient timeoutWebClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create()
+                        .responseTimeout(Duration.ofMillis(30))))
+                .build();
+        EcuabetUserSearchWebClientAdapter adapter = new EcuabetUserSearchWebClientAdapter(
+                timeoutWebClient,
+                appProperties("http://localhost:" + server.getAddress().getPort()),
+                new ObjectMapper(),
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test");
+
+        IntegrationException exception = assertThrows(IntegrationException.class, () -> adapter.searchUser(
+                EcuabetUserSearchCommand.builder()
+                        .chain("60")
+                        .store("4")
+                        .storeName("Local 4")
+                        .pos("1")
+                        .channelPos(ChannelPos.POS)
+                        .movementType(MovementType.CASH_IN)
+                        .categoryCode("1")
+                        .subcategoryCode("1")
+                        .document("2912912912")
+                        .build(),
+                "/user/search"));
+
+        assertTrue(exception.getMessage().contains("Error de transporte al invocar ECUABET"));
     }
 
     private void respondJson(HttpExchange exchange, String body) throws IOException {

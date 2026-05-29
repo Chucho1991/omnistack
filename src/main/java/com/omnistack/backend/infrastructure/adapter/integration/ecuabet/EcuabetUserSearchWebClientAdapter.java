@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -50,20 +51,27 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
         traceToConsole("External web service request", url, JsonUtil.toJsonSilently(request));
 
-        EcuabetUserSearchResponse response = omnistackWebClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(headers -> addHeaders(headers, command))
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                        .defaultIfEmpty("")
-                        .flatMap(body -> {
-                            traceErrorToConsole("External web service error", url, body);
-                            return Mono.error(new IntegrationException(buildErrorMessage(body, operationName)));
-                        }))
-                .bodyToMono(EcuabetUserSearchResponse.class)
-                .block();
+        EcuabetUserSearchResponse response;
+        try {
+            response = omnistackWebClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> addHeaders(headers, command))
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(body -> {
+                                traceErrorToConsole("External web service error", url, body);
+                                return Mono.error(new IntegrationException(buildErrorMessage(body, operationName)));
+                            }))
+                    .bodyToMono(EcuabetUserSearchResponse.class)
+                    .block();
+        } catch (WebClientRequestException exception) {
+            String message = EcuabetTransportErrorMapper.buildMessage(operationName, url, exception);
+            traceErrorToConsole("External web service transport error", url, message);
+            throw new IntegrationException(message, exception);
+        }
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para la operacion " + operationName);

@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -55,20 +56,27 @@ public class EcuabetDepositWebClientAdapter implements EcuabetDepositPort {
 
         traceToConsole("ECUABET deposit request", url, JsonUtil.toJsonSilently(request));
 
-        EcuabetDepositResponse response = omnistackWebClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(headers -> addHeaders(headers, command))
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                        .defaultIfEmpty("")
-                        .flatMap(body -> {
-                            traceErrorToConsole("ECUABET deposit error", url, body);
-                            return Mono.error(new IntegrationException(buildErrorMessage(body)));
-                        }))
-                .bodyToMono(EcuabetDepositResponse.class)
-                .block();
+        EcuabetDepositResponse response;
+        try {
+            response = omnistackWebClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> addHeaders(headers, command))
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(body -> {
+                                traceErrorToConsole("ECUABET deposit error", url, body);
+                                return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                            }))
+                    .bodyToMono(EcuabetDepositResponse.class)
+                    .block();
+        } catch (WebClientRequestException exception) {
+            String message = EcuabetTransportErrorMapper.buildMessage("deposito", url, exception);
+            traceErrorToConsole("ECUABET deposit transport error", url, message);
+            throw new IntegrationException(message, exception);
+        }
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para deposito");

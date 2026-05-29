@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -55,20 +56,27 @@ public class EcuabetWithdrawWebClientAdapter implements EcuabetWithdrawPort {
 
         traceToConsole("ECUABET withdraw request", url, JsonUtil.toJsonSilently(request));
 
-        EcuabetWithdrawResponse response = omnistackWebClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(headers -> addHeaders(headers, command))
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                        .defaultIfEmpty("")
-                        .flatMap(body -> {
-                            traceErrorToConsole("ECUABET withdraw error", url, body);
-                            return Mono.error(new IntegrationException(buildErrorMessage(body)));
-                        }))
-                .bodyToMono(EcuabetWithdrawResponse.class)
-                .block();
+        EcuabetWithdrawResponse response;
+        try {
+            response = omnistackWebClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> addHeaders(headers, command))
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(body -> {
+                                traceErrorToConsole("ECUABET withdraw error", url, body);
+                                return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                            }))
+                    .bodyToMono(EcuabetWithdrawResponse.class)
+                    .block();
+        } catch (WebClientRequestException exception) {
+            String message = EcuabetTransportErrorMapper.buildMessage("nota de retiro", url, exception);
+            traceErrorToConsole("ECUABET withdraw transport error", url, message);
+            throw new IntegrationException(message, exception);
+        }
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para nota de retiro");
