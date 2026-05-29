@@ -1,6 +1,7 @@
 package com.omnistack.backend.config.properties;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -105,6 +106,7 @@ public class AppProperties {
     public static class Integrations {
         private int defaultConnectTimeoutMs = 60000;
         private int defaultReadTimeoutMs = 60000;
+        private List<String> tlsProtocols = List.of("TLSv1.2");
         private boolean mockEnabled;
     }
 

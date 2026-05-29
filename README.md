@@ -72,6 +72,7 @@ Propiedades principales:
 - `app.catalog.refresh.initial-delay-ms`
 - `app.integrations.default-connect-timeout-ms`
 - `app.integrations.default-read-timeout-ms`
+- `app.integrations.tls-protocols`
 - `app.integrations.mock-enabled`
 - `app.integration.providers.default.base-url`
 - `app.integration.providers.default.technical-user`
@@ -150,6 +151,7 @@ Variables de entorno principales:
 - `APP_CATALOG_REFRESH_INITIAL_DELAY_MS`
 - `APP_INTEGRATIONS_DEFAULT_CONNECT_TIMEOUT_MS` (default `60000`)
 - `APP_INTEGRATIONS_DEFAULT_READ_TIMEOUT_MS` (default `60000`)
+- `APP_INTEGRATIONS_TLS_PROTOCOLS` (default `TLSv1.2`)
 - `APP_INTEGRATIONS_MOCK_ENABLED`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_TECHNICAL_USER`
