@@ -39,7 +39,8 @@ public class DefaultProviderFlowResolver implements ProviderFlowResolver {
         TransactionFlowStrategy strategy = strategies.stream()
                 .filter(candidate -> candidate.supports(serviceDefinition, capability))
                 .findFirst()
-                .orElseThrow(() -> new IntegrationException("No existe estrategia configurada para el proveedor/capacidad"));
+                .orElseThrow(() -> new IntegrationException(
+                        "No existe configuracion de endpoint externo para el proveedor/capacidad solicitados"));
 
         log.info(
                 "Provider flow resolved. capability={}, categoryCode={}, subcategoryCode={}, serviceProviderCode={}, rmsItemCode={}, movementType={}, strategy={}",

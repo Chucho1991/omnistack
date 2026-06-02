@@ -12,8 +12,8 @@ import com.omnistack.backend.domain.model.CatalogSnapshot;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.infrastructure.adapter.integration.DefaultProviderTransactionStrategy;
 import com.omnistack.backend.infrastructure.adapter.integration.LoteriaBet593PrecheckStrategy;
-import com.omnistack.backend.infrastructure.adapter.integration.MockExternalProviderClient;
 import com.omnistack.backend.shared.exception.CatalogNotFoundException;
+import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,12 +22,12 @@ import org.junit.jupiter.api.Test;
 class DefaultProviderFlowResolverTest {
 
     @Test
-    void shouldResolveConfiguredStrategy() {
+    void shouldFailWhenCatalogServiceDoesNotHaveExternalStrategyConfigured() {
         CatalogCacheService cacheService = new CatalogCacheService(new com.omnistack.backend.infrastructure.adapter.catalog.InMemoryCatalogSourceAdapter());
         cacheService.refreshCatalog();
         DefaultProviderFlowResolver resolver = new DefaultProviderFlowResolver(
                 cacheService,
-                List.of(new DefaultProviderTransactionStrategy(new MockExternalProviderClient())));
+                List.of(new DefaultProviderTransactionStrategy()));
 
         var request = PrecheckRequest.builder()
                 .uuid("uuid-1")
@@ -44,8 +44,8 @@ class DefaultProviderFlowResolverTest {
                 .phone("0999999999")
                 .build();
 
-        var selection = resolver.resolve(request, Capability.PRECHECK);
-        assertEquals("CLARO", selection.getServiceDefinition().getServiceProviderCode());
+        IntegrationException exception = assertThrows(IntegrationException.class, () -> resolver.resolve(request, Capability.PRECHECK));
+        assertEquals("No existe configuracion de endpoint externo para el proveedor/capacidad solicitados", exception.getMessage());
     }
 
     @Test
@@ -54,7 +54,7 @@ class DefaultProviderFlowResolverTest {
         cacheService.refreshCatalog();
         DefaultProviderFlowResolver resolver = new DefaultProviderFlowResolver(
                 cacheService,
-                List.of(new DefaultProviderTransactionStrategy(new MockExternalProviderClient())));
+                List.of(new DefaultProviderTransactionStrategy()));
 
         var request = PrecheckRequest.builder()
                 .uuid("uuid-1")
@@ -107,7 +107,7 @@ class DefaultProviderFlowResolverTest {
                 appProperties);
         DefaultProviderFlowResolver resolver = new DefaultProviderFlowResolver(
                 cacheService,
-                List.of(realStrategy, new DefaultProviderTransactionStrategy(new MockExternalProviderClient())));
+                List.of(realStrategy, new DefaultProviderTransactionStrategy()));
 
         var request = PrecheckRequest.builder()
                 .uuid("uuid-bet593")
