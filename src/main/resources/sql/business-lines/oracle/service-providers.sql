@@ -1,8 +1,8 @@
 select category_code, subcategory_code, service_provider_code, ruc_provider, provider_name, is_active
 from (
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '9999999999001' as ruc_provider, 'ECUABET' as provider_name, 1 as is_active from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '1793215215001' as ruc_provider, 'SPORTEK S.A.S' as provider_name, 1 as is_active from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '9999999999001' as ruc_provider, 'LOTERIA NACIONAL' as provider_name, 1 as is_active from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '0990967946001' as ruc_provider, 'JUNTA DE BENEFICENCIA DE GUAY' as provider_name, 1 as is_active from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '9999999999001' as ruc_provider, 'LOTERIA NACIONAL' as provider_name, 1 as is_active from dual
 union all

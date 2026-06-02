@@ -1,74 +1,74 @@
 select category_code, subcategory_code, service_provider_code, rms_item_code, capability_code
 from (
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '100713841' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100713841' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '100713841' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100713841' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '100713841' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100713841' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '100708846' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100708846' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '100708846' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100708846' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '1' as service_provider_code, '100708846' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100708846' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708850' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708850' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708850' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708850' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708850' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708850' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708850' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708850' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708848' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708848' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708848' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '1' as subcategory_code, '2' as service_provider_code, '100708848' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708848' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565830' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565830' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565830' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565830' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565830' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565830' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565830' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565830' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '20001565830' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '20001565830' as rms_item_code, 'CREATE_TICKET' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 'CREATE_TICKET' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '20001565830' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '20001565830' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '20001565830' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565831' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565831' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565831' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565831' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565831' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565831' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565831' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565831' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565832' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565832' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565832' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565832' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565832' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565832' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565832' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565832' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565833' as rms_item_code, 'PRECHECK' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565833' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565833' as rms_item_code, 'EXECUTE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565833' as rms_item_code, 'EXECUTE' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565833' as rms_item_code, 'VERIFY' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565833' as rms_item_code, 'VERIFY' as capability_code from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '10001565833' as rms_item_code, 'REVERSE' as capability_code from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565833' as rms_item_code, 'REVERSE' as capability_code from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '12004565834' as rms_item_code, 'PRECHECK' as capability_code from dual
 union all
