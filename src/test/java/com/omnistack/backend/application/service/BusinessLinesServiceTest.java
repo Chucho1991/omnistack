@@ -23,7 +23,6 @@ import com.omnistack.backend.domain.model.ServiceProvider;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -275,19 +274,9 @@ class BusinessLinesServiceTest {
     }
 
     @Test
-    void shouldReturnOnlyServicesConfiguredAsProviderItems() {
+    void shouldReturnCatalogServicesEvenWhenItemsAreNotConfiguredAsProviderIntegrations() {
         BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
-        AppProperties appProperties = new AppProperties();
-        AppProperties.ProviderCapabilityProperties precheck = new AppProperties.ProviderCapabilityProperties();
-        precheck.getCashin().setItem("100713841");
-        precheck.getCashout().setItem("100708846");
-        AppProperties.ProviderCapabilityProperties execute = new AppProperties.ProviderCapabilityProperties();
-        execute.getCashin().setItem("100708850");
-        execute.getCashout().setItem("100708848");
-        AppProperties.ProviderProperties providerProperties = new AppProperties.ProviderProperties();
-        providerProperties.setServices(Map.of("PRECHECK", precheck, "EXECUTE", execute));
-        appProperties.getIntegration().setProviders(Map.of("configured", providerProperties));
-        BusinessLinesService service = new BusinessLinesService(cacheService, appProperties);
+        BusinessLinesService service = new BusinessLinesService(cacheService, new AppProperties());
         BusinessLinesRequest request = BusinessLinesRequest.builder()
                 .chain("001")
                 .store("0001")
@@ -332,7 +321,7 @@ class BusinessLinesServiceTest {
                 .getServices().stream()
                 .map(serviceResponse -> serviceResponse.getRmsItemCode())
                 .toList();
-        assertEquals(List.of("100713841", "100708846", "100708850", "100708848"), returnedItems);
+        assertEquals(List.of("100713841", "100708846", "100708850", "100708848", "999999999"), returnedItems);
     }
 
     private static ServiceDefinition serviceDefinition(String rmsItemCode, MovementType movementType) {

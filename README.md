@@ -228,7 +228,7 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - Longitud maxima por linea de `consent_text` configurable en `app.business-lines.consent-text-max-line-length` (`APP_BUSINESS_LINES_CONSENT_TEXT_MAX_LINE_LENGTH`, por defecto 56)
 - El placeholder `{{provider_name}}` en `consent_text` se resuelve con el `provider_name` del proveedor antes de responder.
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
-- La respuesta expone solo servicios cuyo `rms_item_code` este configurado como `item` en `app.integration.providers.*.services.*.(cashin|cashout).item`; si no existen items configurados, no se aplica este filtro.
+- La respuesta expone todos los servicios activos disponibles en la fuente SQL de business-lines y solo aplica el filtro funcional `movement_type` cuando se envia en el request.
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
 - ECUABET CASH_OUT (`rms_item_code=100708846`) expone en `input_fields` solo `withdrawId`, `password` y `amount` para `PRECHECK`; los campos de reverso no forman parte del contrato de catalogo.

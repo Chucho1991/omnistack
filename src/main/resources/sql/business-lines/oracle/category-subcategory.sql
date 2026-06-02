@@ -2,7 +2,7 @@ select category_code, category_name, subcategory_code, subcategory_name, is_acti
 from (
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, 'ENTRETENIMIENTO' as category_name, '161' as subcategory_code, 'APUESTAS' as subcategory_name, 1 as is_active from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, 'ENTRETENIMIENTO' as category_name, '2' as subcategory_code, 'BOLETOS' as subcategory_name, 1 as is_active from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, 'ENTRETENIMIENTO' as category_name, '2' as subcategory_code, 'BOLETOS' as subcategory_name, 1 as is_active from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, 'TELEFONÍA' as category_name, '9' as subcategory_code, 'RECARGAS' as subcategory_name, 1 as is_active from dual
 union all

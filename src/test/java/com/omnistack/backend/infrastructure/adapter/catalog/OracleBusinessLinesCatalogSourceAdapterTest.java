@@ -178,4 +178,20 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertFalse(inputFieldsSql.contains(
                 "'100708848' as rms_item_code, 'motivo' as input_field_id, 'Motivo del reverso' as label"));
     }
+
+    @Test
+    void shouldKeepTicketBusinessLineAlignedWithConfiguredServices() {
+        OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
+
+        String categorySubcategorySql = sqlProvider.getCategorySubcategorySql();
+        String serviceProvidersSql = sqlProvider.getServiceProvidersSql();
+
+        assertTrue(categorySubcategorySql.contains(
+                "'1' as category_code, 'ENTRETENIMIENTO' as category_name, "
+                        + "'2' as subcategory_code, 'BOLETOS' as subcategory_name"));
+        assertTrue(serviceProvidersSql.contains(
+                "'1' as category_code, '2' as subcategory_code, "
+                        + "'408403' as service_provider_code, '9999999999001' as ruc_provider, "
+                        + "'LOTERIA NACIONAL' as provider_name"));
+    }
 }
