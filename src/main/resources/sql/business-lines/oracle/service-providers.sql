@@ -4,7 +4,7 @@ select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '0990967946001' as ruc_provider, 'JUNTA DE BENEFICENCIA DE GUAY' as provider_name, 1 as is_active from dual
 union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '2' as service_provider_code, '9999999999001' as ruc_provider, 'LOTERIA NACIONAL' as provider_name, 1 as is_active from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '9999999999001' as ruc_provider, 'LOTERIA NACIONAL' as provider_name, 1 as is_active from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '9999999999001' as ruc_provider, 'CLARO' as provider_name, 1 as is_active from dual
 union all
