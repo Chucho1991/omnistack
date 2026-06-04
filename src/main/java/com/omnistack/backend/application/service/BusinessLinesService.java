@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 public class BusinessLinesService implements BusinessLinesUseCase {
 
     private static final String DEFAULT_NUM_TICKETS = "3";
+    private static final String GENERIC_CATEGORY_CODE = "1";
+    private static final String GENERIC_SUBCATEGORY_CODE = "1";
     private static final String PROVIDER_NAME_PLACEHOLDER = "{{provider_name}}";
 
     private final BusinessLinesCatalogCacheService businessLinesCatalogCacheService;
@@ -50,7 +52,7 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                                 subcategory,
                                 request,
                                 configuredItemCodes)))
-                .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
+                .filter(this::isVisibleSubcategory)
                 .collect(Collectors.toList());
 
         return ResponseFactory.businessLines(request, collectionSubcategories);
@@ -73,6 +75,12 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                         .filter(provider -> !provider.getServices().isEmpty())
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    private boolean isVisibleSubcategory(BusinessLineCollectionSubcategoryResponse subcategory) {
+        return !subcategory.getServiceProviders().isEmpty()
+                || (GENERIC_CATEGORY_CODE.equals(subcategory.getCategoryCode())
+                        && GENERIC_SUBCATEGORY_CODE.equals(subcategory.getSubcategoryCode()));
     }
 
     private BusinessLineProviderResponse toProviderResponse(

@@ -139,6 +139,17 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
     }
 
     @Test
+    void shouldExposeGenericCategorySubcategoryCatalogRow() {
+        OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
+
+        String categorySubcategorySql = sqlProvider.getCategorySubcategorySql();
+
+        assertTrue(categorySubcategorySql.contains(
+                "'1' as category_code, 'GENERICO' as category_name, "
+                        + "'1' as subcategory_code, 'GENERICO' as subcategory_name"));
+    }
+
+    @Test
     void shouldExposeOnlyPrecheckInputFieldsForBet593CashOutCatalog() {
         OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
 

@@ -306,8 +306,16 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
   "collection_subcategory": [
     {
       "category_code": "1",
-      "category_name": "ENTRETENIMIENTO",
+      "category_name": "GENERICO",
       "subcategory_code": "1",
+      "subcategory_name": "GENERICO",
+      "is_active": true,
+      "service_providers": []
+    },
+    {
+      "category_code": "759",
+      "category_name": "ENTRETENIMIENTO",
+      "subcategory_code": "161",
       "subcategory_name": "APUESTAS",
       "is_active": true,
       "service_providers": [

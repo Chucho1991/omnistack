@@ -335,6 +335,71 @@ class BusinessLinesServiceTest {
         assertEquals(List.of("100713841", "100708846", "100708850", "100708848"), returnedItems);
     }
 
+    @Test
+    void shouldExposeGenericEmptySubcategoryAndHideOtherEmptySubcategories() {
+        BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
+        BusinessLinesService service = new BusinessLinesService(cacheService, new AppProperties());
+        BusinessLinesRequest request = BusinessLinesRequest.builder()
+                .chain("001")
+                .store("0001")
+                .storeName("Tienda Centro")
+                .pos("POS-01")
+                .channelPos(ChannelPos.POS)
+                .build();
+        ServiceDefinition serviceDefinition = serviceDefinition("100713841", MovementType.CASH_IN);
+
+        when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
+                .categories(List.of(
+                        Category.builder()
+                                .categoryCode("1")
+                                .categoryName("GENERICO")
+                                .subcategories(List.of(CollectionSubcategory.builder()
+                                        .subcategoryCode("1")
+                                        .subcategoryName("GENERICO")
+                                        .active(true)
+                                        .providers(List.of())
+                                        .build()))
+                                .build(),
+                        Category.builder()
+                                .categoryCode("759")
+                                .categoryName("ENTRETENIMIENTO")
+                                .subcategories(List.of(
+                                        CollectionSubcategory.builder()
+                                                .subcategoryCode("161")
+                                                .subcategoryName("APUESTAS")
+                                                .active(true)
+                                                .providers(List.of(ServiceProvider.builder()
+                                                        .serviceProviderCode("ECUABET")
+                                                        .rucProvider("9999999999001")
+                                                        .providerName("ECUABET")
+                                                        .active(true)
+                                                        .services(List.of(serviceDefinition))
+                                                        .build()))
+                                                .build(),
+                                        CollectionSubcategory.builder()
+                                                .subcategoryCode("2")
+                                                .subcategoryName("BOLETOS")
+                                                .active(true)
+                                                .providers(List.of())
+                                                .build()))
+                                .build()))
+                .services(List.of(serviceDefinition))
+                .loadedAt(OffsetDateTime.now())
+                .version("v1")
+                .build());
+
+        var response = service.getBusinessLines(request);
+
+        assertEquals(2, response.getCollectionSubcategory().size());
+        assertEquals("1", response.getCollectionSubcategory().get(0).getCategoryCode());
+        assertEquals("GENERICO", response.getCollectionSubcategory().get(0).getCategoryName());
+        assertEquals("1", response.getCollectionSubcategory().get(0).getSubcategoryCode());
+        assertEquals("GENERICO", response.getCollectionSubcategory().get(0).getSubcategoryName());
+        assertTrue(response.getCollectionSubcategory().get(0).isActive());
+        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().isEmpty());
+        assertEquals("161", response.getCollectionSubcategory().get(1).getSubcategoryCode());
+    }
+
     private static ServiceDefinition serviceDefinition(String rmsItemCode, MovementType movementType) {
         return ServiceDefinition.builder()
                 .categoryCode("REC")
