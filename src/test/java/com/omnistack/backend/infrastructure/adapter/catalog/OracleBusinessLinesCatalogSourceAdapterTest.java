@@ -43,7 +43,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(sqlProvider.getPaymentMethodsSql()).thenReturn("paymentMethod");
 
         when(jdbcTemplate.query(eq("category"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.CategorySubcategoryRow("1", "ENTRETENIMIENTO", "1", "APUESTAS", true)));
+                new OracleBusinessLinesCatalogSourceAdapter.CategorySubcategoryRow("1", "ENTRETENIMIENTO", "1", "PRONOSTICOS DEPORTIVOS", true)));
         when(jdbcTemplate.query(eq("provider"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.ServiceProviderRow("1", "1", "1", "9999999999001", "ECUABET", true)));
         when(jdbcTemplate.query(eq("service"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(

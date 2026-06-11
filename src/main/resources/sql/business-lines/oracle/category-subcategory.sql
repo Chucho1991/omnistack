@@ -1,6 +1,6 @@
 select category_code, category_name, subcategory_code, subcategory_name, is_active
 from (
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, 'ENTRETENIMIENTO' as category_name, '161' as subcategory_code, 'APUESTAS' as subcategory_name, 1 as is_active from dual
+select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, 'ENTRETENIMIENTO' as category_name, '161' as subcategory_code, 'PRONOSTICOS DEPORTIVOS' as subcategory_name, 1 as is_active from dual
 union all
 select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, 'ENTRETENIMIENTO' as category_name, '2' as subcategory_code, 'BOLETOS' as subcategory_name, 1 as is_active from dual
 union all
