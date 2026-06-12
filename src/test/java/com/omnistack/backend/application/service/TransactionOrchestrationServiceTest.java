@@ -9,6 +9,7 @@ import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.port.out.ProviderFlowResolver;
+import com.omnistack.backend.application.port.out.RegistroTrxPort;
 import com.omnistack.backend.application.port.out.strategy.TransactionFlowStrategy;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
@@ -58,7 +59,8 @@ class TransactionOrchestrationServiceTest {
                 .build();
         TransactionOrchestrationService service = new TransactionOrchestrationService(
                 resolver,
-                new AuditLogService(log -> { }));
+                new AuditLogService(log -> { }),
+                (entry) -> { });
 
         ExecuteRequest request = ExecuteRequest.builder()
                 .uuid("uuid-bet593-cashout")

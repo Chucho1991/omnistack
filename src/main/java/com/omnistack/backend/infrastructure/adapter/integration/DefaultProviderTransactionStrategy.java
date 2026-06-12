@@ -2,13 +2,18 @@ package com.omnistack.backend.infrastructure.adapter.integration;
 
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
+import com.omnistack.backend.application.mapper.ResponseFactory;
+import com.omnistack.backend.application.port.out.ExternalProviderClient;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
 import com.omnistack.backend.application.port.out.strategy.PrecheckStrategy;
 import com.omnistack.backend.application.port.out.strategy.ReverseStrategy;
 import com.omnistack.backend.application.port.out.strategy.VerifyStrategy;
 import com.omnistack.backend.domain.enums.Capability;
+import com.omnistack.backend.domain.model.ExternalTransactionRequest;
+import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
-import com.omnistack.backend.shared.exception.IntegrationException;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
@@ -25,29 +30,44 @@ import org.springframework.stereotype.Component;
 public class DefaultProviderTransactionStrategy
         implements PrecheckStrategy, ExecuteStrategy, VerifyStrategy, ReverseStrategy {
 
-    /**
-     * No declara soporte para servicios sin adaptador real configurado.
-     *
-     * @param serviceDefinition definicion del servicio seleccionada desde catalogo
-     * @param capability capacidad solicitada
-     * @return siempre {@code false} para forzar error de configuracion explicito
-     */
+    private final ExternalProviderClient externalProviderClient;
+
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
-        return false;
+        String providerCode = serviceDefinition.getServiceProviderCode();
+        // Exclude providers with real strategies: 407925 (CONCECEL: ecuabet+bet593), 407827 (BROADNET: pega3+tradicional)
+        return providerCode != null
+                && !"407925".equalsIgnoreCase(providerCode)
+                && !"407827".equalsIgnoreCase(providerCode);
     }
 
-    /**
-     * Rechaza la ejecucion cuando no hay endpoint externo configurado.
-     *
-     * @param request request interno recibido por OMNISTACK
-     * @param serviceDefinition definicion catalogada del servicio
-     * @param capability capacidad solicitada
-     * @return nunca retorna respuesta exitosa
-     * @throws IntegrationException siempre que se intente usar el fallback sin configuracion
-     */
     @Override
     public BaseTransactionResponse process(BaseTransactionRequest request, ServiceDefinition serviceDefinition, Capability capability) {
-        throw new IntegrationException("No existe configuracion de endpoint externo para el proveedor/capacidad solicitados");
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("chain", request.getChain());
+        payload.put("store", request.getStore());
+        payload.put("pos", request.getPos());
+        payload.put("channel_POS", request.getChannelPos());
+        payload.put("movement_type", serviceDefinition.getMovementType());
+        if (capability != Capability.VERIFY) {
+            payload.put("amount", request.getAmount());
+        }
+        payload.put("phone", request.getPhone());
+        payload.put("document", request.getDocument());
+        payload.put("userid", request.getUserid());
+        payload.put("withdrawId", request.getWithdrawId());
+        payload.put("authorization", request.getAuthorization());
+        payload.put("serialnumber", request.getSerialnumber());
+        payload.put("rms_item_code", request.getRmsItemCode());
+
+        ExternalTransactionRequest externalRequest = ExternalTransactionRequest.builder()
+                .uuid(request.getUuid())
+                .providerCode(serviceDefinition.getServiceProviderCode())
+                .capability(capability)
+                .payload(payload)
+                .build();
+
+        ExternalTransactionResponse externalResponse = externalProviderClient.invoke(externalRequest);
+        return ResponseFactory.transactionResponse(request, externalResponse, capability);
     }
 }

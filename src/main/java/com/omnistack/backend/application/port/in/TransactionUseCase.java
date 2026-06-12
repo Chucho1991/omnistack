@@ -1,5 +1,7 @@
 package com.omnistack.backend.application.port.in;
 
+import com.omnistack.backend.application.dto.CreateTicketRequest;
+import com.omnistack.backend.application.dto.CreateTicketResponse;
 import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.PrecheckRequest;
@@ -45,4 +47,12 @@ public interface TransactionUseCase {
      * @return resultado del reverso
      */
     ReverseResponse reverse(ReverseRequest request);
+
+    /**
+     * Crea un ticket de apuesta (flujo exclusivo Pega3).
+     *
+     * @param request datos del ticket a crear
+     * @return resultado de la creacion del ticket
+     */
+    CreateTicketResponse createTicket(CreateTicketRequest request);
 }

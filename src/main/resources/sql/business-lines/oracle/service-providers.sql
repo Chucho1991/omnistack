@@ -1,26 +1,25 @@
-select category_code, subcategory_code, service_provider_code, ruc_provider, provider_name, is_active
-from (
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '1793215215001' as ruc_provider, 'ECUABET' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '0990967946001' as ruc_provider, 'LOTERIA NACIONAL' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '9999999999001' as ruc_provider, 'LOTERIA NACIONAL' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '9999999999001' as ruc_provider, 'CLARO' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '3' as subcategory_code, '4' as service_provider_code, '9999999999001' as ruc_provider, 'MI NEGOCIO' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '4' as subcategory_code, '4' as service_provider_code, '9999999999001' as ruc_provider, 'MI NEGOCIO' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '5' as subcategory_code, '4' as service_provider_code, '9999999999001' as ruc_provider, 'MI NEGOCIO' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '3' as category_code, '6' as subcategory_code, '6' as service_provider_code, '9999999999001' as ruc_provider, 'ASEGURADORA DEL SUR' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '3' as category_code, '7' as subcategory_code, '5' as service_provider_code, '9999999999001' as ruc_provider, 'OTTOCARE' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '5' as service_provider_code, '9999999999001' as ruc_provider, 'WESTERN UNION' as provider_name, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '6' as service_provider_code, '9999999999001' as ruc_provider, 'MONEYGRAM' as provider_name, 1 as is_active from dual
-) catalog
-where channel_pos = :channel_pos
-order by to_number(category_code), to_number(subcategory_code), to_number(service_provider_code)
+SELECT DISTINCT
+    TO_CHAR(c.CLASS)        AS category_code,
+    TO_CHAR(sc.SUBCLASS_ID) AS subcategory_code,
+    TO_CHAR(sp.TERCERO)     AS service_provider_code,
+    s.SUP_NAME_SECONDARY    AS ruc_provider,
+    s.SUP_NAME              AS provider_name,
+    1                       AS is_active
+FROM AD_SERVICIO_PARAMETROS sp
+JOIN AD_CANAL_SERVICIO cs
+    ON cs.ID_CONFIG    = sp.ID_CONFIG
+   AND cs.CODIGO_CANAL = :canal_codigo
+   AND cs.ACTIVO       = 'S'
+JOIN ITEM_MASTER im
+    ON TRIM(im.ITEM) = TRIM(sp.CODIGO_ITEM_RMS)
+JOIN CLASS c
+    ON c.CLASS = im.CLASS
+JOIN SUBCLASS sc
+    ON sc.CLASS       = im.CLASS
+   AND sc.SUBCLASS_ID = im.SUBCLASS
+JOIN rms.ITEM_SUPPLIER isup
+    ON TRIM(isup.ITEM) = TRIM(sp.CODIGO_ITEM_RMS)
+   AND isup.SUPPLIER   = sp.TERCERO
+JOIN rms.SUPS s
+    ON s.SUPPLIER = sp.TERCERO
+ORDER BY c.CLASS, sc.SUBCLASS_ID, sp.TERCERO

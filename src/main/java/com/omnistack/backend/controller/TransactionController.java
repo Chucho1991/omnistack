@@ -1,7 +1,10 @@
 package com.omnistack.backend.controller;
 
+import com.omnistack.backend.application.dto.CreateTicketRequest;
+import com.omnistack.backend.application.dto.CreateTicketResponse;
 import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
+import com.omnistack.backend.application.dto.ErrorDetail;
 import com.omnistack.backend.application.dto.ErrorResponse;
 import com.omnistack.backend.application.dto.PrecheckRequest;
 import com.omnistack.backend.application.dto.PrecheckResponse;
@@ -94,5 +97,20 @@ public class TransactionController {
     })
     public ResponseEntity<ReverseResponse> reverse(@Valid @RequestBody ReverseRequest request) {
         return ResponseEntity.ok(transactionUseCase.reverse(request));
+    }
+
+    /**
+     * Crea un ticket de apuesta en el proveedor Pega3 (Loteria Nacional).
+     *
+     * @param request datos del ticket a crear
+     * @return respuesta HTTP con el resultado de la creacion del ticket
+     */
+    @PostMapping(ApiPaths.V1_CREATE_TICKET)
+    @Operation(summary = "Creacion de ticket Pega3", responses = {
+        @ApiResponse(responseCode = "200", description = "Ticket creado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))
+    })
+    public ResponseEntity<CreateTicketResponse> createTicket(@Valid @RequestBody CreateTicketRequest request) {
+        return ResponseEntity.ok(transactionUseCase.createTicket(request));
     }
 }

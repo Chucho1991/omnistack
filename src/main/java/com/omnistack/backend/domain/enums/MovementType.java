@@ -11,5 +11,9 @@ public enum MovementType {
     /**
      * Movimiento de salida de fondos.
      */
-    CASH_OUT
+    CASH_OUT,
+    /**
+     * Creacion de ticket de apuesta (Pega3).
+     */
+    CREATE_TICKET
 }

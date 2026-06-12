@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omnistack.backend.application.service.WsExtLogService;
 import com.omnistack.backend.domain.model.ProviderTokenLoginCommand;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.web.reactive.function.client.WebClient;
 
 class LoteriaTokenLoginWebClientAdapterTest {
@@ -45,13 +47,13 @@ class LoteriaTokenLoginWebClientAdapterTest {
 
         LoteriaTokenLoginWebClientAdapter adapter = new LoteriaTokenLoginWebClientAdapter(
                 WebClient.builder().build(),
-                new ObjectMapper());
+                new ObjectMapper(),
+                Mockito.mock(WsExtLogService.class));
 
         var response = adapter.login(ProviderTokenLoginCommand.builder()
                 .providerName("LOTERIA NACIONAL")
                 .serviceProviderCode("2")
-                .baseUrl("http://localhost:" + server.getAddress().getPort())
-                .path("/APIVentasLoteria/api/Ventas/Login")
+                .loginUrl("http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/Login")
                 .username("USRFEMSAPREP")
                 .password("F3m993sA.")
                 .productToSell("Bet593")

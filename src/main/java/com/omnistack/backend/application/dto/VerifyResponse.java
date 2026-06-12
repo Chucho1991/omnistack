@@ -2,6 +2,7 @@ package com.omnistack.backend.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -70,4 +71,24 @@ public class VerifyResponse extends BaseTransactionResponse {
 
     @Schema(example = "0901111112")
     private String document;
+
+    @JsonProperty("ticket_number")
+    @Schema(example = "TICKET-12345", description = "Numero de ticket (solo Pega3)")
+    private String ticketNumber;
+
+    @JsonProperty("ticket_status")
+    @Schema(example = "PAID", description = "Estado del ticket (solo Pega3)")
+    private String ticketStatus;
+
+    @JsonProperty("is_winner")
+    @Schema(example = "false", description = "Indica si el ticket es ganador (solo Pega3)")
+    private Boolean winner;
+
+    @JsonProperty("prize_amount")
+    @Schema(example = "0.00", description = "Monto del premio (solo Pega3)")
+    private BigDecimal prizeAmount;
+
+    @JsonProperty("comprobante_b64")
+    @Schema(description = "Comprobante de venta en base64 (solo Tradicionales y Pega3)")
+    private String comprobanteB64;
 }

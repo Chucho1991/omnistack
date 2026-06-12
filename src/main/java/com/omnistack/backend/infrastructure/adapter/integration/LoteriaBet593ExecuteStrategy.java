@@ -1,21 +1,42 @@
 package com.omnistack.backend.infrastructure.adapter.integration;
 
-import com.omnistack.backend.application.dto.BaseTransactionRequest;
-import com.omnistack.backend.application.dto.BaseTransactionResponse;
-import com.omnistack.backend.application.dto.ErrorDetail;
-import com.omnistack.backend.application.dto.ExecuteResponse;
-import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.application.port.out.Bet593RechargePort;
-import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
-import com.omnistack.backend.config.properties.AppProperties;
-import com.omnistack.backend.domain.enums.Capability;
-import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.domain.model.Bet593RechargeCommand;
-import com.omnistack.backend.domain.model.ExternalTransactionResponse;
-import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.constants.StatusCodes;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.BaseTransactionRequest;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.BaseTransactionResponse;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.ErrorDetail;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.ExecuteResponse;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.StatusDetail;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.port.out.Bet593RechargePort;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.service.ProviderWsDefsService;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.service.ProviderWsService;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.config.properties.AppProperties;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.enums.Capability;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.enums.MovementType;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.model.Bet593RechargeCommand;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.model.ExternalTransactionResponse;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.shared.exception.IntegrationException;
-import com.omnistack.backend.shared.validation.ExternalAmountValidation;
 import java.math.BigDecimal;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -29,48 +50,36 @@ import org.springframework.stereotype.Component;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
-public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
+public class LoteriaBet593ExecuteStrategy extends AbstractProviderStrategy implements ExecuteStrategy {
 
     private static final String PROVIDER_KEY = "loteria";
+    private static final String PROVIDER_NAME = "Loteria BET593";
 
     private final Bet593RechargePort bet593RechargePort;
-    private final AppProperties appProperties;
+    private final ProviderConfigService providerConfigService;
+    private final ProviderWsDefsService providerWsDefsService;
+    private final ProviderWsService providerWsService;
 
-    /**
-     * Indica si la estrategia soporta el servicio y capacidad resueltos.
-     *
-     * @param serviceDefinition definicion comercial resuelta desde catalogo
-     * @param capability capacidad transaccional solicitada
-     * @return true cuando corresponde al EXECUTE CASH_IN BET593
-     */
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
-        AppProperties.ProviderProperties provider = findProviderProperties();
+        AppProperties.ProviderProperties provider = findProviderProperties(providerConfigService, PROVIDER_KEY);
         return capability == Capability.EXECUTE
                 && provider != null
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && hasConfiguredOperation(provider, capability, serviceDefinition);
+                && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
-    /**
-     * Procesa la confirmacion de recarga BET593 y delega el consumo externo al puerto configurado.
-     *
-     * @param request request canonico interno
-     * @param serviceDefinition definicion comercial resuelta
-     * @param capability capacidad transaccional solicitada
-     * @return response canonico de execute
-     */
     @Override
     public BaseTransactionResponse process(
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties();
+        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
         validateBusinessContext(request, serviceDefinition, provider);
         validateRequiredRequestFields(request);
-        AppProperties.ProviderOperationProperties operation = getRequiredOperation(provider, capability, serviceDefinition);
+        String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
         Bet593RechargeCommand command = Bet593RechargeCommand.builder()
                 .uuid(request.getUuid())
@@ -93,17 +102,14 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
                 .amount(request.getAmount())
                 .build();
 
-        ExternalTransactionResponse externalResponse = bet593RechargePort.recharge(command, operation.getPath());
+        ExternalTransactionResponse externalResponse = bet593RechargePort.recharge(command, operationUrl);
         return buildResponse(request, externalResponse);
     }
 
     private ExecuteResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
-        ExternalAmountValidation.Result amountValidation = ExternalAmountValidation.compare(request, payload);
-        BigDecimal responseAmount = amountValidation.externalAmount() == null ? request.getAmount() : amountValidation.externalAmount();
         boolean isError = !externalResponse.isApproved()
-                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank()
-                || amountValidation.hasMismatch();
+                || stringValue(payload, "message") != null && !stringValue(payload, "message").isBlank();
 
         ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
                 .chain(request.getChain())
@@ -122,16 +128,12 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
                 .currency(stringValue(payload, "currency"))
                 .userid(resolveValue(payload, "userid", request.getUserid()))
                 .document(resolveValue(payload, "document", request.getDocument()))
-                .amount(responseAmount);
+                .amount(resolveAmount(payload, request));
 
         if (isError) {
             builder.error(ErrorDetail.builder()
-                    .code(amountValidation.hasMismatch()
-                            ? StatusCodes.VALIDATION_FAILED
-                            : com.omnistack.backend.shared.util.CanonicalErrorCodeMapper.resolve(externalResponse))
-                    .message(amountValidation.hasMismatch()
-                            ? amountValidation.mismatchMessage()
-                            : externalResponse.getExternalMessage())
+                    .code(CanonicalErrorCodeMapper.resolve(externalResponse))
+                    .message(externalResponse.getExternalMessage())
                     .build());
         } else {
             builder.authorization(resolveValue(payload, "authorization", request.getAuthorization()))
@@ -146,12 +148,12 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode());
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode());
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode());
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode());
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode());
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode());
+        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
+        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
+        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
+        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
+        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
+        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     private void validateRequiredRequestFields(BaseTransactionRequest request) {
@@ -169,80 +171,8 @@ public class LoteriaBet593ExecuteStrategy implements ExecuteStrategy {
         }
     }
 
-    private void validateValue(String fieldName, String currentValue, String expectedValue) {
-        if (expectedValue == null || expectedValue.isBlank()) {
-            throw new IntegrationException("La configuracion de Loteria BET593 no define el valor requerido para " + fieldName);
-        }
-        if (!expectedValue.equalsIgnoreCase(currentValue)) {
-            throw new IntegrationException("La solicitud no coincide con la configuracion esperada de Loteria BET593 para " + fieldName);
-        }
+    private BigDecimal resolveAmount(Map<String, Object> payload, BaseTransactionRequest request) {
+        String value = stringValue(payload, "amount");
+        return value == null || value.isBlank() ? request.getAmount() : new BigDecimal(value);
     }
-
-    private AppProperties.ProviderProperties getProviderProperties() {
-        AppProperties.ProviderProperties provider = findProviderProperties();
-        if (provider == null) {
-            throw new IntegrationException("No existe configuracion para el proveedor Loteria");
-        }
-        return provider;
-    }
-
-    private AppProperties.ProviderProperties findProviderProperties() {
-        return appProperties.getIntegration().getProviders().get(PROVIDER_KEY);
-    }
-
-    private boolean hasConfiguredOperation(
-            AppProperties.ProviderProperties provider,
-            Capability capability,
-            ServiceDefinition serviceDefinition) {
-        AppProperties.ProviderOperationProperties operation = findOperation(provider, capability, serviceDefinition.getMovementType());
-        return operation != null
-                && operation.getPath() != null
-                && !operation.getPath().isBlank()
-                && operation.getItem() != null
-                && operation.getItem().equalsIgnoreCase(serviceDefinition.getRmsItemCode());
-    }
-
-    private AppProperties.ProviderOperationProperties getRequiredOperation(
-            AppProperties.ProviderProperties provider,
-            Capability capability,
-            ServiceDefinition serviceDefinition) {
-        AppProperties.ProviderOperationProperties operation = findOperation(provider, capability, serviceDefinition.getMovementType());
-        if (operation == null || operation.getPath() == null || operation.getPath().isBlank()) {
-            throw new IntegrationException("Loteria BET593 no tiene ruta configurada para capability=" + capability.name()
-                    + " y movement_type=" + serviceDefinition.getMovementType());
-        }
-        if (operation.getItem() == null || !operation.getItem().equalsIgnoreCase(serviceDefinition.getRmsItemCode())) {
-            throw new IntegrationException("Loteria BET593 no tiene item configurado para rms_item_code="
-                    + serviceDefinition.getRmsItemCode());
-        }
-        return operation;
-    }
-
-    private AppProperties.ProviderOperationProperties findOperation(
-            AppProperties.ProviderProperties provider,
-            Capability capability,
-            MovementType movementType) {
-        if (provider.getServices() == null || movementType == null) {
-            return null;
-        }
-        AppProperties.ProviderCapabilityProperties capabilityProperties = provider.getServices().get(capability.name());
-        if (capabilityProperties == null) {
-            return null;
-        }
-        return movementType == MovementType.CASH_IN ? capabilityProperties.getCashin() : capabilityProperties.getCashout();
-    }
-
-    private String resolveValue(Map<String, Object> payload, String key, String fallback) {
-        String value = stringValue(payload, key);
-        return value == null || value.isBlank() ? fallback : value;
-    }
-
-    private String stringValue(Map<String, Object> payload, String key) {
-        if (payload == null) {
-            return null;
-        }
-        Object value = payload.get(key);
-        return value == null ? null : String.valueOf(value);
-    }
-
 }

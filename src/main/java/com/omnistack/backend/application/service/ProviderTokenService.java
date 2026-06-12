@@ -8,6 +8,7 @@ import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.ProviderTokenLoginPort;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.ProviderToken;
+import java.util.Map.Entry;
 import com.omnistack.backend.domain.model.ProviderTokenLoginCommand;
 import com.omnistack.backend.domain.model.ProviderTokenLoginResult;
 import com.omnistack.backend.shared.exception.BusinessException;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,8 +37,9 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
     private static final String TOKEN_MODE_LOGIN = "LOGIN";
     private static final String TOKEN_MODE_STATIC = "STATIC";
 
-    private final AppProperties appProperties;
+    private final ProviderConfigService providerConfigService;
     private final ProviderTokenLoginPort providerTokenLoginPort;
+    private final ProviderWsService providerWsService;
     private final Clock clock;
     private final ConcurrentMap<String, CachedProviderToken> tokenCache = new ConcurrentHashMap<>();
 
@@ -50,11 +53,12 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
      */
     @Override
     public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
-        AppProperties.ProviderProperties provider = getRequiredProvider(categoryCode, subcategoryCode, serviceProviderCode);
+        Entry<String, AppProperties.ProviderProperties> entry = getRequiredProviderEntry(categoryCode, subcategoryCode, serviceProviderCode);
+        AppProperties.ProviderProperties provider = entry.getValue();
         if (usesStaticToken(provider)) {
             return getStaticToken(provider);
         }
-        return getDynamicToken(provider, false).getToken();
+        return getDynamicToken(entry.getKey(), provider, false).getToken();
     }
 
     /**
@@ -67,11 +71,12 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
      */
     @Override
     public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
-        AppProperties.ProviderProperties provider = getRequiredProvider(categoryCode, subcategoryCode, serviceProviderCode);
+        Entry<String, AppProperties.ProviderProperties> entry = getRequiredProviderEntry(categoryCode, subcategoryCode, serviceProviderCode);
+        AppProperties.ProviderProperties provider = entry.getValue();
         if (usesStaticToken(provider)) {
             return getStaticToken(provider);
         }
-        return getDynamicToken(provider, true).getToken();
+        return getDynamicToken(entry.getKey(), provider, true).getToken();
     }
 
     /**
@@ -82,10 +87,11 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
      */
     @Override
     public ProviderTokenRefreshResponse refreshToken(ProviderTokenRefreshRequest request) {
-        AppProperties.ProviderProperties provider = getRequiredProvider(
+        Entry<String, AppProperties.ProviderProperties> entry = getRequiredProviderEntry(
                 request.getCategoryCode(),
                 request.getSubcategoryCode(),
                 request.getServiceProviderCode());
+        AppProperties.ProviderProperties provider = entry.getValue();
         if (usesStaticToken(provider)) {
             throw new BusinessException("El proveedor " + provider.getServiceProviderCode()
                     + " para category_code=" + request.getCategoryCode()
@@ -93,7 +99,7 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
                     + " no requiere refresco dinamico de token");
         }
 
-        ProviderToken refreshedToken = getDynamicToken(provider, true);
+        ProviderToken refreshedToken = getDynamicToken(entry.getKey(), provider, true);
         return ProviderTokenRefreshResponse.builder()
                 .errorFlag(false)
                 .status(StatusDetail.builder()
@@ -114,12 +120,20 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
      */
     @Override
     public void refreshTokensOnStartup() {
-        for (AppProperties.ProviderProperties provider : appProperties.getIntegration().getProviders().values()) {
-            if (!requiresStartupRefresh(provider)) {
+        for (String providerKey : providerConfigService.allProviderKeys()) {
+            AppProperties.ProviderProperties provider = providerConfigService.getProviderProperties(providerKey);
+            if (provider == null || !requiresStartupRefresh(provider)) {
+                continue;
+            }
+            if (!providerWsService.hasUrl(providerKey, "LOGIN")) {
+                log.warn(
+                        "Provider LOGIN URL not configured in DB, skipping startup token refresh. providerKey={}, providerName={}",
+                        providerKey,
+                        provider.getProviderName());
                 continue;
             }
             try {
-                ProviderToken token = getDynamicToken(provider, true);
+                ProviderToken token = getDynamicToken(providerKey, provider, true);
                 log.info(
                         "Provider token refreshed on startup. categoryCode={}, subcategoryCode={}, serviceProviderCode={}, providerName={}, expiresAt={}",
                         token.getCategoryCode(),
@@ -139,7 +153,7 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
         }
     }
 
-    private synchronized ProviderToken getDynamicToken(AppProperties.ProviderProperties provider, boolean forceRefresh) {
+    private synchronized ProviderToken getDynamicToken(String providerKey, AppProperties.ProviderProperties provider, boolean forceRefresh) {
         Instant now = clock.instant();
         String cacheKey = cacheKey(provider.getCategoryCode(), provider.getSubcategoryCode(), provider.getServiceProviderCode());
         CachedProviderToken current = tokenCache.get(cacheKey);
@@ -147,26 +161,28 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
             return current.token();
         }
 
-        ProviderToken refreshedToken = requestNewToken(provider, now);
+        ProviderToken refreshedToken = requestNewToken(providerKey, provider, now);
         tokenCache.put(cacheKey, new CachedProviderToken(refreshedToken));
         return refreshedToken;
     }
 
-    private ProviderToken requestNewToken(AppProperties.ProviderProperties provider, Instant now) {
+    private ProviderToken requestNewToken(String providerKey, AppProperties.ProviderProperties provider, Instant now) {
         AppProperties.ProviderTokenProperties auth = Objects.requireNonNull(provider.getAuth());
         AppProperties.ProviderLoginProperties login = Objects.requireNonNull(auth.getLogin());
         validateLoginConfiguration(provider, login);
+
+        String loginUrl = providerWsService.requireUrl(providerKey, "LOGIN", provider.getProviderName());
 
         ProviderTokenLoginResult loginResult = providerTokenLoginPort.login(ProviderTokenLoginCommand.builder()
                 .categoryCode(provider.getCategoryCode())
                 .subcategoryCode(provider.getSubcategoryCode())
                 .serviceProviderCode(provider.getServiceProviderCode())
                 .providerName(provider.getProviderName())
-                .baseUrl(provider.getBaseUrl())
-                .path(login.getPath())
+                .loginUrl(loginUrl)
                 .username(login.getUsername())
                 .password(login.getPassword())
                 .productToSell(login.getProductToSell())
+                .deviceId(login.getUsername())
                 .build());
 
         if (loginResult.getToken() == null || loginResult.getToken().isBlank()) {
@@ -189,12 +205,6 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
     private void validateLoginConfiguration(
             AppProperties.ProviderProperties provider,
             AppProperties.ProviderLoginProperties login) {
-        if (provider.getBaseUrl() == null || provider.getBaseUrl().isBlank()) {
-            throw new IntegrationException("El proveedor " + provider.getProviderName() + " no tiene baseUrl configurado");
-        }
-        if (login.getPath() == null || login.getPath().isBlank()) {
-            throw new IntegrationException("El proveedor " + provider.getProviderName() + " no tiene login.path configurado");
-        }
         if (login.getUsername() == null || login.getUsername().isBlank()) {
             throw new IntegrationException("El proveedor " + provider.getProviderName() + " no tiene login.username configurado");
         }
@@ -233,15 +243,17 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
         return provider.getToken();
     }
 
-    private AppProperties.ProviderProperties getRequiredProvider(
+    private Entry<String, AppProperties.ProviderProperties> getRequiredProviderEntry(
             String categoryCode,
             String subcategoryCode,
             String serviceProviderCode) {
-        return appProperties.getIntegration().getProviders().values().stream()
-                .filter(provider -> normalize(provider.getServiceProviderCode()) != null)
-                .filter(provider -> normalize(provider.getServiceProviderCode()).equals(normalize(serviceProviderCode)))
-                .filter(provider -> matchesContext(provider, categoryCode, subcategoryCode))
-                .max(Comparator.comparingInt(this::specificityScore))
+        return providerConfigService.allProviderKeys().stream()
+                .map(key -> Map.entry(key, providerConfigService.getProviderProperties(key)))
+                .filter(e -> e.getValue() != null)
+                .filter(e -> normalize(e.getValue().getServiceProviderCode()) != null)
+                .filter(e -> normalize(e.getValue().getServiceProviderCode()).equals(normalize(serviceProviderCode)))
+                .filter(e -> matchesContext(e.getValue(), categoryCode, subcategoryCode))
+                .max(Comparator.comparingInt(e -> specificityScore(e.getValue())))
                 .orElseThrow(() -> new BusinessException(
                         "No existe configuracion para category_code=" + categoryCode
                                 + ", subcategory_code=" + subcategoryCode

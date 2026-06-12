@@ -74,4 +74,16 @@ public class ExecuteResponse extends BaseTransactionResponse {
 
     @Schema(example = "25.50")
     private BigDecimal amount;
+
+    @JsonProperty("boleto_clave")
+    @Schema(example = "853213656545", description = "Clave del boleto (solo Tradicionales)")
+    private String boletoClave;
+
+    @JsonProperty("boleto_qr")
+    @Schema(example = "https://...", description = "URL QR del boleto (solo Tradicionales)")
+    private String boletoQr;
+
+    @JsonProperty("fecha_venta")
+    @Schema(example = "2025-04-17", description = "Fecha de venta (solo Tradicionales)")
+    private String fechaVenta;
 }

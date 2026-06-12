@@ -3,6 +3,8 @@ package com.omnistack.backend.infrastructure.adapter.integration.loteria;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.out.ProviderTokenLoginPort;
+import com.omnistack.backend.application.service.WsExtLogService;
+import com.omnistack.backend.domain.model.ProviderCallLog;
 import com.omnistack.backend.domain.model.ProviderTokenLoginCommand;
 import com.omnistack.backend.domain.model.ProviderTokenLoginResult;
 import com.omnistack.backend.infrastructure.adapter.integration.loteria.dto.LoteriaLoginRequest;
@@ -26,8 +28,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort {
 
+    private static final String WS_KEY = "LOGIN";
+
     private final WebClient omnistackWebClient;
     private final ObjectMapper objectMapper;
+    private final WsExtLogService wsExtLogService;
 
     /**
      * Solicita un token dinamico al endpoint de login configurado.
@@ -40,11 +45,15 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
         LoteriaLoginRequest request = LoteriaLoginRequest.builder()
                 .username(command.getUsername())
                 .password(command.getPassword())
+                .deviceId(command.getDeviceId())
                 .productToSell(command.getProductToSell())
                 .build();
-        String url = resolveUrl(command.getBaseUrl(), command.getPath());
+        String url = command.getLoginUrl();
 
-        traceToConsole("Loteria token login request", url, JsonUtil.toJsonSilently(request));
+        String uuid = "TOKEN_REFRESH_" + command.getProviderName();
+        long startMs = System.currentTimeMillis();
+        String requestJson = JsonUtil.toJsonSilently(request);
+        traceToConsole("Loteria token login request", url, requestJson);
 
         LoteriaLoginResponse response;
         try {
@@ -57,6 +66,17 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
                             .defaultIfEmpty("")
                             .flatMap(body -> {
                                 traceErrorToConsole("Loteria token login error", url, body);
+                                wsExtLogService.log(ProviderCallLog.builder()
+                                        .uuid(uuid)
+                                        .providerKey(command.getProviderName())
+                                        .wsKey(WS_KEY)
+                                        .url(url)
+                                        .requestJson(requestJson)
+                                        .responseJson(body)
+                                        .durationMs(System.currentTimeMillis() - startMs)
+                                        .isError(true)
+                                        .errorMessage(buildErrorMessage(command.getProviderName(), body))
+                                        .build());
                                 return Mono.error(new IntegrationException(buildErrorMessage(command.getProviderName(), body)));
                             }))
                     .bodyToMono(String.class)
@@ -64,14 +84,37 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
                     .block();
         } catch (WebClientRequestException exception) {
             traceErrorToConsole("Loteria token login transport error", url, rootCauseMessage(exception));
-            throw new IntegrationException(buildTransportErrorMessage(command.getProviderName(), url, exception), exception);
+            String errMsg = buildTransportErrorMessage(command.getProviderName(), url, exception);
+            wsExtLogService.log(ProviderCallLog.builder()
+                    .uuid(uuid)
+                    .providerKey(command.getProviderName())
+                    .wsKey(WS_KEY)
+                    .url(url)
+                    .requestJson(requestJson)
+                    .responseJson(null)
+                    .durationMs(System.currentTimeMillis() - startMs)
+                    .isError(true)
+                    .errorMessage(errMsg)
+                    .build());
+            throw new IntegrationException(errMsg, exception);
         }
 
         if (response == null) {
             throw new IntegrationException("Loteria no retorno contenido para el login del proveedor " + command.getProviderName());
         }
 
-        traceToConsole("Loteria token login response", url, JsonUtil.toJsonSilently(response));
+        String responseJson = JsonUtil.toJsonSilently(response);
+        traceToConsole("Loteria token login response", url, responseJson);
+        wsExtLogService.log(ProviderCallLog.builder()
+                .uuid(uuid)
+                .providerKey(command.getProviderName())
+                .wsKey(WS_KEY)
+                .url(url)
+                .requestJson(requestJson)
+                .responseJson(responseJson)
+                .durationMs(System.currentTimeMillis() - startMs)
+                .isError(false)
+                .build());
 
         if (response.getErrorCode() != null && response.getErrorCode() != 0) {
             throw new IntegrationException("Loteria login respondio con error para " + command.getProviderName()
@@ -84,16 +127,6 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
         return ProviderTokenLoginResult.builder()
                 .token(response.getToken())
                 .build();
-    }
-
-    private String resolveUrl(String baseUrl, String path) {
-        if (baseUrl.endsWith("/") && path.startsWith("/")) {
-            return baseUrl.substring(0, baseUrl.length() - 1) + path;
-        }
-        if (!baseUrl.endsWith("/") && !path.startsWith("/")) {
-            return baseUrl + "/" + path;
-        }
-        return baseUrl + path;
     }
 
     private String buildErrorMessage(String providerName, String body) {
@@ -159,11 +192,9 @@ public class LoteriaTokenLoginWebClientAdapter implements ProviderTokenLoginPort
 
     private void traceToConsole(String label, String url, String body) {
         log.info("{} url={} body={}", label, url, body);
-        System.out.println(label + " url=" + url + " body=" + body);
     }
 
     private void traceErrorToConsole(String label, String url, String body) {
         log.error("{} url={} body={}", label, url, body);
-        System.err.println(label + " url=" + url + " body=" + body);
     }
 }

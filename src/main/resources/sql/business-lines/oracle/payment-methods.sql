@@ -1,64 +1,23 @@
-select category_code, subcategory_code, service_provider_code, rms_item_code, service_payment_method_id, payment_method_code, is_active
-from (
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100713841' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '12661912' as service_provider_code, '100708846' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708850' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '759' as category_code, '161' as subcategory_code, '408403' as service_provider_code, '100708848' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565830' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565830' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '20001565830' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565831' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565832' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565832' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '1' as category_code, '2' as subcategory_code, '408403' as service_provider_code, '10001565833' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '12004565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '12004565834' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '12001565829' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '5' as category_code, '9' as subcategory_code, '7' as service_provider_code, '12001565829' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '3' as subcategory_code, '4' as service_provider_code, '10001565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '3' as subcategory_code, '4' as service_provider_code, '10001565834' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '4' as subcategory_code, '4' as service_provider_code, '10004565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '4' as subcategory_code, '4' as service_provider_code, '10004565834' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '5' as subcategory_code, '4' as service_provider_code, '10005565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '2' as category_code, '5' as subcategory_code, '4' as service_provider_code, '10005565834' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '3' as category_code, '6' as subcategory_code, '6' as service_provider_code, '10014565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '3' as category_code, '6' as subcategory_code, '6' as service_provider_code, '10014565834' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '3' as category_code, '7' as subcategory_code, '5' as service_provider_code, '10024565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '3' as category_code, '7' as subcategory_code, '5' as service_provider_code, '10024565834' as rms_item_code, 2 as service_payment_method_id, 'TARJETA CREDITO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '5' as service_provider_code, '10204565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '5' as service_provider_code, '10201565829' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '6' as service_provider_code, '12004565834' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-union all
-select '1' as chain, '148' as store, 'FYBECA AMAZONAS' as store_name, '1' as pos, 'POS' as channel_pos, '4' as category_code, '8' as subcategory_code, '6' as service_provider_code, '12001565829' as rms_item_code, 1 as service_payment_method_id, 'EFECTIVO' as payment_method_code, 1 as is_active from dual
-) catalog
-where channel_pos = :channel_pos
-order by to_number(category_code), to_number(subcategory_code), to_number(service_provider_code), rms_item_code, service_payment_method_id
+SELECT
+    TO_CHAR(c.CLASS)        AS category_code,
+    TO_CHAR(sc.SUBCLASS_ID) AS subcategory_code,
+    TO_CHAR(sp.TERCERO)     AS service_provider_code,
+    sp.CODIGO_ITEM_RMS      AS rms_item_code,
+    pf.COD_COM_FORMPAG_SERV AS service_payment_method_id,
+    TO_CHAR(pf.COD_FORMA_PAGO) AS payment_method_code,
+    CASE WHEN pf.ACTIVO = 'S' THEN 1 ELSE 0 END AS is_active
+FROM AD_COM_FORMPAG_SERVICIO pf
+JOIN AD_SERVICIO_PARAMETROS sp
+    ON sp.ID_CONFIG = pf.ID_CONFIG
+JOIN AD_CANAL_SERVICIO cs
+    ON cs.ID_CONFIG    = sp.ID_CONFIG
+   AND cs.CODIGO_CANAL = :canal_codigo
+   AND cs.ACTIVO       = 'S'
+JOIN ITEM_MASTER im
+    ON TRIM(im.ITEM) = TRIM(sp.CODIGO_ITEM_RMS)
+JOIN CLASS c
+    ON c.CLASS = im.CLASS
+JOIN SUBCLASS sc
+    ON sc.CLASS       = im.CLASS
+   AND sc.SUBCLASS_ID = im.SUBCLASS
+ORDER BY c.CLASS, sc.SUBCLASS_ID, sp.TERCERO, sp.CODIGO_ITEM_RMS, pf.COD_COM_FORMPAG_SERV

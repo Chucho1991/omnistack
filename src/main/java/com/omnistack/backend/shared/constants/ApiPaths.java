@@ -16,7 +16,7 @@ public final class ApiPaths {
     /**
      * Endpoint de prevalidacion transaccional.
      */
-    public static final String V1_PRECHECK = "/v1/precheck";
+    public static final String V1_PRECHECK = "/v1/preCheck";
     /**
      * Endpoint de ejecucion transaccional.
      */
@@ -29,6 +29,10 @@ public final class ApiPaths {
      * Endpoint de reverso transaccional.
      */
     public static final String V1_REVERSE = "/v1/reverse";
+    /**
+     * Endpoint de creacion de ticket de apuesta (Pega3).
+     */
+    public static final String V1_CREATE_TICKET = "/v1/createTicket";
     /**
      * Endpoint de refresco manual de token de proveedor.
      */

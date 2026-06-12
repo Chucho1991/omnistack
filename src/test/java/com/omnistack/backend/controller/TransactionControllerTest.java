@@ -42,7 +42,7 @@ class TransactionControllerTest {
                 .status(new StatusDetail("00", "PRECHECK completado correctamente"))
                 .build());
 
-        mockMvc.perform(post("/v1/precheck")
+        mockMvc.perform(post("/v1/preCheck")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -73,7 +73,7 @@ class TransactionControllerTest {
                 .status(new StatusDetail("00", "Transaccion correcta"))
                 .build());
 
-        mockMvc.perform(post("/v1/precheck")
+        mockMvc.perform(post("/v1/preCheck")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -279,7 +279,7 @@ class TransactionControllerTest {
         when(transactionUseCase.precheck(any()))
                 .thenThrow(new IntegrationException("Usuario invalido."));
 
-        mockMvc.perform(post("/v1/precheck")
+        mockMvc.perform(post("/v1/preCheck")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

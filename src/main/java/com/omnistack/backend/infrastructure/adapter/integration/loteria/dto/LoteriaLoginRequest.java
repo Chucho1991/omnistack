@@ -12,6 +12,7 @@ import lombok.Value;
 public class LoteriaLoginRequest {
     String username;
     String password;
+    String deviceId;
     @JsonProperty("productoVender")
     String productToSell;
 }

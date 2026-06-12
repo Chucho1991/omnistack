@@ -1,7 +1,6 @@
 package com.omnistack.backend.config.properties;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,7 +18,7 @@ public class AppProperties {
     private Catalog catalog = new Catalog();
     private BusinessLines businessLines = new BusinessLines();
     private Integrations integrations = new Integrations();
-    private Integration integration = new Integration();
+    private Datasource datasource = new Datasource();
 
     /**
      * Propiedades de metadata Swagger.
@@ -55,9 +54,9 @@ public class AppProperties {
     public static class BusinessLines {
         private String source = "oracle";
         private int consentTextMaxLineLength = 56;
+        private Map<String, Integer> canalCodigos = new HashMap<>(Map.of("POS", 1));
         private Cache cache = new Cache();
         private DefaultRequest defaultRequest = new DefaultRequest();
-        private Oracle oracle = new Oracle();
 
         /**
          * Propiedades de cache de lineas de negocio.
@@ -78,25 +77,6 @@ public class AppProperties {
             private String pos;
             private String channelPos;
         }
-
-        /**
-         * Propiedades Oracle para catalogo comercial.
-         */
-        @Data
-        public static class Oracle {
-            private Datasource datasource1 = new Datasource();
-
-            /**
-             * Propiedades de datasource Oracle.
-             */
-            @Data
-            public static class Datasource {
-                private String url;
-                private String username;
-                private String password;
-                private String driverClassName;
-            }
-        }
     }
 
     /**
@@ -106,16 +86,26 @@ public class AppProperties {
     public static class Integrations {
         private int defaultConnectTimeoutMs = 60000;
         private int defaultReadTimeoutMs = 60000;
-        private List<String> tlsProtocols = List.of("TLSv1.2");
         private boolean mockEnabled;
+        private boolean sslVerificationDisabled = false;
     }
 
     /**
-     * Propiedades por proveedor externo.
+     * Datasources Oracle de la aplicacion.
      */
     @Data
-    public static class Integration {
-        private Map<String, ProviderProperties> providers = new HashMap<>();
+    public static class Datasource {
+        private OracleDatasource prod = new OracleDatasource();
+        private OracleDatasource rms = new OracleDatasource();
+
+        @Data
+        public static class OracleDatasource {
+            private String url;
+            private String username;
+            private String password;
+            private String driverClassName;
+            private String schema;
+        }
     }
 
     /**
@@ -123,7 +113,6 @@ public class AppProperties {
      */
     @Data
     public static class ProviderProperties {
-        private String baseUrl;
         private String technicalUser;
         private String providerName;
         private String categoryCode;
@@ -137,8 +126,24 @@ public class AppProperties {
         private Integer medioId;
         private Integer puntoOperacionId;
         private Integer clienteId;
+        // CLARO-specific fields
+        private String companyId;
+        private String consumerId;
+        private String channelId;
+        private String mediaId;
+        private String mediaDetailId;
+        private String externalOperation;
+        private String subscriberType;
+        private String subscriptionType;
+        private String codCaja;
+        private String codSite;
+        private String latitude;
+        private String longitude;
+        private String canton;
+        private String province;
+        private String parish;
+        private Map<String, String> offerIds = new HashMap<>();
         private ProviderTokenProperties auth = new ProviderTokenProperties();
-        private Map<String, ProviderCapabilityProperties> services = new HashMap<>();
     }
 
     /**
@@ -157,29 +162,9 @@ public class AppProperties {
      */
     @Data
     public static class ProviderLoginProperties {
-        private String path;
         private String username;
         private String password;
         private String productToSell;
     }
 
-    /**
-     * Configuracion de operaciones por capacidad y movimiento.
-     */
-    @Data
-    public static class ProviderCapabilityProperties {
-        private ProviderOperationProperties cashin = new ProviderOperationProperties();
-        private ProviderOperationProperties cashout = new ProviderOperationProperties();
-    }
-
-    /**
-     * Configuracion de una operacion externa concreta.
-     */
-    @Data
-    public static class ProviderOperationProperties {
-        private String item;
-        private String path;
-        private String capabilities;
-        private String name;
-    }
 }

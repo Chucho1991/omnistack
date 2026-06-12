@@ -13,9 +13,9 @@ public class ProviderTokenLoginCommand {
     String subcategoryCode;
     String serviceProviderCode;
     String providerName;
-    String baseUrl;
-    String path;
+    String loginUrl;
     String username;
     String password;
     String productToSell;
+    String deviceId;
 }

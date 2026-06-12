@@ -6,11 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.omnistack.backend.application.dto.PrecheckRequest;
 import com.omnistack.backend.application.port.out.EcuabetUserSearchPort;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.ProviderWsDefsService;
+import com.omnistack.backend.application.service.ProviderWsService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
@@ -28,34 +32,41 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class EcuabetPrecheckStrategyTest {
 
     @Mock
     private EcuabetUserSearchPort ecuabetUserSearchPort;
+    @Mock
+    private ProviderConfigService providerConfigService;
+    @Mock
+    private ProviderWsDefsService providerWsDefsService;
+    @Mock
+    private ProviderWsService providerWsService;
 
     private EcuabetPrecheckStrategy strategy;
 
     @BeforeEach
     void setUp() {
         AppProperties.ProviderProperties provider = new AppProperties.ProviderProperties();
+        provider.setCategoryCode("1");
+        provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("1");
-        AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("100713841");
-        capabilityProperties.getCashin().setPath("/user/search");
-        capabilityProperties.getCashin().setCapabilities("BUSCAR_USUARIO");
-        capabilityProperties.getCashin().setName("BUSCAR_USUARIO");
-        capabilityProperties.getCashout().setItem("100708846");
-        capabilityProperties.getCashout().setPath("/user/searchwithdraw");
-        capabilityProperties.getCashout().setCapabilities("BUSCAR_NOTA_RETIRO");
-        capabilityProperties.getCashout().setName("BUSCAR_NOTA_RETIRO");
-        provider.getServices().put("PRECHECK", capabilityProperties);
 
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().setProviders(new HashMap<>(java.util.Map.of("ecuabet", provider)));
+        when(providerConfigService.getProviderProperties("ecuabet")).thenReturn(provider);
+        when(providerWsDefsService.getString("ecuabet", "PRECHECK.CASHIN", "item")).thenReturn("100713841");
+        when(providerWsDefsService.getString("ecuabet", "PRECHECK.CASHOUT", "item")).thenReturn("100708846");
 
-        strategy = new EcuabetPrecheckStrategy(ecuabetUserSearchPort, appProperties);
+        when(providerWsService.hasUrl("ecuabet", "PRECHECK.CASHIN")).thenReturn(true);
+        when(providerWsService.requireUrl(any(), eq("PRECHECK.CASHIN"), any())).thenReturn("/user/search");
+        when(providerWsService.hasUrl("ecuabet", "PRECHECK.CASHOUT")).thenReturn(true);
+        when(providerWsService.requireUrl(any(), eq("PRECHECK.CASHOUT"), any())).thenReturn("/user/searchwithdraw");
+
+        strategy = new EcuabetPrecheckStrategy(ecuabetUserSearchPort, providerConfigService, providerWsDefsService, providerWsService);
     }
 
     @Test

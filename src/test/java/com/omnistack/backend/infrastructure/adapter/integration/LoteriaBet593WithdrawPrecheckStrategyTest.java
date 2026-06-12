@@ -12,6 +12,9 @@ import static org.mockito.Mockito.when;
 import com.omnistack.backend.application.dto.PrecheckRequest;
 import com.omnistack.backend.application.dto.PrecheckResponse;
 import com.omnistack.backend.application.port.out.Bet593WithdrawValidationPort;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.ProviderWsDefsService;
+import com.omnistack.backend.application.service.ProviderWsService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
@@ -21,7 +24,6 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +32,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class LoteriaBet593WithdrawPrecheckStrategyTest {
+
+    private static final String WS_KEY = "PRECHECK.CASHOUT";
+    private static final String OPERATION_URL = "/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593";
 
     @Mock
     private Bet593WithdrawValidationPort bet593WithdrawValidationPort;
+    @Mock
+    private ProviderConfigService providerConfigService;
+    @Mock
+    private ProviderWsDefsService providerWsDefsService;
+    @Mock
+    private ProviderWsService providerWsService;
 
     private LoteriaBet593WithdrawPrecheckStrategy strategy;
 
@@ -46,17 +60,13 @@ class LoteriaBet593WithdrawPrecheckStrategyTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("2");
 
-        AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashout().setItem("100708848");
-        capabilityProperties.getCashout().setPath("/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593");
-        capabilityProperties.getCashout().setCapabilities("CONRETIROOL");
-        capabilityProperties.getCashout().setName("CONRETIROOL");
-        provider.getServices().put("PRECHECK", capabilityProperties);
+        when(providerConfigService.getProviderProperties("loteria")).thenReturn(provider);
+        when(providerWsDefsService.getString("loteria", WS_KEY, "item")).thenReturn("100708848");
+        when(providerWsService.hasUrl("loteria", WS_KEY)).thenReturn(true);
+        when(providerWsService.requireUrl(any(), any(), any())).thenReturn(OPERATION_URL);
 
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().setProviders(new HashMap<>(Map.of("loteria", provider)));
-
-        strategy = new LoteriaBet593WithdrawPrecheckStrategy(bet593WithdrawValidationPort, appProperties);
+        strategy = new LoteriaBet593WithdrawPrecheckStrategy(
+                bet593WithdrawValidationPort, providerConfigService, providerWsDefsService, providerWsService);
     }
 
     @Test
@@ -88,8 +98,7 @@ class LoteriaBet593WithdrawPrecheckStrategyTest {
                 Capability.PRECHECK);
 
         ArgumentCaptor<Bet593WithdrawCommand> captor = ArgumentCaptor.forClass(Bet593WithdrawCommand.class);
-        verify(bet593WithdrawValidationPort).validateWithdraw(captor.capture(), org.mockito.ArgumentMatchers.eq(
-                "/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593"));
+        verify(bet593WithdrawValidationPort).validateWithdraw(captor.capture(), org.mockito.ArgumentMatchers.eq(OPERATION_URL));
 
         assertEquals("uuid-bet593-cashout-precheck", captor.getValue().getUuid());
         assertEquals("340468406359", captor.getValue().getWithdrawId());
@@ -101,7 +110,7 @@ class LoteriaBet593WithdrawPrecheckStrategyTest {
     }
 
     @Test
-    void shouldTreatExecutedWithdrawCodeAsStatus() {
+    void shouldTreatExecutedWithdrawCodeAsNonError() {
         when(bet593WithdrawValidationPort.validateWithdraw(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
                 .approved(false)
                 .externalCode("400022")
@@ -123,9 +132,37 @@ class LoteriaBet593WithdrawPrecheckStrategyTest {
     }
 
     @Test
+    void shouldReturnErrorWhenAmountMismatches() {
+        when(bet593WithdrawValidationPort.validateWithdraw(any(), anyString())).thenReturn(ExternalTransactionResponse.builder()
+                .approved(true)
+                .externalCode("0")
+                .externalMessage("")
+                .payload(Map.of("amount", "20.00"))
+                .build());
+
+        PrecheckResponse response = (PrecheckResponse) strategy.process(
+                precheckRequestBuilder().build(),
+                serviceDefinition(MovementType.CASH_OUT, "100708848"),
+                Capability.PRECHECK);
+
+        assertTrue(response.isErrorFlag());
+        assertEquals("01", response.getError().getCode());
+    }
+
+    @Test
     void shouldFailWhenWithdrawIdIsMissing() {
         PrecheckRequest request = precheckRequestBuilder()
                 .withdrawId(null)
+                .build();
+
+        assertThrows(IntegrationException.class,
+                () -> strategy.process(request, serviceDefinition(MovementType.CASH_OUT, "100708848"), Capability.PRECHECK));
+    }
+
+    @Test
+    void shouldFailWhenDocumentIsMissing() {
+        PrecheckRequest request = precheckRequestBuilder()
+                .document(null)
                 .build();
 
         assertThrows(IntegrationException.class,

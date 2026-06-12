@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.WsExtLogService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.model.EcuabetDepositCommand;
@@ -17,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.web.reactive.function.client.WebClient;
 
 class EcuabetDepositReverseWebClientAdapterTest {
@@ -53,9 +56,9 @@ class EcuabetDepositReverseWebClientAdapterTest {
 
         EcuabetDepositReverseWebClientAdapter adapter = new EcuabetDepositReverseWebClientAdapter(
                 WebClient.builder().build(),
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test");
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test", Mockito.mock(WsExtLogService.class));
 
         var response = adapter.reverseDeposit(EcuabetDepositCommand.builder()
                 .uuid("uuid-1")
@@ -72,7 +75,7 @@ class EcuabetDepositReverseWebClientAdapterTest {
                 .document("0912345678")
                 .amount(new BigDecimal("100000.00"))
                 .transactionId(91081)
-                .build(), "/rollback/deposit");
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/rollback/deposit");
 
         assertEquals("/rollback/deposit", capturedPath.get());
         assertEquals("1", capturedChain.get());
@@ -109,15 +112,14 @@ class EcuabetDepositReverseWebClientAdapterTest {
         return new String(bodyStream.readAllBytes(), StandardCharsets.UTF_8);
     }
 
-    private AppProperties appProperties(String baseUrl) {
+    private ProviderConfigService providerConfigService() {
         AppProperties.ProviderProperties provider = new AppProperties.ProviderProperties();
-        provider.setBaseUrl(baseUrl);
         provider.setShopId("998739");
         provider.setCountry(66);
         provider.setServiceProviderCode("1");
 
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().getProviders().put("ecuabet", provider);
-        return appProperties;
+        ProviderConfigService mock = Mockito.mock(ProviderConfigService.class);
+        Mockito.when(mock.getProviderProperties("ecuabet")).thenReturn(provider);
+        return mock;
     }
 }

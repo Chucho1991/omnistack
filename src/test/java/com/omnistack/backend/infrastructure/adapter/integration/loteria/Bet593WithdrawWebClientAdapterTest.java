@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.WsExtLogService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.Bet593WithdrawCommand;
 import com.omnistack.backend.shared.exception.IntegrationException;
@@ -19,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -62,9 +65,9 @@ class Bet593WithdrawWebClientAdapterTest {
 
         Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
                 WebClient.builder().build(),
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
 
         var response = adapter.withdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -73,7 +76,7 @@ class Bet593WithdrawWebClientAdapterTest {
                 .serviceProviderCode("2")
                 .document("0911274165")
                 .withdrawId("20240430800100007")
-                .build(), "/APIVentasLoteria/api/Ventas/RetirarBet593");
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/RetirarBet593");
 
         assertEquals("/APIVentasLoteria/api/Ventas/RetirarBet593", capturedPath.get());
         assertTrue(capturedBody.get().contains("\"usuario\":\"USRFEMSAPREP\""));
@@ -117,9 +120,9 @@ class Bet593WithdrawWebClientAdapterTest {
 
         Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
                 WebClient.builder().build(),
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
 
         var response = adapter.withdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -128,7 +131,7 @@ class Bet593WithdrawWebClientAdapterTest {
                 .serviceProviderCode("2")
                 .document("0911274165")
                 .withdrawId("20240430800100007")
-                .build(), "/APIVentasLoteria/api/Ventas/RetirarBet593");
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/RetirarBet593");
 
         assertTrue(capturedBody.get().contains("\"numeroTransaccion\":\"" + GENERATED_UUID + "\""));
         assertEquals("400022", response.getExternalCode());
@@ -173,9 +176,10 @@ class Bet593WithdrawWebClientAdapterTest {
 
         Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
                 WebClient.builder().build(),
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                new ProviderTokenResolverUseCaseStub("token-vencido", "token-regenerado"));
+                new ProviderTokenResolverUseCaseStub("token-vencido", "token-regenerado"),
+                Mockito.mock(WsExtLogService.class));
 
         var response = adapter.withdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -184,7 +188,7 @@ class Bet593WithdrawWebClientAdapterTest {
                 .serviceProviderCode("2")
                 .document("0911274165")
                 .withdrawId("20240430800100007")
-                .build(), "/APIVentasLoteria/api/Ventas/RetirarBet593");
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/RetirarBet593");
 
         assertEquals(2, requestCount.get());
         assertTrue(capturedBody.get().contains("\"token\":\"token-regenerado\""));
@@ -216,9 +220,9 @@ class Bet593WithdrawWebClientAdapterTest {
 
         Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
                 WebClient.builder().build(),
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
 
         var response = adapter.validateWithdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -227,7 +231,7 @@ class Bet593WithdrawWebClientAdapterTest {
                 .serviceProviderCode("2")
                 .document("0901111112")
                 .withdrawId("340468406359")
-                .build(), "/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593");
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593");
 
         assertEquals("/APIVentasLoteria/api/Ventas/ConsultarRetiroBet593", capturedPath.get());
         assertTrue(capturedBody.get().contains("\"operacion\":\"CONRETIROOL\""));
@@ -260,9 +264,9 @@ class Bet593WithdrawWebClientAdapterTest {
 
         Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
                 WebClient.builder().build(),
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
 
         var response = adapter.reverseWithdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -272,7 +276,7 @@ class Bet593WithdrawWebClientAdapterTest {
                 .authorization("ca9b201a-a668-45ed-876c-00affcb18580")
                 .document("0901111112")
                 .motivo("Demora en obtener respuesta")
-                .build(), "/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
 
         assertEquals("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593", capturedPath.get());
         assertTrue(capturedBody.get().contains("\"operacion\":\"REVRETIROOL\""));
@@ -304,9 +308,9 @@ class Bet593WithdrawWebClientAdapterTest {
                 .build();
         Bet593WithdrawWebClientAdapter adapter = new Bet593WithdrawWebClientAdapter(
                 timeoutWebClient,
-                appProperties("http://localhost:" + server.getAddress().getPort()),
+                providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico");
+                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
 
         IntegrationException exception = assertThrows(IntegrationException.class, () -> adapter.withdraw(
                 Bet593WithdrawCommand.builder()
@@ -317,7 +321,7 @@ class Bet593WithdrawWebClientAdapterTest {
                         .document("0911274165")
                         .withdrawId("20240430800100007")
                         .build(),
-                "/APIVentasLoteria/api/Ventas/RetirarBet593"));
+                "http://localhost:" + server.getAddress().getPort() + "/APIVentasLoteria/api/Ventas/RetirarBet593"));
 
         assertTrue(exception.getMessage().contains("Timeout al invocar nota de retiro BET593"));
     }
@@ -337,9 +341,8 @@ class Bet593WithdrawWebClientAdapterTest {
         return new String(bodyStream.readAllBytes(), StandardCharsets.UTF_8);
     }
 
-    private AppProperties appProperties(String baseUrl) {
+    private ProviderConfigService providerConfigService() {
         AppProperties.ProviderProperties provider = new AppProperties.ProviderProperties();
-        provider.setBaseUrl(baseUrl);
         provider.setCategoryCode("1");
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("2");
@@ -347,31 +350,31 @@ class Bet593WithdrawWebClientAdapterTest {
         provider.setClienteId(58542);
         provider.setMedioId(23);
         provider.getAuth().getLogin().setUsername("USRFEMSAPREP");
-        AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashout().setName("RETIROOL");
-        provider.getServices().put("EXECUTE", capabilityProperties);
-        AppProperties.ProviderCapabilityProperties verifyCapabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        verifyCapabilityProperties.getCashout().setName("CONRETIROOL");
-        provider.getServices().put("VERIFY", verifyCapabilityProperties);
-        AppProperties.ProviderCapabilityProperties reverseCapabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        reverseCapabilityProperties.getCashout().setName("REVRETIROOL");
-        provider.getServices().put("REVERSE", reverseCapabilityProperties);
 
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().getProviders().put("loteria", provider);
-        return appProperties;
+        ProviderConfigService mock = Mockito.mock(ProviderConfigService.class);
+        Mockito.when(mock.getProviderProperties("loteria")).thenReturn(provider);
+        return mock;
     }
 
-    private record ProviderTokenResolverUseCaseStub(String token, String refreshedToken)
+    private static class ProviderTokenResolverUseCaseStub
             implements com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase {
+
+        private String currentToken;
+        private final String refreshedToken;
+
+        ProviderTokenResolverUseCaseStub(String token, String refreshedToken) {
+            this.currentToken = token;
+            this.refreshedToken = refreshedToken;
+        }
 
         @Override
         public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
-            return token;
+            return currentToken;
         }
 
         @Override
         public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            currentToken = refreshedToken;
             return refreshedToken;
         }
     }

@@ -21,12 +21,13 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.RowMapper;
@@ -34,18 +35,25 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Adapter Oracle para el catalogo del endpoint business-lines.
- */
 @Component
-@RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.business-lines", name = "source", havingValue = "oracle", matchIfMissing = true)
 public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCatalogSourcePort, CatalogSourcePort {
 
-    @Qualifier("businessLinesOracleNamedParameterJdbcTemplate")
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate prodJdbcTemplate;
+    private final NamedParameterJdbcTemplate rmsJdbcTemplate;
     private final OracleBusinessLinesSqlProvider sqlProvider;
     private final AppProperties appProperties;
+
+    public OracleBusinessLinesCatalogSourceAdapter(
+            @Qualifier("prodOracleJdbcTemplate") NamedParameterJdbcTemplate prodJdbcTemplate,
+            @Qualifier("rmsOracleJdbcTemplate") NamedParameterJdbcTemplate rmsJdbcTemplate,
+            OracleBusinessLinesSqlProvider sqlProvider,
+            AppProperties appProperties) {
+        this.prodJdbcTemplate = prodJdbcTemplate;
+        this.rmsJdbcTemplate = rmsJdbcTemplate;
+        this.sqlProvider = sqlProvider;
+        this.appProperties = appProperties;
+    }
 
     @Override
     public CatalogSnapshot loadCatalogSnapshot() {
@@ -61,38 +69,119 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
 
     @Override
     public CatalogSnapshot loadCatalogSnapshot(BusinessLinesRequest request) {
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("chain", request.getChain())
-                .addValue("store", request.getStore())
-                .addValue("store_name", request.getStoreName())
-                .addValue("pos", request.getPos())
-                .addValue("channel_pos", Objects.requireNonNull(request.getChannelPos()).name());
+        MapSqlParameterSource adParams = new MapSqlParameterSource()
+                .addValue("canal_codigo", appProperties.getBusinessLines().getCanalCodigos()
+                        .getOrDefault(Objects.requireNonNull(request.getChannelPos()).name(), 1));
 
-        List<CategorySubcategoryRow> categoryRows = jdbcTemplate.query(
-                sqlProvider.getCategorySubcategorySql(),
-                params,
-                categorySubcategoryRowMapper());
-        List<ServiceProviderRow> providerRows = jdbcTemplate.query(
-                sqlProvider.getServiceProvidersSql(),
-                params,
-                serviceProviderRowMapper());
-        List<ServiceRow> serviceRows = jdbcTemplate.query(
-                sqlProvider.getServicesSql(),
-                params,
-                serviceRowMapper());
-        List<CapabilityRow> capabilityRows = jdbcTemplate.query(
-                sqlProvider.getCapabilitiesSql(),
-                params,
-                capabilityRowMapper());
-        List<InputFieldRow> inputFieldRows = jdbcTemplate.query(
-                sqlProvider.getInputFieldsSql(),
-                params,
-                inputFieldRowMapper());
-        List<PaymentMethodRow> paymentMethodRows = jdbcTemplate.query(
-                sqlProvider.getPaymentMethodsSql(),
-                params,
-                paymentMethodRowMapper());
+        // --- AD: parametros de servicio por item activo en el canal (via gpf_omnistack.) ---
+        List<AdServiceRow> adServices = rmsJdbcTemplate.query(
+                sqlProvider.getAdServicesSql(), adParams, adServiceRowMapper());
+        if (adServices.isEmpty()) {
+            return emptySnapshot();
+        }
 
+        Set<String> activeItemCodes = adServices.stream()
+                .map(AdServiceRow::rmsItemCode)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        // --- RMS: metadata de items (CLASS, SUBCLASS, desc, tipo movimiento) ---
+        MapSqlParameterSource rmsParams = new MapSqlParameterSource(
+                "rms_item_codes", new ArrayList<>(activeItemCodes));
+        List<RmsItemRow> rmsItems = rmsJdbcTemplate.query(
+                sqlProvider.getRmsItemsSql(), rmsParams, rmsItemRowMapper());
+        List<RmsSupplierRow> rmsSuppliers = rmsJdbcTemplate.query(
+                sqlProvider.getRmsSuppliersSql(), rmsParams, rmsSupplierRowMapper());
+
+        // --- AD: formas de pago por item (via gpf_omnistack.) ---
+        List<AdPaymentMethodRow> adPaymentMethods = rmsJdbcTemplate.query(
+                sqlProvider.getAdPaymentMethodsSql(), adParams, adPaymentMethodRowMapper());
+
+        // --- PROD (TUKUNAFUNC): capabilities por service_provider_code (IN_OMNI_PROVEEDOR_WS) ---
+        List<OmniCapabilityRow> omniCapabilities = prodJdbcTemplate.query(
+                sqlProvider.getAdCapabilitiesSql(), new MapSqlParameterSource(), omniCapabilityRowMapper());
+
+        // --- AD: campos de entrada (stub — retorna 0 filas) ---
+        List<InputFieldRow> inputFieldRows = rmsJdbcTemplate.query(
+                sqlProvider.getInputFieldsSql(), adParams, inputFieldRowMapper());
+
+        // --- Mapas de lookup ---
+        Map<String, RmsItemRow> rmsItemMap = rmsItems.stream()
+                .collect(Collectors.toMap(RmsItemRow::rmsItemCode, r -> r, (a, b) -> a, LinkedHashMap::new));
+        Map<String, RmsSupplierRow> rmsSupplierByItem = rmsSuppliers.stream()
+                .collect(Collectors.toMap(RmsSupplierRow::rmsItemCode, r -> r, (a, b) -> a, LinkedHashMap::new));
+        Map<String, List<String>> capabilityCodesByProvider = omniCapabilities.stream()
+                .collect(Collectors.groupingBy(OmniCapabilityRow::serviceProviderCode,
+                        LinkedHashMap::new,
+                        Collectors.mapping(OmniCapabilityRow::capabilityCode, Collectors.toList())));
+
+        // --- Construir CategorySubcategoryRow: CLASS/SUBCLASS distintos desde RMS ---
+        List<CategorySubcategoryRow> categoryRows = rmsItems.stream()
+                .filter(r -> activeItemCodes.contains(r.rmsItemCode()))
+                .collect(Collectors.toMap(
+                        r -> new SubcategoryKey(r.categoryCode(), r.subcategoryCode()),
+                        r -> new CategorySubcategoryRow(r.categoryCode(), r.categoryName(),
+                                r.subcategoryCode(), r.subcategoryName(), true),
+                        (a, b) -> a, LinkedHashMap::new))
+                .values().stream().toList();
+
+        // --- Construir ServiceProviderRow: distintivo por (cat, subcat, provider) ---
+        List<ServiceProviderRow> providerRows = adServices.stream()
+                .filter(r -> rmsItemMap.containsKey(r.rmsItemCode()))
+                .map(r -> {
+                    RmsItemRow rms = rmsItemMap.get(r.rmsItemCode());
+                    RmsSupplierRow sup = rmsSupplierByItem.get(r.rmsItemCode());
+                    String provName = sup != null ? sup.providerName() : r.serviceProviderCode();
+                    String rucProv = sup != null ? sup.rucProvider() : "";
+                    return new ServiceProviderRow(
+                            rms.categoryCode(), rms.subcategoryCode(),
+                            r.serviceProviderCode(), rucProv, provName, true);
+                })
+                .collect(Collectors.toMap(
+                        ServiceProviderRow::providerKey,
+                        r -> r,
+                        (a, b) -> a, LinkedHashMap::new))
+                .values().stream().toList();
+
+        // --- Construir ServiceRow: campos AD + metadata RMS ---
+        List<ServiceRow> serviceRows = adServices.stream()
+                .filter(r -> rmsItemMap.containsKey(r.rmsItemCode()))
+                .map(r -> {
+                    RmsItemRow rms = rmsItemMap.get(r.rmsItemCode());
+                    return new ServiceRow(
+                            rms.categoryCode(), rms.subcategoryCode(),
+                            r.serviceProviderCode(), r.rmsItemCode(),
+                            rms.description(), r.active(),
+                            null,
+                            rms.movementType(),
+                            r.mixedPayment(), r.flgItem(), r.refund(),
+                            r.minAmount(), r.maxAmount(),
+                            r.timeoutWsMax(), r.retriesWsMax(), r.numTickets(),
+                            r.requiresConsent(), r.consentText());
+                })
+                .toList();
+
+        // --- Construir CapabilityRow: expandir capabilities por item segun provider ---
+        List<CapabilityRow> capabilityRows = serviceRows.stream()
+                .flatMap(service -> capabilityCodesByProvider
+                        .getOrDefault(service.serviceProviderCode(), List.of()).stream()
+                        .map(cap -> new CapabilityRow(
+                                service.categoryCode(), service.subcategoryCode(),
+                                service.serviceProviderCode(), service.rmsItemCode(), cap)))
+                .toList();
+
+        // --- Construir PaymentMethodRow: formas de pago AD + categoria/subcategoria RMS ---
+        List<PaymentMethodRow> paymentMethodRows = adPaymentMethods.stream()
+                .filter(r -> rmsItemMap.containsKey(r.rmsItemCode()))
+                .map(r -> {
+                    RmsItemRow rms = rmsItemMap.get(r.rmsItemCode());
+                    return new PaymentMethodRow(
+                            rms.categoryCode(), rms.subcategoryCode(),
+                            r.serviceProviderCode(), r.rmsItemCode(),
+                            r.servicePaymentMethodId(), r.paymentMethodCode(), r.active());
+                })
+                .toList();
+
+        // === Ensamblado final (igual que antes) ===
         Map<ServiceKey, List<Capability>> capabilitiesByService = capabilityRows.stream()
                 .collect(Collectors.groupingBy(
                         CapabilityRow::serviceKey,
@@ -109,7 +198,9 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .collect(Collectors.groupingBy(
                         PaymentMethodRow::serviceKey,
                         LinkedHashMap::new,
-                        Collectors.mapping(this::toPaymentMethod, Collectors.toList())));
+                        Collectors.collectingAndThen(
+                                Collectors.mapping(this::toPaymentMethod, Collectors.toList()),
+                                list -> list.stream().filter(Objects::nonNull).toList())));
 
         List<ServiceDefinition> services = serviceRows.stream()
                 .map(row -> toServiceDefinition(
@@ -162,7 +253,16 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                         .toList())
                 .services(services)
                 .loadedAt(OffsetDateTime.now())
-                .version("oracle-dual-mock-v1")
+                .version("oracle-multi-source-v2")
+                .build();
+    }
+
+    private CatalogSnapshot emptySnapshot() {
+        return CatalogSnapshot.builder()
+                .categories(List.of())
+                .services(List.of())
+                .loadedAt(OffsetDateTime.now())
+                .version("oracle-multi-source-v2")
                 .build();
     }
 
@@ -179,7 +279,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .description(row.description())
                 .active(row.active())
                 .jdeCode(row.jdeCode())
-                .movementType(MovementType.valueOf(row.movementType()))
+                .movementType(MovementType.valueOf(row.movementType().replace(' ', '_').toUpperCase(Locale.ROOT)))
                 .mixedPayment(row.mixedPayment())
                 .flgItem(FlgItem.valueOf(row.flgItem()))
                 .refund(row.refund())
@@ -209,43 +309,27 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
     }
 
     private PaymentMethod toPaymentMethod(PaymentMethodRow row) {
+        PaymentMethodCode code;
+        try {
+            code = PaymentMethodCode.valueOf(row.paymentMethodCode().replace(' ', '_').toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
         return PaymentMethod.builder()
                 .servicePaymentMethodId(row.servicePaymentMethodId())
-                .paymentMethodCode(PaymentMethodCode.valueOf(row.paymentMethodCode().replace(' ', '_').toUpperCase(Locale.ROOT)))
+                .paymentMethodCode(code)
                 .active(row.active())
                 .description(row.paymentMethodCode())
                 .build();
     }
 
-    private RowMapper<CategorySubcategoryRow> categorySubcategoryRowMapper() {
-        return (rs, rowNum) -> new CategorySubcategoryRow(
-                rs.getString("category_code"),
-                rs.getString("category_name"),
-                rs.getString("subcategory_code"),
-                rs.getString("subcategory_name"),
-                rs.getInt("is_active") == 1);
-    }
+    // ---- Row mappers ----
 
-    private RowMapper<ServiceProviderRow> serviceProviderRowMapper() {
-        return (rs, rowNum) -> new ServiceProviderRow(
-                rs.getString("category_code"),
-                rs.getString("subcategory_code"),
-                rs.getString("service_provider_code"),
-                rs.getString("ruc_provider"),
-                rs.getString("provider_name"),
-                rs.getInt("is_active") == 1);
-    }
-
-    private RowMapper<ServiceRow> serviceRowMapper() {
-        return (rs, rowNum) -> new ServiceRow(
-                rs.getString("category_code"),
-                rs.getString("subcategory_code"),
+    private RowMapper<AdServiceRow> adServiceRowMapper() {
+        return (rs, rowNum) -> new AdServiceRow(
                 rs.getString("service_provider_code"),
                 rs.getString("rms_item_code"),
-                rs.getString("description"),
                 rs.getInt("is_active") == 1,
-                rs.getString("jde_code"),
-                rs.getString("movement_type"),
                 rs.getInt("is_mixed_payment") == 1,
                 rs.getString("flg_item"),
                 rs.getInt("is_refund") == 1,
@@ -258,13 +342,38 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getString("consent_text"));
     }
 
-    private RowMapper<CapabilityRow> capabilityRowMapper() {
-        return (rs, rowNum) -> new CapabilityRow(
-                rs.getString("category_code"),
-                rs.getString("subcategory_code"),
+    private RowMapper<AdPaymentMethodRow> adPaymentMethodRowMapper() {
+        return (rs, rowNum) -> new AdPaymentMethodRow(
                 rs.getString("service_provider_code"),
                 rs.getString("rms_item_code"),
+                rs.getInt("service_payment_method_id"),
+                rs.getString("payment_method_code"),
+                rs.getInt("is_active") == 1);
+    }
+
+    private RowMapper<OmniCapabilityRow> omniCapabilityRowMapper() {
+        return (rs, rowNum) -> new OmniCapabilityRow(
+                rs.getString("service_provider_code"),
                 rs.getString("capability_code"));
+    }
+
+    private RowMapper<RmsItemRow> rmsItemRowMapper() {
+        return (rs, rowNum) -> new RmsItemRow(
+                rs.getString("rms_item_code"),
+                rs.getString("category_code"),
+                rs.getString("category_name"),
+                rs.getString("subcategory_code"),
+                rs.getString("subcategory_name"),
+                rs.getString("description"),
+                rs.getString("movement_type"));
+    }
+
+    private RowMapper<RmsSupplierRow> rmsSupplierRowMapper() {
+        return (rs, rowNum) -> new RmsSupplierRow(
+                rs.getString("rms_item_code"),
+                rs.getString("supplier_code"),
+                rs.getString("provider_name"),
+                rs.getString("ruc_provider"));
     }
 
     private RowMapper<InputFieldRow> inputFieldRowMapper() {
@@ -282,16 +391,48 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getString("conditional_operator"));
     }
 
-    private RowMapper<PaymentMethodRow> paymentMethodRowMapper() {
-        return (rs, rowNum) -> new PaymentMethodRow(
-                rs.getString("category_code"),
-                rs.getString("subcategory_code"),
-                rs.getString("service_provider_code"),
-                rs.getString("rms_item_code"),
-                rs.getInt("service_payment_method_id"),
-                rs.getString("payment_method_code"),
-                rs.getInt("is_active") == 1);
-    }
+    // ---- Intermediate row records (multi-source queries) ----
+
+    record AdServiceRow(
+            String serviceProviderCode,
+            String rmsItemCode,
+            boolean active,
+            boolean mixedPayment,
+            String flgItem,
+            boolean refund,
+            String minAmount,
+            String maxAmount,
+            String timeoutWsMax,
+            String retriesWsMax,
+            String numTickets,
+            boolean requiresConsent,
+            String consentText) {}
+
+    record AdPaymentMethodRow(
+            String serviceProviderCode,
+            String rmsItemCode,
+            int servicePaymentMethodId,
+            String paymentMethodCode,
+            boolean active) {}
+
+    record OmniCapabilityRow(String serviceProviderCode, String capabilityCode) {}
+
+    record RmsItemRow(
+            String rmsItemCode,
+            String categoryCode,
+            String categoryName,
+            String subcategoryCode,
+            String subcategoryName,
+            String description,
+            String movementType) {}
+
+    record RmsSupplierRow(
+            String rmsItemCode,
+            String supplierCode,
+            String providerName,
+            String rucProvider) {}
+
+    // ---- Assembly row records (mismos que antes — usados por la logica de ensamblado) ----
 
     record CategoryAccumulator(String categoryCode, String categoryName, List<CollectionSubcategory> subcategories) {
         CategoryAccumulator(String categoryCode, String categoryName) {

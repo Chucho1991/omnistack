@@ -19,6 +19,12 @@ public class OracleBusinessLinesSqlProvider {
     private final String inputFieldsSql = readSql("sql/business-lines/oracle/input-fields.sql");
     private final String paymentMethodsSql = readSql("sql/business-lines/oracle/payment-methods.sql");
 
+    private final String adServicesSql = readSql("sql/business-lines/oracle/ad-services.sql");
+    private final String adPaymentMethodsSql = readSql("sql/business-lines/oracle/ad-payment-methods.sql");
+    private final String adCapabilitiesSql = readSql("sql/business-lines/oracle/ad-capabilities.sql");
+    private final String rmsItemsSql = readSql("sql/business-lines/oracle/rms-items.sql");
+    private final String rmsSuppliersSql = readSql("sql/business-lines/oracle/rms-suppliers.sql");
+
     /**
      * Retorna el SQL de categorias y subcategorias.
      *
@@ -71,6 +77,26 @@ public class OracleBusinessLinesSqlProvider {
      */
     public String getPaymentMethodsSql() {
         return paymentMethodsSql;
+    }
+
+    public String getAdServicesSql() {
+        return adServicesSql;
+    }
+
+    public String getAdPaymentMethodsSql() {
+        return adPaymentMethodsSql;
+    }
+
+    public String getAdCapabilitiesSql() {
+        return adCapabilitiesSql;
+    }
+
+    public String getRmsItemsSql() {
+        return rmsItemsSql;
+    }
+
+    public String getRmsSuppliersSql() {
+        return rmsSuppliersSql;
     }
 
     private String readSql(String path) {

@@ -13,6 +13,9 @@ import static org.mockito.Mockito.when;
 import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.port.out.EcuabetDepositPort;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.ProviderWsDefsService;
+import com.omnistack.backend.application.service.ProviderWsService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
@@ -22,7 +25,6 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,12 +33,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class EcuabetDepositExecuteStrategyTest {
 
     @Mock
     private EcuabetDepositPort ecuabetDepositPort;
+    @Mock
+    private ProviderConfigService providerConfigService;
+    @Mock
+    private ProviderWsDefsService providerWsDefsService;
+    @Mock
+    private ProviderWsService providerWsService;
 
     private EcuabetDepositExecuteStrategy strategy;
 
@@ -46,17 +57,14 @@ class EcuabetDepositExecuteStrategyTest {
         provider.setCategoryCode("1");
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("1");
-        AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("100713841");
-        capabilityProperties.getCashin().setPath("/user/deposit");
-        capabilityProperties.getCashin().setCapabilities("DEPOSITO");
-        capabilityProperties.getCashin().setName("DEPOSITO");
-        provider.getServices().put("EXECUTE", capabilityProperties);
 
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().setProviders(new HashMap<>(Map.of("ecuabet", provider)));
+        when(providerConfigService.getProviderProperties("ecuabet")).thenReturn(provider);
+        when(providerWsDefsService.getString("ecuabet", "EXECUTE.CASHIN", "item")).thenReturn("100713841");
 
-        strategy = new EcuabetDepositExecuteStrategy(ecuabetDepositPort, appProperties);
+        when(providerWsService.hasUrl("ecuabet", "EXECUTE.CASHIN")).thenReturn(true);
+        when(providerWsService.requireUrl(any(), any(), any())).thenReturn("/user/deposit");
+
+        strategy = new EcuabetDepositExecuteStrategy(ecuabetDepositPort, providerConfigService, providerWsDefsService, providerWsService);
     }
 
     @Test

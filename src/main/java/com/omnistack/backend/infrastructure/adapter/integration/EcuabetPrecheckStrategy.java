@@ -4,14 +4,20 @@ import com.omnistack.backend.application.dto.BaseTransactionRequest;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
 import com.omnistack.backend.application.mapper.ResponseFactory;
 import com.omnistack.backend.application.port.out.EcuabetUserSearchPort;
+import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
 import com.omnistack.backend.application.port.out.strategy.PrecheckStrategy;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.ProviderWsDefsService;
+import com.omnistack.backend.application.service.ProviderWsService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.EcuabetUserSearchCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,21 +26,24 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class EcuabetPrecheckStrategy implements PrecheckStrategy {
+public class EcuabetPrecheckStrategy extends AbstractProviderStrategy implements PrecheckStrategy {
 
     private static final String PROVIDER_KEY = "ecuabet";
+    private static final String PROVIDER_NAME = "ECUABET";
 
     private final EcuabetUserSearchPort ecuabetUserSearchPort;
-    private final AppProperties appProperties;
+    private final ProviderConfigService providerConfigService;
+    private final ProviderWsDefsService providerWsDefsService;
+    private final ProviderWsService providerWsService;
 
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
-        AppProperties.ProviderProperties provider = findProviderProperties();
+        AppProperties.ProviderProperties provider = findProviderProperties(providerConfigService, PROVIDER_KEY);
         return capability == Capability.PRECHECK
                 && provider != null
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && hasConfiguredOperation(provider, capability, serviceDefinition);
+                && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
     @Override
@@ -42,9 +51,9 @@ public class EcuabetPrecheckStrategy implements PrecheckStrategy {
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties();
+        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
         validateProviderCode(request, serviceDefinition, provider);
-        AppProperties.ProviderOperationProperties operation = getRequiredOperation(provider, capability, serviceDefinition);
+        String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
         EcuabetUserSearchCommand command = EcuabetUserSearchCommand.builder()
                 .uuid(request.getUuid())
@@ -66,79 +75,51 @@ public class EcuabetPrecheckStrategy implements PrecheckStrategy {
                 .amount(request.getAmount())
                 .build();
 
-        ExternalTransactionResponse externalResponse = ecuabetUserSearchPort.searchUser(command, operation.getPath());
+        ExternalTransactionResponse externalResponse = ecuabetUserSearchPort.searchUser(command, operationUrl);
         return ResponseFactory.transactionResponse(request, externalResponse, capability);
+    }
+
+    private ExternalTransactionResponse validateCashoutAmount(
+            BaseTransactionRequest request,
+            ServiceDefinition serviceDefinition,
+            ExternalTransactionResponse externalResponse) {
+        if (serviceDefinition.getMovementType() != MovementType.CASH_OUT
+                || request.getAmount() == null
+                || externalResponse == null
+                || externalResponse.getPayload() == null
+                || !externalResponse.isApproved()) {
+            return externalResponse;
+        }
+
+        BigDecimal providerAmount = decimalValue(externalResponse.getPayload().get("amount"));
+        if (providerAmount == null || request.getAmount().compareTo(providerAmount) == 0) {
+            return externalResponse;
+        }
+
+        String direction = request.getAmount().compareTo(providerAmount) > 0 ? "mayor" : "menor";
+        return ExternalTransactionResponse.builder()
+                .approved(false)
+                .externalCode(StatusCodes.VALIDATION_FAILED)
+                .externalMessage("El monto solicitado " + request.getAmount()
+                        + " es " + direction
+                        + " que el monto retornado por ECUABET " + providerAmount)
+                .payload(externalResponse.getPayload())
+                .build();
+    }
+
+    private BigDecimal decimalValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String textValue = String.valueOf(value).trim();
+        return textValue.isBlank() ? null : new BigDecimal(textValue);
     }
 
     private void validateProviderCode(
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode());
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode());
-    }
-
-    private void validateValue(String fieldName, String currentValue, String expectedValue) {
-        if (expectedValue == null || expectedValue.isBlank()) {
-            throw new IntegrationException("La configuracion de ECUABET no define el valor requerido para " + fieldName);
-        }
-        if (!expectedValue.equalsIgnoreCase(currentValue)) {
-            throw new IntegrationException("La solicitud no coincide con la configuracion esperada de ECUABET para " + fieldName);
-        }
-    }
-
-    private AppProperties.ProviderProperties getProviderProperties() {
-        AppProperties.ProviderProperties provider = findProviderProperties();
-        if (provider == null) {
-            throw new IntegrationException("No existe configuracion para el proveedor ECUABET");
-        }
-        return provider;
-    }
-
-    private AppProperties.ProviderProperties findProviderProperties() {
-        return appProperties.getIntegration().getProviders().get(PROVIDER_KEY);
-    }
-
-    private boolean hasConfiguredOperation(
-            AppProperties.ProviderProperties provider,
-            Capability capability,
-            ServiceDefinition serviceDefinition) {
-        AppProperties.ProviderOperationProperties operation = findOperation(provider, capability, serviceDefinition.getMovementType());
-        return operation != null
-                && operation.getPath() != null
-                && !operation.getPath().isBlank()
-                && operation.getItem() != null
-                && operation.getItem().equalsIgnoreCase(serviceDefinition.getRmsItemCode());
-    }
-
-    private AppProperties.ProviderOperationProperties getRequiredOperation(
-            AppProperties.ProviderProperties provider,
-            Capability capability,
-            ServiceDefinition serviceDefinition) {
-        AppProperties.ProviderOperationProperties operation = findOperation(provider, capability, serviceDefinition.getMovementType());
-        if (operation == null || operation.getPath() == null || operation.getPath().isBlank()) {
-            throw new IntegrationException("ECUABET no tiene ruta configurada para capability=" + capability.name()
-                    + " y movement_type=" + serviceDefinition.getMovementType());
-        }
-        if (operation.getItem() == null || !operation.getItem().equalsIgnoreCase(serviceDefinition.getRmsItemCode())) {
-            throw new IntegrationException("ECUABET no tiene item configurado para rms_item_code=" + serviceDefinition.getRmsItemCode()
-                    + ", capability=" + capability.name()
-                    + " y movement_type=" + serviceDefinition.getMovementType());
-        }
-        return operation;
-    }
-
-    private AppProperties.ProviderOperationProperties findOperation(
-            AppProperties.ProviderProperties provider,
-            Capability capability,
-            MovementType movementType) {
-        if (provider.getServices() == null || movementType == null) {
-            return null;
-        }
-        AppProperties.ProviderCapabilityProperties capabilityProperties = provider.getServices().get(capability.name());
-        if (capabilityProperties == null) {
-            return null;
-        }
-        return movementType == MovementType.CASH_IN ? capabilityProperties.getCashin() : capabilityProperties.getCashout();
+        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
+        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 }

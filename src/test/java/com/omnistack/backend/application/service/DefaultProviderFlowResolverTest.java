@@ -6,14 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.omnistack.backend.application.dto.PrecheckRequest;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
+import java.util.Set;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.CatalogSnapshot;
 import com.omnistack.backend.domain.model.ServiceDefinition;
+import com.omnistack.backend.application.service.ProviderWsService;
 import com.omnistack.backend.infrastructure.adapter.integration.DefaultProviderTransactionStrategy;
 import com.omnistack.backend.infrastructure.adapter.integration.LoteriaBet593PrecheckStrategy;
+import com.omnistack.backend.infrastructure.adapter.integration.MockExternalProviderClient;
 import com.omnistack.backend.shared.exception.CatalogNotFoundException;
-import com.omnistack.backend.shared.exception.IntegrationException;
+import org.mockito.Mockito;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,12 +25,12 @@ import org.junit.jupiter.api.Test;
 class DefaultProviderFlowResolverTest {
 
     @Test
-    void shouldFailWhenCatalogServiceDoesNotHaveExternalStrategyConfigured() {
+    void shouldResolveConfiguredStrategy() {
         CatalogCacheService cacheService = new CatalogCacheService(new com.omnistack.backend.infrastructure.adapter.catalog.InMemoryCatalogSourceAdapter());
         cacheService.refreshCatalog();
         DefaultProviderFlowResolver resolver = new DefaultProviderFlowResolver(
                 cacheService,
-                List.of(new DefaultProviderTransactionStrategy()));
+                List.of(new DefaultProviderTransactionStrategy(new MockExternalProviderClient())));
 
         var request = PrecheckRequest.builder()
                 .uuid("uuid-1")
@@ -44,8 +47,8 @@ class DefaultProviderFlowResolverTest {
                 .phone("0999999999")
                 .build();
 
-        IntegrationException exception = assertThrows(IntegrationException.class, () -> resolver.resolve(request, Capability.PRECHECK));
-        assertEquals("No existe configuracion de endpoint externo para el proveedor/capacidad solicitados", exception.getMessage());
+        var selection = resolver.resolve(request, Capability.PRECHECK);
+        assertEquals("CLARO", selection.getServiceDefinition().getServiceProviderCode());
     }
 
     @Test
@@ -54,7 +57,7 @@ class DefaultProviderFlowResolverTest {
         cacheService.refreshCatalog();
         DefaultProviderFlowResolver resolver = new DefaultProviderFlowResolver(
                 cacheService,
-                List.of(new DefaultProviderTransactionStrategy()));
+                List.of(new DefaultProviderTransactionStrategy(new MockExternalProviderClient())));
 
         var request = PrecheckRequest.builder()
                 .uuid("uuid-1")
@@ -95,19 +98,24 @@ class DefaultProviderFlowResolverTest {
         provider.setCategoryCode("1");
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("2");
-        AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("100708850");
-        capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/RecargarBet593");
-        provider.getServices().put("PRECHECK", capabilityProperties);
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().getProviders().put("loteria", provider);
+
+        ProviderConfigService configService = Mockito.mock(ProviderConfigService.class);
+        Mockito.when(configService.getProviderProperties("loteria")).thenReturn(provider);
+
+        ProviderWsDefsService defsService = Mockito.mock(ProviderWsDefsService.class);
+        Mockito.when(defsService.getString("loteria", "PRECHECK.CASHIN", "item")).thenReturn("100708850");
+
+        ProviderWsService wsService = Mockito.mock(ProviderWsService.class);
+        Mockito.when(wsService.hasUrl("loteria", "PRECHECK.CASHIN")).thenReturn(true);
 
         LoteriaBet593PrecheckStrategy realStrategy = new LoteriaBet593PrecheckStrategy(
                 (command, operationPath) -> null,
-                appProperties);
+                configService,
+                defsService,
+                wsService);
         DefaultProviderFlowResolver resolver = new DefaultProviderFlowResolver(
                 cacheService,
-                List.of(realStrategy, new DefaultProviderTransactionStrategy()));
+                List.of(realStrategy, new DefaultProviderTransactionStrategy(new MockExternalProviderClient())));
 
         var request = PrecheckRequest.builder()
                 .uuid("uuid-bet593")

@@ -16,12 +16,9 @@ import com.omnistack.backend.domain.model.PaymentMethod;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.domain.model.ServiceProvider;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,16 +37,10 @@ public class BusinessLinesService implements BusinessLinesUseCase {
 
     @Override
     public BusinessLinesResponse getBusinessLines(BusinessLinesRequest request) {
-        Set<String> configuredItemCodes = resolveConfiguredBusinessLineItemCodes();
         List<BusinessLineCollectionSubcategoryResponse> collectionSubcategories = businessLinesCatalogCacheService.getCatalogSnapshot(request)
                 .getCategories().stream()
                 .flatMap(category -> category.getSubcategories().stream()
-                        .map(subcategory -> toCollectionSubcategoryResponse(
-                                category.getCategoryCode(),
-                                category.getCategoryName(),
-                                subcategory,
-                                request,
-                                configuredItemCodes)))
+                        .map(subcategory -> toCollectionSubcategoryResponse(category.getCategoryCode(), category.getCategoryName(), subcategory, request)))
                 .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
                 .collect(Collectors.toList());
 
@@ -60,8 +51,7 @@ public class BusinessLinesService implements BusinessLinesUseCase {
             String categoryCode,
             String categoryName,
             CollectionSubcategory subcategory,
-            BusinessLinesRequest request,
-            Set<String> configuredItemCodes) {
+            BusinessLinesRequest request) {
         return BusinessLineCollectionSubcategoryResponse.builder()
                 .categoryCode(categoryCode)
                 .categoryName(categoryName)
@@ -69,51 +59,24 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .subcategoryName(subcategory.getSubcategoryName())
                 .active(subcategory.isActive())
                 .serviceProviders(subcategory.getProviders().stream()
-                        .map(provider -> toProviderResponse(provider, request, configuredItemCodes))
+                        .map(provider -> toProviderResponse(provider, request))
                         .filter(provider -> !provider.getServices().isEmpty())
                         .collect(Collectors.toList()))
                 .build();
     }
 
-    private BusinessLineProviderResponse toProviderResponse(
-            ServiceProvider provider,
-            BusinessLinesRequest request,
-            Set<String> configuredItemCodes) {
+    private BusinessLineProviderResponse toProviderResponse(ServiceProvider provider, BusinessLinesRequest request) {
         return BusinessLineProviderResponse.builder()
                 .serviceProviderCode(provider.getServiceProviderCode())
                 .rucProvider(provider.getRucProvider())
                 .providerName(provider.getProviderName())
                 .active(provider.isActive())
                 .services(provider.getServices().stream()
-                        .filter(service -> isVisibleService(service, request, configuredItemCodes))
+                        .filter(service -> request.getMovementTypeFilter() == null
+                                || service.getMovementType() == request.getMovementTypeFilter())
                         .map(service -> toServiceResponse(service, provider.getProviderName()))
                         .collect(Collectors.toList()))
                 .build();
-    }
-
-    private boolean isVisibleService(
-            ServiceDefinition service,
-            BusinessLinesRequest request,
-            Set<String> configuredItemCodes) {
-        boolean matchesMovementType = request.getMovementTypeFilter() == null
-                || service.getMovementType() == request.getMovementTypeFilter();
-        boolean matchesConfiguredItem = configuredItemCodes.isEmpty()
-                || configuredItemCodes.contains(service.getRmsItemCode());
-        return matchesMovementType && matchesConfiguredItem;
-    }
-
-    private Set<String> resolveConfiguredBusinessLineItemCodes() {
-        return appProperties.getIntegration().getProviders().values().stream()
-                .flatMap(provider -> provider.getServices().values().stream())
-                .flatMap(capability -> Stream.of(capability.getCashin(), capability.getCashout()))
-                .map(AppProperties.ProviderOperationProperties::getItem)
-                .filter(this::hasText)
-                .map(String::trim)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
     }
 
     private BusinessLineServiceResponse toServiceResponse(ServiceDefinition service, String providerName) {

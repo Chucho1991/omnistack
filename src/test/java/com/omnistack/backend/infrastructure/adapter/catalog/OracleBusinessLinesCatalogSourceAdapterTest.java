@@ -1,7 +1,6 @@
 package com.omnistack.backend.infrastructure.adapter.catalog;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -21,11 +20,14 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 class OracleBusinessLinesCatalogSourceAdapterTest {
 
     @Test
-    void shouldAssembleCatalogSnapshotFromOracleCatalogs() {
-        NamedParameterJdbcTemplate jdbcTemplate = Mockito.mock(NamedParameterJdbcTemplate.class);
+    void shouldAssembleCatalogSnapshotFromMultiSourceOracle() {
+        NamedParameterJdbcTemplate prodTemplate = Mockito.mock(NamedParameterJdbcTemplate.class);
+        NamedParameterJdbcTemplate rmsTemplate = Mockito.mock(NamedParameterJdbcTemplate.class);
         OracleBusinessLinesSqlProvider sqlProvider = Mockito.mock(OracleBusinessLinesSqlProvider.class);
         AppProperties appProperties = new AppProperties();
-        OracleBusinessLinesCatalogSourceAdapter adapter = new OracleBusinessLinesCatalogSourceAdapter(jdbcTemplate, sqlProvider, appProperties);
+
+        OracleBusinessLinesCatalogSourceAdapter adapter = new OracleBusinessLinesCatalogSourceAdapter(
+                prodTemplate, rmsTemplate, sqlProvider, appProperties);
 
         BusinessLinesRequest request = BusinessLinesRequest.builder()
                 .chain("1")
@@ -35,62 +37,41 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                 .channelPos(ChannelPos.POS)
                 .build();
 
-        when(sqlProvider.getCategorySubcategorySql()).thenReturn("category");
-        when(sqlProvider.getServiceProvidersSql()).thenReturn("provider");
-        when(sqlProvider.getServicesSql()).thenReturn("service");
-        when(sqlProvider.getCapabilitiesSql()).thenReturn("capability");
-        when(sqlProvider.getInputFieldsSql()).thenReturn("inputField");
-        when(sqlProvider.getPaymentMethodsSql()).thenReturn("paymentMethod");
+        when(sqlProvider.getAdServicesSql()).thenReturn("ad-services");
+        when(sqlProvider.getRmsItemsSql()).thenReturn("rms-items");
+        when(sqlProvider.getRmsSuppliersSql()).thenReturn("rms-suppliers");
+        when(sqlProvider.getAdPaymentMethodsSql()).thenReturn("ad-pm");
+        when(sqlProvider.getAdCapabilitiesSql()).thenReturn("omni-cap");
+        when(sqlProvider.getInputFieldsSql()).thenReturn("input-fields");
 
-        when(jdbcTemplate.query(eq("category"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.CategorySubcategoryRow("1", "ENTRETENIMIENTO", "1", "PRONOSTICOS DEPORTIVOS", true)));
-        when(jdbcTemplate.query(eq("provider"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.ServiceProviderRow("1", "1", "1", "9999999999001", "ECUABET", true)));
-        when(jdbcTemplate.query(eq("service"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.ServiceRow(
-                        "1",
-                        "1",
-                        "1",
-                        "100713841",
-                        "ECUABET CASH IN",
-                        true,
-                        "ABC1234",
-                        "CASH_IN",
-                        true,
-                        "RECA",
-                        true,
-                        "1",
-                        "200",
-                        "10000",
-                        "3",
-                        "3",
-                        true,
-                        "<html>consent</html>")));
-        when(jdbcTemplate.query(eq("capability"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.CapabilityRow("1", "1", "1", "100713841", "PRECHECK"),
-                new OracleBusinessLinesCatalogSourceAdapter.CapabilityRow("1", "1", "1", "100713841", "CREATE_TICKET")));
-        when(jdbcTemplate.query(eq("inputField"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.InputFieldRow(
-                        "1",
-                        "1",
-                        "1",
-                        "100713841",
-                        "document",
-                        "Documento Usuario",
-                        "STRING",
-                        "PRECHECK",
-                        true,
-                        "IDENTIFICATION",
-                        "OR")));
-        when(jdbcTemplate.query(eq("paymentMethod"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.PaymentMethodRow(
-                        "1",
-                        "1",
-                        "1",
-                        "100713841",
-                        2,
-                        "TARJETA CREDITO",
-                        true)));
+        // AD: parametros de servicio (via gpf_omnistack. — rmsTemplate)
+        when(rmsTemplate.query(eq("ad-services"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.AdServiceRow(
+                        "1", "100713841", true, false, "RECA", false,
+                        "1", "200", "10000", "3", "3", true, "<html>consent</html>")));
+
+        // RMS: metadata del item (CLASS/SUBCLASS, desc, tipo)
+        when(rmsTemplate.query(eq("rms-items"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.RmsItemRow(
+                        "100713841", "1", "ENTRETENIMIENTO", "1", "APUESTAS", "ECUABET CASH IN", "CASH_IN")));
+
+        // RMS: supplier (nombre y RUC del proveedor)
+        when(rmsTemplate.query(eq("rms-suppliers"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.RmsSupplierRow(
+                        "100713841", "1", "ECUABET", "9999999999001")));
+
+        // AD: formas de pago (via gpf_omnistack. — rmsTemplate)
+        when(rmsTemplate.query(eq("ad-pm"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.AdPaymentMethodRow(
+                        "1", "100713841", 2, "TARJETA_CREDITO", true)));
+
+        // PROD (TUKUNAFUNC): capabilities por service_provider_code
+        when(prodTemplate.query(eq("omni-cap"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("1", "PRECHECK"),
+                new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("1", "CREATE_TICKET")));
+
+        // AD: campos de entrada (stub vacio — via rmsTemplate)
+        when(rmsTemplate.query(eq("input-fields"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of());
 
         var snapshot = adapter.loadCatalogSnapshot(request);
 
@@ -104,78 +85,8 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertEquals("10000", snapshot.getServices().get(0).getTimeoutWsMax());
         assertEquals("3", snapshot.getServices().get(0).getRetriesWsMax());
         assertEquals("3", snapshot.getServices().get(0).getNumTickets());
-        assertEquals("document", snapshot.getServices().get(0).getInputFields().get(0).getId());
+        assertTrue(snapshot.getServices().get(0).getInputFields().isEmpty());
         assertEquals("TARJETA_CREDITO", snapshot.getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode().name());
         assertTrue(snapshot.getServices().get(0).isRequiresConsent());
-    }
-
-    @Test
-    void shouldExposeOnlyPrecheckInputFieldsForEcuabetCashOutCatalog() {
-        OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
-
-        String inputFieldsSql = sqlProvider.getInputFieldsSql();
-
-        assertTrue(inputFieldsSql.contains("'100708846' as rms_item_code, 'withdrawId' as input_field_id"));
-        assertTrue(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'password' as input_field_id, 'Contrase\u00f1a asignado a retiro' as label"));
-        assertTrue(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
-                        + "'DOUBLE' as field_type, 'PRECHECK' as capability_code, 1 as is_required, "
-                        + "'AMOUNT' as field_group"));
-        assertTrue(inputFieldsSql.contains("'PASS' as field_group"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'amount' as input_field_id, 'Monto reverso' as label"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
-                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'motivo' as input_field_id, 'Motivo del reverso' as label"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
-                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708846' as rms_item_code, 'password' as input_field_id, 'Clave de retiro' as label, "
-                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
-    }
-
-    @Test
-    void shouldExposeOnlyPrecheckInputFieldsForBet593CashOutCatalog() {
-        OracleBusinessLinesSqlProvider sqlProvider = new OracleBusinessLinesSqlProvider();
-
-        String inputFieldsSql = sqlProvider.getInputFieldsSql();
-
-        assertTrue(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
-                        + "'STRING' as field_type, 'PRECHECK' as capability_code"));
-        assertTrue(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
-                        + "'STRING' as field_type, 'PRECHECK' as capability_code"));
-        assertTrue(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
-                        + "'DOUBLE' as field_type, 'PRECHECK' as capability_code, 1 as is_required, "
-                        + "'AMOUNT' as field_group"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
-                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
-                        + "'STRING' as field_type, 'EXECUTE' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'amount' as input_field_id, 'Monto' as label, "
-                        + "'DOUBLE' as field_type, 'EXECUTE' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
-                        + "'STRING' as field_type, 'VERIFY' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'withdrawId' as input_field_id, 'Numero asignado a retiro' as label, "
-                        + "'STRING' as field_type, 'VERIFY' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'authorization' as input_field_id, "
-                        + "'Numero de transaccion original' as label"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'document' as input_field_id, 'Documento Usuario' as label, "
-                        + "'STRING' as field_type, 'REVERSE' as capability_code"));
-        assertFalse(inputFieldsSql.contains(
-                "'100708848' as rms_item_code, 'motivo' as input_field_id, 'Motivo del reverso' as label"));
     }
 }

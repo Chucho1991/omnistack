@@ -5,6 +5,7 @@ import com.omnistack.backend.application.dto.BaseTransactionResponse;
 import com.omnistack.backend.application.dto.BusinessLineCollectionSubcategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLinesRequest;
 import com.omnistack.backend.application.dto.BusinessLinesResponse;
+import com.omnistack.backend.application.dto.CreateTicketResponse;
 import com.omnistack.backend.application.dto.ErrorDetail;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.PrecheckResponse;
@@ -65,6 +66,11 @@ public final class ResponseFactory {
             case EXECUTE -> genericExecuteResponse(request, externalResponse, capability);
             case VERIFY -> genericVerifyResponse(request, externalResponse, capability);
             case REVERSE -> genericReverseResponse(request, externalResponse, capability);
+            case CREATE_TICKET -> CreateTicketResponse.builder()
+                    .uuid(request.getUuid())
+                    .errorFlag(false)
+                    .status(new StatusDetail(StatusCodes.SUCCESS, capability.name() + " completado correctamente"))
+                    .build();
             default -> throw new IllegalArgumentException("Capability no soportada: " + capability);
         };
     }

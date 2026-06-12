@@ -12,6 +12,9 @@ import static org.mockito.Mockito.when;
 import com.omnistack.backend.application.dto.ReverseRequest;
 import com.omnistack.backend.application.dto.ReverseResponse;
 import com.omnistack.backend.application.port.out.Bet593RechargeReversePort;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.ProviderWsDefsService;
+import com.omnistack.backend.application.service.ProviderWsService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
@@ -21,7 +24,6 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +32,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class LoteriaBet593RechargeReverseStrategyTest {
 
     @Mock
     private Bet593RechargeReversePort bet593RechargeReversePort;
+    @Mock
+    private ProviderConfigService providerConfigService;
+    @Mock
+    private ProviderWsDefsService providerWsDefsService;
+    @Mock
+    private ProviderWsService providerWsService;
 
     private LoteriaBet593RechargeReverseStrategy strategy;
 
@@ -46,17 +57,13 @@ class LoteriaBet593RechargeReverseStrategyTest {
         provider.setSubcategoryCode("1");
         provider.setServiceProviderCode("2");
 
-        AppProperties.ProviderCapabilityProperties capabilityProperties = new AppProperties.ProviderCapabilityProperties();
-        capabilityProperties.getCashin().setItem("100708850");
-        capabilityProperties.getCashin().setPath("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
-        capabilityProperties.getCashin().setCapabilities("REVRETIROOL");
-        capabilityProperties.getCashin().setName("REVRETIROOL");
-        provider.getServices().put("REVERSE", capabilityProperties);
+        when(providerConfigService.getProviderProperties("loteria")).thenReturn(provider);
+        when(providerWsDefsService.getString("loteria", "REVERSE.CASHIN", "item")).thenReturn("100708850");
 
-        AppProperties appProperties = new AppProperties();
-        appProperties.getIntegration().setProviders(new HashMap<>(Map.of("loteria", provider)));
+        when(providerWsService.hasUrl("loteria", "REVERSE.CASHIN")).thenReturn(true);
+        when(providerWsService.requireUrl(any(), any(), any())).thenReturn("/APIVentasLoteria/api/Ventas/ReversarRetiroBet593");
 
-        strategy = new LoteriaBet593RechargeReverseStrategy(bet593RechargeReversePort, appProperties);
+        strategy = new LoteriaBet593RechargeReverseStrategy(bet593RechargeReversePort, providerConfigService, providerWsDefsService, providerWsService);
     }
 
     @Test

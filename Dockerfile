@@ -13,7 +13,7 @@ WORKDIR /opt/omnistack
 
 ENV TZ=America/Guayaquil
 ENV SPRING_PROFILES_ACTIVE=dev
-ENV SERVER_PORT=8085
+ENV SERVER_PORT=8086
 
 COPY --from=build /app/target/omnistack-backend-1.0.0-SNAPSHOT.jar app.jar
 

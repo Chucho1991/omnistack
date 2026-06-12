@@ -4,10 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.EcuabetUserSearchPort;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.WsExtLogService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.EcuabetUserSearchCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
+import com.omnistack.backend.domain.model.ProviderCallLog;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetErrorResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetUserSearchRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetUserSearchResponse;
@@ -24,7 +27,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -36,48 +38,69 @@ import reactor.core.publisher.Mono;
 public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort {
 
     private static final String PROVIDER_KEY = "ecuabet";
+    private static final String WS_KEY_CASHIN = "PRECHECK.CASHIN";
+    private static final String WS_KEY_CASHOUT = "PRECHECK.CASHOUT";
 
     private final WebClient omnistackWebClient;
-    private final AppProperties appProperties;
+    private final ProviderConfigService providerConfigService;
     private final ObjectMapper objectMapper;
     private final ProviderTokenResolverUseCase providerTokenResolverUseCase;
+    private final WsExtLogService wsExtLogService;
 
     @Override
     public ExternalTransactionResponse searchUser(EcuabetUserSearchCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
         EcuabetUserSearchRequest request = buildExternalRequest(command, provider);
-        String url = provider.getBaseUrl() + operationPath;
+        String url = operationPath;
         String operationName = resolveOperationName(operationPath);
 
-        traceToConsole("External web service request", url, JsonUtil.toJsonSilently(request));
+        String wsKey = command.getMovementType() == MovementType.CASH_OUT ? WS_KEY_CASHOUT : WS_KEY_CASHIN;
+        long startMs = System.currentTimeMillis();
+        String requestJson = JsonUtil.toJsonSilently(request);
+        traceToConsole("External web service request", url, requestJson);
 
-        EcuabetUserSearchResponse response;
-        try {
-            response = omnistackWebClient.post()
-                    .uri(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .headers(headers -> addHeaders(headers, command))
-                    .bodyValue(request)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                            .defaultIfEmpty("")
-                            .flatMap(body -> {
-                                traceErrorToConsole("External web service error", url, body);
-                                return Mono.error(new IntegrationException(buildErrorMessage(body, operationName)));
-                            }))
-                    .bodyToMono(EcuabetUserSearchResponse.class)
-                    .block();
-        } catch (WebClientRequestException exception) {
-            String message = EcuabetTransportErrorMapper.buildMessage(operationName, url, exception);
-            traceErrorToConsole("External web service transport error", url, message);
-            throw new IntegrationException(message, exception);
-        }
+        EcuabetUserSearchResponse response = omnistackWebClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(headers -> addHeaders(headers, command))
+                .bodyValue(request)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                        .defaultIfEmpty("")
+                        .flatMap(body -> {
+                            traceErrorToConsole("External web service error", url, body);
+                            wsExtLogService.log(ProviderCallLog.builder()
+                                    .uuid(command.getUuid())
+                                    .providerKey(PROVIDER_KEY)
+                                    .wsKey(wsKey)
+                                    .url(url)
+                                    .requestJson(requestJson)
+                                    .responseJson(body)
+                                    .durationMs(System.currentTimeMillis() - startMs)
+                                    .isError(true)
+                                    .errorMessage(buildErrorMessage(body, operationName))
+                                    .build());
+                            return Mono.error(new IntegrationException(buildErrorMessage(body, operationName)));
+                        }))
+                .bodyToMono(EcuabetUserSearchResponse.class)
+                .block();
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para la operacion " + operationName);
         }
 
-        traceToConsole("External web service response", url, JsonUtil.toJsonSilently(response));
+        String responseJson = JsonUtil.toJsonSilently(response);
+        traceToConsole("External web service response", url, responseJson);
+        wsExtLogService.log(ProviderCallLog.builder()
+                .uuid(command.getUuid())
+                .providerKey(PROVIDER_KEY)
+                .wsKey(wsKey)
+                .url(url)
+                .requestJson(requestJson)
+                .responseJson(responseJson)
+                .durationMs(System.currentTimeMillis() - startMs)
+                .isError(false)
+                .build());
 
         return ExternalTransactionResponse.builder()
                 .approved(!hasBusinessError(command, response))
@@ -219,8 +242,7 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
     }
 
     private AppProperties.ProviderProperties getProviderProperties() {
-        Map<String, AppProperties.ProviderProperties> providers = appProperties.getIntegration().getProviders();
-        AppProperties.ProviderProperties provider = providers.get(PROVIDER_KEY);
+        AppProperties.ProviderProperties provider = providerConfigService.getProviderProperties(PROVIDER_KEY);
         if (provider == null) {
             throw new IntegrationException("No existe configuracion para el proveedor ECUABET");
         }
@@ -245,11 +267,9 @@ public class EcuabetUserSearchWebClientAdapter implements EcuabetUserSearchPort 
 
     private void traceToConsole(String label, String url, String body) {
         log.info("{} url={} body={}", label, url, body);
-        System.out.println(label + " url=" + url + " body=" + body);
     }
 
     private void traceErrorToConsole(String label, String url, String body) {
         log.error("{} url={} body={}", label, url, body);
-        System.err.println(label + " url=" + url + " body=" + body);
     }
 }

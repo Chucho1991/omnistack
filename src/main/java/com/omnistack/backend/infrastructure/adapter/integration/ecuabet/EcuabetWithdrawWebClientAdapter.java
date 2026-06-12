@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.EcuabetWithdrawPort;
+import com.omnistack.backend.application.service.ProviderConfigService;
+import com.omnistack.backend.application.service.WsExtLogService;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.EcuabetWithdrawCommand;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
+import com.omnistack.backend.domain.model.ProviderCallLog;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetErrorResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetWithdrawRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.ecuabet.dto.EcuabetWithdrawResponse;
@@ -23,7 +26,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -35,11 +37,13 @@ import reactor.core.publisher.Mono;
 public class EcuabetWithdrawWebClientAdapter implements EcuabetWithdrawPort {
 
     private static final String PROVIDER_KEY = "ecuabet";
+    private static final String WS_KEY = "EXECUTE.CASHOUT";
 
     private final WebClient omnistackWebClient;
-    private final AppProperties appProperties;
+    private final ProviderConfigService providerConfigService;
     private final ObjectMapper objectMapper;
     private final ProviderTokenResolverUseCase providerTokenResolverUseCase;
+    private final WsExtLogService wsExtLogService;
 
     /**
      * Ejecuta el consumo externo de nota de retiro ECUABET.
@@ -52,37 +56,54 @@ public class EcuabetWithdrawWebClientAdapter implements EcuabetWithdrawPort {
     public ExternalTransactionResponse withdraw(EcuabetWithdrawCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
         EcuabetWithdrawRequest request = buildExternalRequest(command, provider);
-        String url = resolveUrl(provider.getBaseUrl(), operationPath);
+        String url = operationPath;
 
-        traceToConsole("ECUABET withdraw request", url, JsonUtil.toJsonSilently(request));
+        long startMs = System.currentTimeMillis();
+        String requestJson = JsonUtil.toJsonSilently(request);
+        traceToConsole("ECUABET withdraw request", url, requestJson);
 
-        EcuabetWithdrawResponse response;
-        try {
-            response = omnistackWebClient.post()
-                    .uri(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .headers(headers -> addHeaders(headers, command))
-                    .bodyValue(request)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                            .defaultIfEmpty("")
-                            .flatMap(body -> {
-                                traceErrorToConsole("ECUABET withdraw error", url, body);
-                                return Mono.error(new IntegrationException(buildErrorMessage(body)));
-                            }))
-                    .bodyToMono(EcuabetWithdrawResponse.class)
-                    .block();
-        } catch (WebClientRequestException exception) {
-            String message = EcuabetTransportErrorMapper.buildMessage("nota de retiro", url, exception);
-            traceErrorToConsole("ECUABET withdraw transport error", url, message);
-            throw new IntegrationException(message, exception);
-        }
+        EcuabetWithdrawResponse response = omnistackWebClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(headers -> addHeaders(headers, command))
+                .bodyValue(request)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                        .defaultIfEmpty("")
+                        .flatMap(body -> {
+                            traceErrorToConsole("ECUABET withdraw error", url, body);
+                            wsExtLogService.log(ProviderCallLog.builder()
+                                    .uuid(command.getUuid())
+                                    .providerKey(PROVIDER_KEY)
+                                    .wsKey(WS_KEY)
+                                    .url(url)
+                                    .requestJson(requestJson)
+                                    .responseJson(body)
+                                    .durationMs(System.currentTimeMillis() - startMs)
+                                    .isError(true)
+                                    .errorMessage(buildErrorMessage(body))
+                                    .build());
+                            return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                        }))
+                .bodyToMono(EcuabetWithdrawResponse.class)
+                .block();
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para nota de retiro");
         }
 
-        traceToConsole("ECUABET withdraw response", url, JsonUtil.toJsonSilently(response));
+        String responseJson = JsonUtil.toJsonSilently(response);
+        traceToConsole("ECUABET withdraw response", url, responseJson);
+        wsExtLogService.log(ProviderCallLog.builder()
+                .uuid(command.getUuid())
+                .providerKey(PROVIDER_KEY)
+                .wsKey(WS_KEY)
+                .url(url)
+                .requestJson(requestJson)
+                .responseJson(responseJson)
+                .durationMs(System.currentTimeMillis() - startMs)
+                .isError(false)
+                .build());
 
         return ExternalTransactionResponse.builder()
                 .approved((response.getError() == null || response.getError() == 0)
@@ -200,19 +221,8 @@ public class EcuabetWithdrawWebClientAdapter implements EcuabetWithdrawPort {
         }
     }
 
-    private String resolveUrl(String baseUrl, String path) {
-        if (baseUrl.endsWith("/") && path.startsWith("/")) {
-            return baseUrl.substring(0, baseUrl.length() - 1) + path;
-        }
-        if (!baseUrl.endsWith("/") && !path.startsWith("/")) {
-            return baseUrl + "/" + path;
-        }
-        return baseUrl + path;
-    }
-
     private AppProperties.ProviderProperties getProviderProperties() {
-        Map<String, AppProperties.ProviderProperties> providers = appProperties.getIntegration().getProviders();
-        AppProperties.ProviderProperties provider = providers.get(PROVIDER_KEY);
+        AppProperties.ProviderProperties provider = providerConfigService.getProviderProperties(PROVIDER_KEY);
         if (provider == null) {
             throw new IntegrationException("No existe configuracion para el proveedor ECUABET");
         }
@@ -228,11 +238,9 @@ public class EcuabetWithdrawWebClientAdapter implements EcuabetWithdrawPort {
 
     private void traceToConsole(String label, String url, String body) {
         log.info("{} url={} body={}", label, url, body);
-        System.out.println(label + " url=" + url + " body=" + body);
     }
 
     private void traceErrorToConsole(String label, String url, String body) {
         log.error("{} url={} body={}", label, url, body);
-        System.err.println(label + " url=" + url + " body=" + body);
     }
 }

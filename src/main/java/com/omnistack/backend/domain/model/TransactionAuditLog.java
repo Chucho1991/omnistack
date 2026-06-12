@@ -26,4 +26,12 @@ public class TransactionAuditLog {
     Long durationMs;
     String technicalUser;
     OffsetDateTime createdAt;
+    // Contexto POS
+    String chain;
+    String store;
+    String storeName;
+    String pos;
+    String canal;
+    String capability;
+    Integer httpStatus;
 }
