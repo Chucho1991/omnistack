@@ -23,4 +23,5 @@ public class RegistroTrx {
     BigDecimal monto;
     String moneda;
     String codEstado;
+    String cpVar1;
 }

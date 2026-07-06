@@ -56,4 +56,6 @@ public class ServiceDefinition {
     boolean requiresConsent;
     @JsonProperty("consent_text")
     String consentText;
+    @JsonProperty("homologated_auth")
+    boolean homologatedAuth;
 }

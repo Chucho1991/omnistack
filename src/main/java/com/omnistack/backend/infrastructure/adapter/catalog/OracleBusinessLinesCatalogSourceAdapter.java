@@ -191,7 +191,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                             r.mixedPayment(), r.flgItem(), r.refund(),
                             r.minAmount(), r.maxAmount(),
                             r.timeoutWsMax(), r.retriesWsMax(), r.numTickets(),
-                            r.requiresConsent(), r.consentText());
+                            r.requiresConsent(), r.consentText(), r.homologatedAuth());
                 })
                 .toList();
         log.debug("[BL-catalog] serviceRows={}", serviceRows.size());
@@ -349,6 +349,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .paymentMethods(paymentMethods)
                 .requiresConsent(row.requiresConsent())
                 .consentText(row.consentText())
+                .homologatedAuth(row.homologatedAuth())
                 .build();
     }
 
@@ -399,7 +400,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getString("retries_ws_max"),
                 rs.getString("num_tickets"),
                 rs.getInt("requires_consent") == 1,
-                rs.getString("consent_text"));
+                rs.getString("consent_text"),
+                rs.getInt("homologated_auth") == 1);
     }
 
     private RowMapper<MovementTypeRow> movementTypeRowMapper() {
@@ -471,7 +473,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             String retriesWsMax,
             String numTickets,
             boolean requiresConsent,
-            String consentText) {}
+            String consentText,
+            boolean homologatedAuth) {}
 
     record MovementTypeRow(String rmsItemCode, String movementType) {}
 
@@ -551,7 +554,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             String retriesWsMax,
             String numTickets,
             boolean requiresConsent,
-            String consentText) {
+            String consentText,
+            boolean homologatedAuth) {
         ServiceKey serviceKey() {
             return new ServiceKey(categoryCode, subcategoryCode, serviceProviderCode, rmsItemCode);
         }

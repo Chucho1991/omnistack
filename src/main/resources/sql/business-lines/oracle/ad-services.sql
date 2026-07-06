@@ -11,7 +11,8 @@ SELECT
     sp.RETRIES_WS_MAX       AS retries_ws_max,
     sp.NUM_TICKETS          AS num_tickets,
     CASE WHEN sp.REQUIERE_CONSENTIMIENTO = 'S' THEN 1 ELSE 0 END AS requires_consent,
-    sp.TEXTO_CONSENTIMIENTO AS consent_text
+    sp.TEXTO_CONSENTIMIENTO AS consent_text,
+    CASE WHEN sp.ID_HOMOLOGADO = 'S' THEN 1 ELSE 0 END AS homologated_auth
 FROM gpf_omnistack.AD_SERVICIO_PARAMETROS sp
 JOIN gpf_omnistack.AD_CANAL_SERVICIO cs
     ON cs.ID_CONFIG    = sp.ID_CONFIG

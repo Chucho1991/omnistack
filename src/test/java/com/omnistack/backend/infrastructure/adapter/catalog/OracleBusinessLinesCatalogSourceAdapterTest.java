@@ -49,7 +49,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(rmsTemplate.query(eq("ad-services"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.AdServiceRow(
                         "1", "100713841", true, false, "RECA", false,
-                        "1", "200", "10000", "3", "3", true, "<html>consent</html>")));
+                        "1", "200", "10000", "3", "3", true, "<html>consent</html>", false)));
 
         // RMS: metadata del item (CLASS/SUBCLASS, desc)
         when(rmsTemplate.query(eq("rms-items"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(

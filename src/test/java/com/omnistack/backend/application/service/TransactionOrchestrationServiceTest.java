@@ -15,9 +15,11 @@ import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.ProviderFlowSelection;
+import com.omnistack.backend.domain.model.RegistroTrx;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +62,11 @@ class TransactionOrchestrationServiceTest {
         TransactionOrchestrationService service = new TransactionOrchestrationService(
                 resolver,
                 new AuditLogService(log -> { }),
-                (entry) -> { });
+                new RegistroTrxPort() {
+                    @Override public void save(RegistroTrx entry) { }
+                    @Override public Optional<String> findOriginalAuthByHomologatedCode(String code) { return Optional.empty(); }
+                },
+                new HomologatedCodeService());
 
         ExecuteRequest request = ExecuteRequest.builder()
                 .uuid("uuid-bet593-cashout")
