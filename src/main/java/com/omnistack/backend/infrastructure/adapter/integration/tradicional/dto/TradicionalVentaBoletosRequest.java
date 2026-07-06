@@ -1,5 +1,6 @@
 package com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
@@ -8,14 +9,15 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TradicionalVentaBoletosRequest {
     String userName;
     String token;
-    Integer medioId;
+    String medioId;
     String reservaId;
     String cliente;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     BigDecimal totalVenta;
     String numeroIdentificacion;
     String nombreComprador;
@@ -38,6 +40,7 @@ public class TradicionalVentaBoletosRequest {
     @Builder
     public static class FormaCobro {
         String formaCobro;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         BigDecimal total;
     }
 

@@ -22,6 +22,7 @@ public class OracleBusinessLinesSqlProvider {
     private final String adServicesSql = readSql("sql/business-lines/oracle/ad-services.sql");
     private final String adPaymentMethodsSql = readSql("sql/business-lines/oracle/ad-payment-methods.sql");
     private final String adCapabilitiesSql = readSql("sql/business-lines/oracle/ad-capabilities.sql");
+    private final String adMovementTypesSql = readSql("sql/business-lines/oracle/ad-movement-types.sql");
     private final String rmsItemsSql = readSql("sql/business-lines/oracle/rms-items.sql");
     private final String rmsSuppliersSql = readSql("sql/business-lines/oracle/rms-suppliers.sql");
 
@@ -89,6 +90,10 @@ public class OracleBusinessLinesSqlProvider {
 
     public String getAdCapabilitiesSql() {
         return adCapabilitiesSql;
+    }
+
+    public String getAdMovementTypesSql() {
+        return adMovementTypesSql;
     }
 
     public String getRmsItemsSql() {

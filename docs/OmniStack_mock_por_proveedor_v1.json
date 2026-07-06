@@ -1,0 +1,2129 @@
+{
+  "info": {
+    "_postman_id": "c773af63-af89-4631-925b-ecff0e44d625",
+    "name": "OmniStack — Mock por Proveedor v1",
+    "description": "Colección organizada por proveedor. Todos los códigos (category_code, subcategory_code, service_provider_code, rms_item_code) usan valores reales del ambiente QA. Variable de entorno requerida: OmniStack-url (ej: http://localhost:8086). Generado: 2026-06-25",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "📋 GetBusinessLines",
+      "id": "066ba08d-26ba-4111-9557-bf715f143cfa",
+      "item": [
+        {
+          "name": "Todos los servicios (sin filtro)",
+          "id": "718f55b0-25ed-4aca-b7d6-4af23d5cfcce",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{OmniStack-url}}/v1/business-lines",
+              "host": [
+                "{{OmniStack-url}}"
+              ],
+              "path": [
+                "v1",
+                "business-lines"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Solo CASH_IN",
+          "id": "2a0b3242-8c35-4bba-8465-e847791f3194",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_IN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{OmniStack-url}}/v1/business-lines",
+              "host": [
+                "{{OmniStack-url}}"
+              ],
+              "path": [
+                "v1",
+                "business-lines"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Solo CASH_OUT",
+          "id": "6e0e27cc-4ecb-4107-9371-00ec19d50e3c",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"movement_type_filter\": \"CASH_OUT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{OmniStack-url}}/v1/business-lines",
+              "host": [
+                "{{OmniStack-url}}"
+              ],
+              "path": [
+                "v1",
+                "business-lines"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🟡 ECUABET",
+      "id": "c88d2a6a-7016-487a-9be3-d595152f3c8e",
+      "item": [
+        {
+          "name": "CASH_IN — Depósito de saldo (rms=100713841)",
+          "id": "dee065d9-d011-4307-ab9b-9c72d3291364",
+          "item": [
+            {
+              "name": "1. PRECHECK — Buscar usuario por documento",
+              "id": "882ed828-2de8-4da4-9f1a-21fbb2d00e41",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1118,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100713841\",\n  \"document\": \"1723356810\",\n  \"amount\": \"8.00\",\n  \"phone\": \"\",\n  \"userid\": \"\",\n  \"withdrawId\": \"\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "1b. PRECHECK — Buscar usuario por teléfono",
+              "id": "f34e9463-c388-4c60-8dfd-e6f5367cb6e2",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1118,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100713841\",\n  \"phone\": \"0982517579\",\n  \"amount\": \"8.00\",\n  \"document\": \"\",\n  \"userid\": \"\",\n  \"withdrawId\": \"\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "1c. PRECHECK — Buscar usuario por userid",
+              "id": "451b5beb-13ca-4895-b56d-3b1d28554e6d",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1118,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100713841\",\n  \"userid\": \"997561\",\n  \"amount\": \"8.00\",\n  \"document\": \"\",\n  \"phone\": \"\",\n  \"withdrawId\": \"\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Deposito (acredita saldo al usuario)",
+              "id": "f2fee54b-efb8-4efe-897b-dbd3b3c180fe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1118,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100713841\",\n  \"userid\": \"{{EB-CI-userid}}\",\n  \"amount\": \"8.00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. REVERSE — Rollback depósito (si error post-execute)",
+              "id": "78266a56-2244-4302-b667-8eaaca060fac",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1118,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100713841\",\n  \"userid\": \"{{EB-CI-userid}}\",\n  \"amount\": \"8.00\",\n  \"authorization\": \"{{EB-CI-txId}}\",\n  \"motivo\": \"Error en transacción — rollback depósito\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "PRECHECK devuelve userid. EXECUTE recibe userid+amount. No tiene VERIFY."
+        },
+        {
+          "name": "CASH_OUT — Pago nota de retiro (rms=100708846)",
+          "id": "21e67858-a787-427f-b010-183b9f392861",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar nota de crédito",
+              "id": "741c7124-b850-4925-ac79-eb8dcf4bb1d1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1119,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100708846\",\n  \"document\": \"0911274165\",\n  \"withdrawId\": \"7583\",\n  \"amount\": \"21.00\",\n  \"password\": \"33367\",\n  \"userid\": \"\",\n  \"phone\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Nota de retiro (paga al cliente)",
+              "id": "b7dfaa93-69e3-4c4f-844f-105c6ed84adf",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1119,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100708846\",\n  \"userid\": \"{{EB-CO-userid}}\",\n  \"withdrawId\": \"7583\",\n  \"password\": \"33367\",\n  \"amount\": \"{{EB-CO-amount}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. REVERSE — Rollback nota de retiro",
+              "id": "d427a793-2251-496c-a7fa-7d8191f1e188",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1119,\n  \"service_provider_code\": 12661912,\n  \"rms_item_code\": \"100708846\",\n  \"userid\": \"{{EB-CO-userid}}\",\n  \"withdrawId\": \"7583\",\n  \"amount\": \"{{EB-CO-amount}}\",\n  \"authorization\": \"{{EB-CO-txId}}\",\n  \"motivo\": \"Error en pago retiro — rollback\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "PRECHECK devuelve amount disponible. EXECUTE paga. No tiene VERIFY."
+        }
+      ]
+    },
+    {
+      "name": "🔵 BET593",
+      "id": "ff7e419e-ab3a-4d6e-9a0a-7dd48a7f7358",
+      "item": [
+        {
+          "name": "CASH_IN — Recarga de saldo (rms=100708850)",
+          "id": "d600383c-c03c-4ebc-9f43-4e94a3e34dba",
+          "item": [
+            {
+              "name": "1. PRECHECK — Buscar usuario y validar saldo",
+              "id": "488ac036-bde2-45a2-9fb8-f67897bb4d29",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1120,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708850\",\n  \"document\": \"0901111112\",\n  \"amount\": \"9.99\",\n  \"userid\": \"\",\n  \"phone\": \"\",\n  \"withdrawId\": \"\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Confirmar recarga",
+              "id": "75fae639-36dd-4151-96f6-ba6c6bd88e7a",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1120,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708850\",\n  \"document\": \"{{BET593-CI-cuentaweb}}\",\n  \"amount\": \"9.99\",\n  \"authorization\": \"{{BET593-CI-recargaid}}\",\n  \"serialnumber\": \"{{BET593-CI-serialnumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. VERIFY — Validar recarga (COMMIT / ROLLBACK)",
+              "id": "14201480-d730-47ab-a1ee-e164e8fa20b0",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1120,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708850\",\n  \"document\": \"{{BET593-CI-cuentaweb}}\",\n  \"amount\": \"9.99\",\n  \"authorization\": \"{{BET593-CI-recargaid}}\",\n  \"serialnumber\": \"{{BET593-CI-serialnumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. REVERSE — Reversar recarga (si VERIFY devuelve ROLLBACK)",
+              "id": "37f848f8-2807-4b2e-a31a-f260759a895b",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1120,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708850\",\n  \"document\": \"{{BET593-CI-cuentaweb}}\",\n  \"amount\": \"9.99\",\n  \"authorization\": \"{{BET593-CI-recargaid}}\",\n  \"serialnumber\": \"{{BET593-CI-serialnumber}}\",\n  \"motivo\": \"Error en confirmación — reversión recarga BET593\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Flujo: PRECHECK → EXECUTE → VERIFY → REVERSE (condicional). VERIFY devuelve COMMIT o ROLLBACK."
+        },
+        {
+          "name": "CASH_OUT — Pago de retiro (rms=100708848)",
+          "id": "2b87c687-deea-4724-aaec-3a4861cc1524",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar disponibilidad de retiro",
+              "id": "b15edce5-0161-4ece-bc10-f758a1109a45",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1121,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708848\",\n  \"document\": \"0911274165\",\n  \"withdrawId\": \"20240430800100007\",\n  \"amount\": \"12.32\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Retirar BET593 (paga al cliente)",
+              "id": "989d354c-cb56-4c86-8d48-d27648baab7c",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1121,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708848\",\n  \"document\": \"{{BET593-CO-document}}\",\n  \"withdrawId\": \"20240430800100007\",\n  \"amount\": \"{{BET593-CO-amount}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. VERIFY — Consultar estado retiro (COMMIT / ROLLBACK)",
+              "id": "436090a3-28fd-4701-820e-ab1ea150daba",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1121,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708848\",\n  \"document\": \"{{BET593-CO-document}}\",\n  \"withdrawId\": \"20240430800100007\",\n  \"authorization\": \"{{BET593-CO-ordenPagoId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. REVERSE — Reversar retiro (si fallo en pago)",
+              "id": "e99fde6c-1d28-4c10-94c6-61fbb1231ba4",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 983,\n  \"subcategory_code\": 1121,\n  \"service_provider_code\": 408403,\n  \"rms_item_code\": \"100708848\",\n  \"document\": \"{{BET593-CO-document}}\",\n  \"withdrawId\": \"20240430800100007\",\n  \"authorization\": \"{{BET593-CO-ordenPagoId}}\",\n  \"amount\": \"{{BET593-CO-amount}}\",\n  \"motivo\": \"Error en pago retiro — reversión BET593\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Flujo: PRECHECK → EXECUTE → VERIFY → REVERSE (condicional)."
+        }
+      ]
+    },
+    {
+      "name": "🟢 LN PEGA3 (CASH_IN — Venta de tickets)",
+      "id": "0d42b677-7437-4ac4-921c-5463a58828ef",
+      "item": [
+        {
+          "name": "Pega3 — rms=100708852 · subcategory=1127",
+          "id": "7051957c-0a41-4b1f-b4ce-8c9d294b922d",
+          "item": [
+            {
+              "name": "1. PRECHECK — Obtener juego activo y sorteos vigentes",
+              "id": "f50ee7da-3437-4903-bf7f-bddd0efc0289",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. CREATE_TICKET — Crear ticket (Straight)",
+              "id": "5d1b6865-750d-43fa-9ed1-417e1ccb00cc",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"Verbal-Manual\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [\n          1,\n          2,\n          3\n        ],\n        \"play_types\": [\n          \"Straight\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2b. CREATE_TICKET — Crear ticket (Box)",
+              "id": "a79b3e6e-88a8-47c9-af3e-c8a830c907b3",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"Verbal-Manual\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [\n          1,\n          2,\n          3\n        ],\n        \"play_types\": [\n          \"Box\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2c. CREATE_TICKET — Crear ticket (QuickPick)",
+              "id": "b2597d55-df34-4a03-b78c-8c8a3603eb60",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"QuickPick\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [],\n        \"play_types\": [\n          \"Straight\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. EXECUTE — Confirmar cobro del ticket",
+              "id": "94877c18-fa3f-4d58-ba56-2947edf68c65",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\",\n  \"amount\": \"5.00\",\n  \"authorization\": \"{{P3-ticketNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. VERIFY — Consultar ticket + generar comprobante PDF",
+              "id": "161bb842-3976-4348-91ac-3b6feb3b1c94",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\",\n  \"authorization\": \"{{P3-ticketNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "5. REVERSE — Cancelar ticket (solo dentro de 5 min)",
+              "id": "2afc7dd3-b468-4018-8b21-f0f06e692439",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708852\",\n  \"authorization\": \"{{P3-ticketNumber}}\",\n  \"amount\": \"5.00\",\n  \"motivo\": \"Error en cobro — cancelación de ticket\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Juego de 3 cifras. Flujo: PRECHECK → CREATE_TICKET → EXECUTE → VERIFY → REVERSE (condicional, 5 min)."
+        },
+        {
+          "name": "Pega4 — rms=100713848 · subcategory=1125",
+          "id": "df5e1e51-6825-409e-9630-187175f6c55f",
+          "item": [
+            {
+              "name": "1. PRECHECK — Obtener juego activo y sorteos vigentes",
+              "id": "ecb064d5-1339-4b5c-8130-c6975fcfa9df",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. CREATE_TICKET — Crear ticket (Straight)",
+              "id": "f177d548-cf76-4c28-a221-96f03a38a908",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"Verbal-Manual\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [\n          1,\n          2,\n          3\n        ],\n        \"play_types\": [\n          \"Straight\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2b. CREATE_TICKET — Crear ticket (Box)",
+              "id": "1884a1b7-2b8a-4b8d-ab3e-5bb9a1ae1c6f",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"Verbal-Manual\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [\n          1,\n          2,\n          3\n        ],\n        \"play_types\": [\n          \"Box\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2c. CREATE_TICKET — Crear ticket (QuickPick)",
+              "id": "45fefaac-d54d-48c6-8076-f220585fe368",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"QuickPick\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [],\n        \"play_types\": [\n          \"Straight\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. EXECUTE — Confirmar cobro del ticket",
+              "id": "c83806c9-4386-41a8-99b1-73fdfcee4a8c",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\",\n  \"amount\": \"5.00\",\n  \"authorization\": \"{{P3-ticketNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. VERIFY — Consultar ticket + generar comprobante PDF",
+              "id": "9c677505-5362-491b-90bd-6186de4d71b0",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\",\n  \"authorization\": \"{{P3-ticketNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "5. REVERSE — Cancelar ticket (solo dentro de 5 min)",
+              "id": "e396f0e8-5b0a-45c8-87bf-2ae288281b7c",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713848\",\n  \"authorization\": \"{{P3-ticketNumber}}\",\n  \"amount\": \"5.00\",\n  \"motivo\": \"Error en cobro — cancelación de ticket\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Juego de 4 cifras."
+        },
+        {
+          "name": "Pega2 — rms=100713850 · subcategory=1126",
+          "id": "6b3d75e8-69ca-4f95-a28f-cffcc6219185",
+          "item": [
+            {
+              "name": "1. PRECHECK — Obtener juego activo y sorteos vigentes",
+              "id": "60c6defe-e68e-4d0b-ae3c-ab468ae34c1e",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. CREATE_TICKET — Crear ticket (Straight)",
+              "id": "4004596b-65d8-4a55-9588-3f12e2abc110",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"Verbal-Manual\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [\n          1,\n          2,\n          3\n        ],\n        \"play_types\": [\n          \"Straight\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2b. CREATE_TICKET — Crear ticket (Box)",
+              "id": "8f421d81-efd7-4a61-91d0-1133c2051445",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"Verbal-Manual\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [\n          1,\n          2,\n          3\n        ],\n        \"play_types\": [\n          \"Box\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2c. CREATE_TICKET — Crear ticket (QuickPick)",
+              "id": "b5355e36-bd51-4826-8c18-50681f6bf450",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\",\n  \"amount\": \"5.00\",\n  \"ticket_data\": {\n    \"draw_number\": \"{{P3-drawNumber}}\",\n    \"entry_type\": \"QuickPick\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.0,\n        \"numbers\": [],\n        \"play_types\": [\n          \"Straight\"\n        ]\n      }\n    ]\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. EXECUTE — Confirmar cobro del ticket",
+              "id": "b1601da5-bc21-44bb-9fa4-b9fbbf79b1af",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\",\n  \"amount\": \"5.00\",\n  \"authorization\": \"{{P3-ticketNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. VERIFY — Consultar ticket + generar comprobante PDF",
+              "id": "2f11a462-627d-424c-a202-a5c3eb025a8c",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\",\n  \"authorization\": \"{{P3-ticketNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "5. REVERSE — Cancelar ticket (solo dentro de 5 min)",
+              "id": "8d302950-a0c6-4651-ae88-d1b59542140e",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713850\",\n  \"authorization\": \"{{P3-ticketNumber}}\",\n  \"amount\": \"5.00\",\n  \"motivo\": \"Error en cobro — cancelación de ticket\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Juego de 2 cifras."
+        }
+      ]
+    },
+    {
+      "name": "🟠 LN TRADICIONALES (CASH_IN — Venta de boletos)",
+      "id": "28c02b70-49c8-4055-9820-e6b88ded03ab",
+      "item": [
+        {
+          "name": "Lotería Nacional — rms=100713842 · subcategory=1122",
+          "id": "87465219-ecf9-49e2-b7ce-47f14dd13b89",
+          "item": [
+            {
+              "name": "1. PRECHECK — Obtener juegos, sorteos, figuras y números disponibles",
+              "id": "9b4aec81-d90e-46bd-b764-93f55a89cf84",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Venta de boleto (cajero ingresa cédula, nombre, teléfono)",
+              "id": "a95521cc-40c1-46c5-a28a-0916dd809606",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. VERIFY — Generar comprobante de venta (PDF del boleto)",
+              "id": "65e4e4fd-be4e-4ebc-af6b-736ad26ed144",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"authorization\": \"{{TR-ventaId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. REVERSE — Anular venta de boleto",
+              "id": "56d46267-ec85-44f3-bc30-f911a0a3873b",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"authorization\": \"{{TR-ventaId}}\",\n  \"motivo\": \"Error en emisión — anulación de boleto\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Flujo: PRECHECK → EXECUTE (document+username+phone+boleto_data) → VERIFY → REVERSE. EXECUTE devuelve ventaId como authorization."
+        },
+        {
+          "name": "Lotto — rms=100713844 · subcategory=1123",
+          "id": "8ba05e62-523f-4f56-a9de-f25a49f73b47",
+          "item": [
+            {
+              "name": "1. PRECHECK — Obtener juegos, sorteos, figuras y números disponibles",
+              "id": "7df9b563-9537-44e5-b914-06f83431af97",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Venta de boleto (cajero ingresa cédula, nombre, teléfono)",
+              "id": "2062d667-9f94-45a6-8740-92365b9b94c1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. VERIFY — Generar comprobante de venta (PDF del boleto)",
+              "id": "d0bf92d3-0784-44a1-b4a3-e652a6868f49",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"authorization\": \"{{TR-ventaId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. REVERSE — Anular venta de boleto",
+              "id": "7449690c-6e14-4cf0-accf-c57ef17b1963",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"authorization\": \"{{TR-ventaId}}\",\n  \"motivo\": \"Error en emisión — anulación de boleto\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Mismo flujo que Lotería Nacional."
+        },
+        {
+          "name": "Pozzo Millonario — rms=100713846 · subcategory=1124",
+          "id": "175ffc4c-34c6-4948-8854-66d0c1491c0e",
+          "item": [
+            {
+              "name": "1. PRECHECK — Obtener juegos, sorteos, figuras y números disponibles",
+              "id": "b27682f3-cecd-4174-8750-ddc7cf5f73f0",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — Venta de boleto (cajero ingresa cédula, nombre, teléfono)",
+              "id": "2a2191bb-74b7-4e45-84d3-4280230a1cc0",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3. VERIFY — Generar comprobante de venta (PDF del boleto)",
+              "id": "0078b6dc-6bf0-4a4d-afa4-0014d4836006",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"authorization\": \"{{TR-ventaId}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/verify",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "verify"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4. REVERSE — Anular venta de boleto",
+              "id": "0ed58e26-efe4-48de-9d9b-ab23b79dc51e",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"authorization\": \"{{TR-ventaId}}\",\n  \"motivo\": \"Error en emisión — anulación de boleto\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/reverse",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "reverse"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Mismo flujo que Lotería Nacional."
+        }
+      ]
+    },
+    {
+      "name": "🔴 CLARO (CASH_IN — Recarga telefónica)",
+      "id": "4871b7a8-cf2f-4bea-8a33-ef63e29059c1",
+      "item": [
+        {
+          "name": "Recarga monto libre — rms=291843 (offerId=132)",
+          "id": "b10ec5d9-2c7e-42f9-951d-0c6a4eb3efba",
+          "item": [
+            {
+              "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
+              "id": "af2d9a3b-8167-473d-bca6-5394e237fe41",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"291843\",\n  \"phone\": \"0993154323\",\n  \"amount\": \"5.00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
+              "id": "d222e731-4a00-4615-978f-652b4c927e2a",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"291843\",\n  \"phone\": \"0993154323\",\n  \"authorization\": \"{{CLARO-AuthNumber}}\",\n  \"amount\": \"5.00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "SUBSCRIBERID=phone. PRECHECK devuelve AUTHORIZATIONNUMBER. EXECUTE confirma. No tiene VERIFY ni REVERSE."
+        },
+        {
+          "name": "Paquete datos $1.50 — 2GB 1DÍA — rms=100733842 (offerId=150)",
+          "id": "e6badeb3-b57e-448a-9886-8fdee1538d1c",
+          "item": [
+            {
+              "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
+              "id": "88d89413-bdc0-4cdf-b594-e3bb10903e77",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"100733842\",\n  \"phone\": \"0993154323\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
+              "id": "60b89088-ec5c-4a65-8bf3-3291b00d9a4d",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"100733842\",\n  \"phone\": \"0993154323\",\n  \"authorization\": \"{{CLARO-AuthNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Paquete fijo: no se envía amount. offerId viene de WS_DEFS."
+        },
+        {
+          "name": "Paquete datos $4.00 — 10GB 10DÍAS — rms=100733843 (offerId=150)",
+          "id": "5a1174fc-6045-49de-9818-835e66464699",
+          "item": [
+            {
+              "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
+              "id": "cbfcf6d7-bfa9-41ff-8813-ad7ad07e9598",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"100733843\",\n  \"phone\": \"0993154323\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
+              "id": "cb22355d-ce7f-483c-be76-cd89bec4fcc6",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"100733843\",\n  \"phone\": \"0993154323\",\n  \"authorization\": \"{{CLARO-AuthNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Paquete datos $1.05 — ILIM 1DÍA — rms=100733844 (offerId=150)",
+          "id": "7edc59ee-b8b2-49b3-be21-762f26d90cfc",
+          "item": [
+            {
+              "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
+              "id": "86d0c653-395d-4a76-8113-3868ee2dcf0b",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"100733844\",\n  \"phone\": \"0993154323\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
+              "id": "4454efbc-95d1-42ee-9c4b-699ce5a15df7",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 8050,\n  \"subcategory_code\": 7684,\n  \"service_provider_code\": 407925,\n  \"rms_item_code\": \"100733844\",\n  \"phone\": \"0993154323\",\n  \"authorization\": \"{{CLARO-AuthNumber}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "OmniStack-url",
+      "value": "http://localhost:8086",
+      "type": "string"
+    }
+  ]
+}

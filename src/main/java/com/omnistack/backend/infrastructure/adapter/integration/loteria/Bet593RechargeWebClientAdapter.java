@@ -278,15 +278,9 @@ public class Bet593RechargeWebClientAdapter implements Bet593RechargePort, Bet59
             AppProperties.ProviderProperties provider,
             boolean forceRefreshToken) {
         if (forceRefreshToken) {
-            return providerTokenResolverUseCase.refreshToken(
-                    command.getCategoryCode(),
-                    command.getSubcategoryCode(),
-                    provider.getServiceProviderCode());
+            return providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
         }
-        return providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        return providerTokenResolverUseCase.getToken(PROVIDER_KEY);
     }
 
     private Map<String, Object> buildPayload(Bet593RechargeResponse response) {

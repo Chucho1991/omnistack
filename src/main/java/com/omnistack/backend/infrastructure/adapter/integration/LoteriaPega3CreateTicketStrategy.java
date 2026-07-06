@@ -70,8 +70,6 @@ public class LoteriaPega3CreateTicketStrategy extends AbstractProviderStrategy i
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
@@ -151,10 +149,8 @@ public class LoteriaPega3CreateTicketStrategy extends AbstractProviderStrategy i
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 

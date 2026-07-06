@@ -1,51 +1,32 @@
 package com.omnistack.backend.infrastructure.adapter.integration;
 
-import com.omnistack.backend.shared.constants.StatusCodes;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ErrorDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ExecuteResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.ClaroExecutePort;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.service.AdItemServicioService;
 import com.omnistack.backend.application.service.ProviderConfigService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsDefsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.config.properties.AppProperties;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.Capability;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ClaroExecuteCommand;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ServiceDefinition;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * Estrategia EXECUTE CASH_IN para CLARO. Llama a processRechargeRetail.
- */
 @Component
 @RequiredArgsConstructor
 public class ClaroExecuteStrategy extends AbstractProviderStrategy implements ExecuteStrategy {
@@ -57,6 +38,7 @@ public class ClaroExecuteStrategy extends AbstractProviderStrategy implements Ex
     private final ProviderConfigService providerConfigService;
     private final ProviderWsDefsService providerWsDefsService;
     private final ProviderWsService providerWsService;
+    private final AdItemServicioService adItemServicioService;
 
     @Override
     public boolean supports(ServiceDefinition serviceDefinition, Capability capability) {
@@ -70,7 +52,7 @@ public class ClaroExecuteStrategy extends AbstractProviderStrategy implements Ex
                 && serviceDefinition.getSubcategoryCode() != null
                 && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && providerWsService.hasUrl(PROVIDER_KEY, wsKey)
-                && providerWsDefsService.getOfferIds(PROVIDER_KEY, wsKey).containsKey(serviceDefinition.getRmsItemCode());
+                && adItemServicioService.hasTag(serviceDefinition.getRmsItemCode(), "OFFERID");
     }
 
     @Override
@@ -93,7 +75,9 @@ public class ClaroExecuteStrategy extends AbstractProviderStrategy implements Ex
 
         String wsKey = toWsKey(capability.name(), serviceDefinition.getMovementType());
         String operationUrl = providerWsService.requireUrl(PROVIDER_KEY, wsKey, PROVIDER_NAME);
-        String offerId = resolveOfferId(providerWsDefsService.getOfferIds(PROVIDER_KEY, wsKey), request.getRmsItemCode());
+        String rmsItemCode = request.getRmsItemCode();
+        String offerId = adItemServicioService.requireTag(rmsItemCode, "OFFERID", PROVIDER_NAME);
+        String externalOperation = adItemServicioService.requireTag(rmsItemCode, "EXTERNALOPERATION", PROVIDER_NAME);
         String amount = formatAmount(request.getAmount());
 
         ClaroExecuteCommand command = ClaroExecuteCommand.builder()
@@ -101,11 +85,21 @@ public class ClaroExecuteStrategy extends AbstractProviderStrategy implements Ex
                 .storeName(request.getStoreName()).pos(request.getPos())
                 .channelPos(request.getChannelPos().name())
                 .categoryCode(request.getCategoryCode()).subcategoryCode(request.getSubcategoryCode())
-                .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
+                .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(rmsItemCode)
                 .phone(request.getPhone())
                 .amount(amount)
                 .offerId(offerId)
                 .authorizationNumber(request.getAuthorization())
+                .companyId(providerConfigService.mapValue(PROVIDER_KEY, "company_id", request.getChain()))
+                .externalOperation(externalOperation)
+                .consumerId(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "consumer_id"))
+                .channelId(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "channel_id"))
+                .mediaId(providerConfigService.getString(PROVIDER_KEY, "media_id"))
+                .mediaDetailId(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "media_detail_id"))
+                .subscriberType(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "subscriber_type"))
+                .subscriptionType(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "subscription_type"))
+                .codCaja(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "cod_caja"))
+                .codSite(providerWsDefsService.getString(PROVIDER_KEY, wsKey, "cod_site"))
                 .build();
 
         ExternalTransactionResponse externalResponse = claroExecutePort.processRecharge(command, operationUrl);
@@ -136,15 +130,6 @@ public class ClaroExecuteStrategy extends AbstractProviderStrategy implements Ex
         }
 
         return builder.build();
-    }
-
-    private String resolveOfferId(java.util.Map<String, String> offerIds, String rmsItemCode) {
-        String offerId = offerIds.get(rmsItemCode);
-        if (offerId == null || offerId.isBlank()) {
-            throw new IntegrationException(
-                    "CLARO no tiene OFFERID configurado para rms_item_code=" + rmsItemCode);
-        }
-        return offerId;
     }
 
     private static String formatAmount(BigDecimal amount) {

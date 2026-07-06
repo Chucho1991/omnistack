@@ -251,7 +251,7 @@ class BusinessLinesServiceTest {
                         .categoryName("Recargas")
                         .subcategories(List.of(CollectionSubcategory.builder()
                                 .subcategoryCode("BET")
-                                .subcategoryName("Apuestas")
+                                .subcategoryName("PRONOSTICOS DEPORTIVOSCOS DEPORTIVOS")
                                 .active(true)
                                 .providers(List.of(ServiceProvider.builder()
                                         .serviceProviderCode("ECUABET")
@@ -271,5 +271,82 @@ class BusinessLinesServiceTest {
 
         String consentText = response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText();
         assertEquals("Autorizo servicios digitales de ECUABET", consentText);
+    }
+
+    @Test
+    void shouldReturnAllCatalogServicesWithoutPropertyFilter() {
+        BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
+        AppProperties appProperties = new AppProperties();
+        BusinessLinesService service = new BusinessLinesService(cacheService, appProperties);
+        BusinessLinesRequest request = BusinessLinesRequest.builder()
+                .chain("001")
+                .store("0001")
+                .storeName("Tienda Centro")
+                .pos("POS-01")
+                .channelPos(ChannelPos.POS)
+                .build();
+
+        List<ServiceDefinition> services = List.of(
+                serviceDefinition("100713841", MovementType.CASH_IN),
+                serviceDefinition("100708846", MovementType.CASH_OUT),
+                serviceDefinition("100708850", MovementType.CASH_IN),
+                serviceDefinition("100708848", MovementType.CASH_OUT),
+                serviceDefinition("999999999", MovementType.CASH_IN));
+
+        when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
+                .categories(List.of(Category.builder()
+                        .categoryCode("REC")
+                        .categoryName("Recargas")
+                        .subcategories(List.of(CollectionSubcategory.builder()
+                                .subcategoryCode("BET")
+                                .subcategoryName("PRONOSTICOS DEPORTIVOS")
+                                .active(true)
+                                .providers(List.of(ServiceProvider.builder()
+                                        .serviceProviderCode("ECUABET")
+                                        .rucProvider("9999999999001")
+                                        .providerName("ECUABET")
+                                        .active(true)
+                                        .services(services)
+                                        .build()))
+                                .build()))
+                        .build()))
+                .services(services)
+                .loadedAt(OffsetDateTime.now())
+                .version("v1")
+                .build());
+
+        var response = service.getBusinessLines(request);
+
+        List<String> returnedItems = response.getCollectionSubcategory().get(0)
+                .getServiceProviders().get(0)
+                .getServices().stream()
+                .map(serviceResponse -> serviceResponse.getRmsItemCode())
+                .toList();
+        assertEquals(List.of("100713841", "100708846", "100708850", "100708848", "999999999"), returnedItems);
+    }
+
+    private static ServiceDefinition serviceDefinition(String rmsItemCode, MovementType movementType) {
+        return ServiceDefinition.builder()
+                .categoryCode("REC")
+                .subcategoryCode("BET")
+                .serviceProviderCode("ECUABET")
+                .rmsItemCode(rmsItemCode)
+                .description("Servicio " + rmsItemCode)
+                .active(true)
+                .jdeCode("JDE-" + rmsItemCode)
+                .movementType(movementType)
+                .mixedPayment(false)
+                .flgItem(FlgItem.RECA)
+                .refund(false)
+                .minAmount(new BigDecimal("1.00"))
+                .maxAmount(new BigDecimal("200.00"))
+                .timeoutWsMax("10000")
+                .retriesWsMax("3")
+                .numTickets("3")
+                .capabilities(List.of(Capability.EXECUTE))
+                .inputFields(List.of())
+                .paymentMethods(List.of())
+                .requiresConsent(false)
+                .build();
     }
 }

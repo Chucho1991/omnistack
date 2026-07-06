@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -62,31 +63,38 @@ public class EcuabetDepositWebClientAdapter implements EcuabetDepositPort {
         String requestJson = JsonUtil.toJsonSilently(request);
         traceToConsole("ECUABET deposit request", url, requestJson);
 
-        EcuabetDepositResponse response = omnistackWebClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(headers -> addHeaders(headers, command))
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                        .defaultIfEmpty("")
-                        .flatMap(body -> {
-                            traceErrorToConsole("ECUABET deposit error", url, body);
-                            wsExtLogService.log(ProviderCallLog.builder()
-                                    .uuid(command.getUuid())
-                                    .providerKey(PROVIDER_KEY)
-                                    .wsKey(WS_KEY)
-                                    .url(url)
-                                    .requestJson(requestJson)
-                                    .responseJson(body)
-                                    .durationMs(System.currentTimeMillis() - startMs)
-                                    .isError(true)
-                                    .errorMessage(buildErrorMessage(body))
-                                    .build());
-                            return Mono.error(new IntegrationException(buildErrorMessage(body)));
-                        }))
-                .bodyToMono(EcuabetDepositResponse.class)
-                .block();
+        EcuabetDepositResponse response;
+        try {
+            response = omnistackWebClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> addHeaders(headers, command))
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(body -> {
+                                traceErrorToConsole("ECUABET deposit error", url, body);
+                                wsExtLogService.log(ProviderCallLog.builder()
+                                        .uuid(command.getUuid())
+                                        .providerKey(PROVIDER_KEY)
+                                        .wsKey(WS_KEY)
+                                        .url(url)
+                                        .requestJson(requestJson)
+                                        .responseJson(body)
+                                        .durationMs(System.currentTimeMillis() - startMs)
+                                        .isError(true)
+                                        .errorMessage(buildErrorMessage(body))
+                                        .build());
+                                return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                            }))
+                    .bodyToMono(EcuabetDepositResponse.class)
+                    .block();
+        } catch (WebClientRequestException exception) {
+            String message = EcuabetTransportErrorMapper.buildMessage("deposito", url, exception);
+            traceErrorToConsole("ECUABET deposit transport error", url, message);
+            throw new IntegrationException(message, exception);
+        }
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para deposito");
@@ -128,10 +136,7 @@ public class EcuabetDepositWebClientAdapter implements EcuabetDepositPort {
             EcuabetDepositCommand command,
             AppProperties.ProviderProperties provider) {
         validateProviderConfiguration(provider);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = providerTokenResolverUseCase.getToken(PROVIDER_KEY);
 
         return EcuabetDepositRequest.builder()
                 .shop(provider.getShopId())

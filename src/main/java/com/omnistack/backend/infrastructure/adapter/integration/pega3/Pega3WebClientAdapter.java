@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.Pega3CancelTicketPort;
+import com.omnistack.backend.application.port.out.Pega3ComprobanteQueryPort;
 import com.omnistack.backend.application.port.out.Pega3CreateTicketPort;
 import com.omnistack.backend.application.port.out.Pega3DrawQueryPort;
 import com.omnistack.backend.application.port.out.Pega3PayTicketPort;
@@ -16,6 +17,7 @@ import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ProviderCallLog;
 import com.omnistack.backend.domain.model.Pega3CancelTicketCommand;
+import com.omnistack.backend.domain.model.Pega3ComprobanteQueryCommand;
 import com.omnistack.backend.domain.model.Pega3CreateTicketCommand;
 import com.omnistack.backend.domain.model.Pega3DrawQueryCommand;
 import com.omnistack.backend.domain.model.Pega3Panel;
@@ -24,6 +26,7 @@ import com.omnistack.backend.domain.model.Pega3ProductQueryCommand;
 import com.omnistack.backend.domain.model.Pega3VerifyTicketCommand;
 import com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3CancelTicketRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3CancelTicketResponse;
+import com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3ComprobanteResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3CreateTicketRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3CreateTicketResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3DrawQueryRequest;
@@ -62,6 +65,7 @@ public class Pega3WebClientAdapter implements
         Pega3CreateTicketPort,
         Pega3PayTicketPort,
         Pega3VerifyTicketPort,
+        Pega3ComprobanteQueryPort,
         Pega3CancelTicketPort {
 
     private static final String PROVIDER_KEY = "pega3";
@@ -76,6 +80,7 @@ public class Pega3WebClientAdapter implements
     private static final String WS_KEY_CREATE_TICKET = "CREATE_TICKET.CASHIN";
     private static final String WS_KEY_EXECUTE = "EXECUTE.CASHIN";
     private static final String WS_KEY_VERIFY = "VERIFY.CASHIN";
+    private static final String WS_KEY_VERIFY_COMPROBANTE = "VERIFY_COMPROBANTE.CASHIN";
     private static final String WS_KEY_REVERSE = "REVERSE.CASHIN";
 
     private final WebClient omnistackWebClient;
@@ -88,7 +93,7 @@ public class Pega3WebClientAdapter implements
     @Override
     public ExternalTransactionResponse queryProduct(Pega3ProductQueryCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
 
         Pega3ProductQueryRequest request = Pega3ProductQueryRequest.builder()
@@ -103,10 +108,25 @@ public class Pega3WebClientAdapter implements
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = hasError(response.getMessage());
         payload.put("message", response.getMessage());
-        payload.put("entry_types", response.getEntryTypes());
-        payload.put("bet_amount_options", response.getBetAmountOptions());
+        payload.put("entry_types", response.getEntryTypes() == null ? null : response.getEntryTypes().stream()
+                .map(Pega3ProductQueryResponse.EntryType::getCode)
+                .toList());
+        payload.put("bet_amount_options", parseBetAmountOptions(response.getBetAmountOptions()));
         payload.put("min_cost", response.getMinCost());
         payload.put("retailer_cancel_period", response.getRetailerCancelPeriod());
+        payload.put("prize_liability_threshold", response.getPrizeLiabilityThreshold());
+
+        // Los limites (maxWager, futureDrawsLimit, advanceDrawLimit, playTypes) vienen anidados
+        // por modalidad de entrada (entryTypes[]); se toma el primero como representativo, igual
+        // que ya se hacia con minCost a nivel plano.
+        Pega3ProductQueryResponse.EntryType firstEntryType = response.getEntryTypes() != null && !response.getEntryTypes().isEmpty()
+                ? response.getEntryTypes().get(0) : null;
+        if (firstEntryType != null) {
+            payload.put("max_cost", firstEntryType.getMaxWager());
+            payload.put("future_draws_limit", firstEntryType.getFutureDrawsLimit());
+            payload.put("advance_draw_limit", firstEntryType.getAdvanceDrawLimit());
+            payload.put("play_types", firstEntryType.getPlayTypes());
+        }
 
         return ExternalTransactionResponse.builder()
                 .approved(!isError)
@@ -116,10 +136,21 @@ public class Pega3WebClientAdapter implements
                 .build();
     }
 
+    private List<BigDecimal> parseBetAmountOptions(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return null;
+        }
+        return java.util.Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(BigDecimal::new)
+                .toList();
+    }
+
     @Override
     public ExternalTransactionResponse queryActiveDraw(Pega3DrawQueryCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
 
         Pega3DrawQueryRequest request = Pega3DrawQueryRequest.builder()
@@ -148,7 +179,7 @@ public class Pega3WebClientAdapter implements
     @Override
     public ExternalTransactionResponse createTicket(Pega3CreateTicketCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
         String deviceId = requiredValue(provider.getAuth().getLogin().getUsername(), "auth.login.username");
         String channel = resolveChannel(provider);
@@ -189,7 +220,7 @@ public class Pega3WebClientAdapter implements
     @Override
     public ExternalTransactionResponse payTicket(Pega3PayTicketCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
         String deviceId = requiredValue(provider.getAuth().getLogin().getUsername(), "auth.login.username");
 
@@ -224,7 +255,7 @@ public class Pega3WebClientAdapter implements
     @Override
     public ExternalTransactionResponse verifyTicket(Pega3VerifyTicketCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
 
         Pega3VerifyTicketRequest request = Pega3VerifyTicketRequest.builder()
@@ -256,9 +287,98 @@ public class Pega3WebClientAdapter implements
     }
 
     @Override
+    public ExternalTransactionResponse generarComprobante(Pega3ComprobanteQueryCommand command, String operationPath) {
+        String ventaId = requiredValue(command.getVentaId(), "ventaId");
+        String idUsuario = requiredValue(command.getIdUsuario(), "idUsuario");
+        String transaccion = requiredValue(command.getTransaccion(), "transaccion");
+        StringBuilder url = new StringBuilder(operationPath)
+                .append("?ventaId=").append(encodeParam(ventaId))
+                .append("&idUsuario=").append(encodeParam(idUsuario))
+                .append("&transaccion=").append(encodeParam(transaccion));
+        if (command.getPuntoDeVenta() != null && !command.getPuntoDeVenta().isBlank()) {
+            url.append("&puntoDeVenta=").append(encodeParam(command.getPuntoDeVenta()));
+        }
+        String fullUrl = url.toString();
+
+        log.info("Pega3 generarComprobante GET url={}", fullUrl);
+        long startMs = System.currentTimeMillis();
+
+        Pega3ComprobanteResponse response;
+        try {
+            response = providerCircuitBreaker.execute(PROVIDER_KEY, () ->
+                    omnistackWebClient.get()
+                            .uri(fullUrl)
+                            .retrieve()
+                            .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                                    .defaultIfEmpty("")
+                                    .flatMap(body -> {
+                                        traceErrorToConsole("Pega3 generarComprobante error", fullUrl, body);
+                                        String errMsg = "Error HTTP al invocar GenerarComprobantePega: " + body;
+                                        wsExtLogService.log(ProviderCallLog.builder()
+                                                .uuid(command.getUuid())
+                                                .providerKey(PROVIDER_KEY)
+                                                .wsKey(WS_KEY_VERIFY_COMPROBANTE)
+                                                .url(fullUrl)
+                                                .requestJson(null)
+                                                .responseJson(body)
+                                                .durationMs(System.currentTimeMillis() - startMs)
+                                                .isError(true)
+                                                .errorMessage(errMsg)
+                                                .build());
+                                        return Mono.error(new IntegrationException(errMsg));
+                                    }))
+                            .bodyToMono(Pega3ComprobanteResponse.class)
+                            .block());
+        } catch (WebClientRequestException exception) {
+            String errMsg = "Error de conexion al invocar GenerarComprobantePega: " + rootCauseMessage(exception);
+            wsExtLogService.log(ProviderCallLog.builder()
+                    .uuid(command.getUuid())
+                    .providerKey(PROVIDER_KEY)
+                    .wsKey(WS_KEY_VERIFY_COMPROBANTE)
+                    .url(fullUrl)
+                    .requestJson(null)
+                    .responseJson(null)
+                    .durationMs(System.currentTimeMillis() - startMs)
+                    .isError(true)
+                    .errorMessage(errMsg)
+                    .build());
+            throw new IntegrationException(errMsg, exception);
+        }
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        boolean isError = response == null || response.getBase64() == null || response.getBase64().isBlank();
+        wsExtLogService.log(ProviderCallLog.builder()
+                .uuid(command.getUuid())
+                .providerKey(PROVIDER_KEY)
+                .wsKey(WS_KEY_VERIFY_COMPROBANTE)
+                .url(fullUrl)
+                .requestJson(null)
+                .responseJson(isError ? null : "[pdf " + response.getFileName() + "]")
+                .durationMs(System.currentTimeMillis() - startMs)
+                .isError(isError)
+                .errorMessage(isError ? "GenerarComprobantePega no retorno contenido" : null)
+                .build());
+        if (!isError) {
+            payload.put("comprobante_b64", response.getBase64());
+            payload.put("file_name", response.getFileName());
+        }
+
+        return ExternalTransactionResponse.builder()
+                .approved(!isError)
+                .externalCode(isError ? "ERROR" : "0")
+                .externalMessage(isError ? "GenerarComprobantePega no retorno contenido" : "")
+                .payload(payload)
+                .build();
+    }
+
+    private String encodeParam(String value) {
+        return value != null ? java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8) : "";
+    }
+
+    @Override
     public ExternalTransactionResponse cancelTicket(Pega3CancelTicketCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
         String deviceId = requiredValue(provider.getAuth().getLogin().getUsername(), "auth.login.username");
 
@@ -423,8 +543,8 @@ public class Pega3WebClientAdapter implements
         return provider;
     }
 
-    private String resolveToken(String categoryCode, String subcategoryCode, AppProperties.ProviderProperties provider) {
-        return providerTokenResolverUseCase.getToken(categoryCode, subcategoryCode, provider.getServiceProviderCode());
+    private String resolveToken() {
+        return providerTokenResolverUseCase.getToken(PROVIDER_KEY);
     }
 
     private String resolveProductoVender(AppProperties.ProviderProperties provider) {

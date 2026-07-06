@@ -5,6 +5,7 @@ import com.omnistack.backend.shared.validation.ValidTransactionRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,8 +34,12 @@ public class ExecuteRequest extends BaseTransactionRequest {
     private String username;
 
     @JsonProperty("boleto_data")
-    @Schema(description = "Datos del boleto a comprar (solo Tradicionales)")
+    @Schema(description = "Datos del boleto a comprar (solo Tradicionales, un unico boleto). Ignorado si se envia lista_boletos.")
     private BoletoData boletoData;
+
+    @JsonProperty("lista_boletos")
+    @Schema(description = "Carrito de jugadas: multiples boletos/juegos en una misma venta (solo Tradicionales). Si viene, tiene prioridad sobre boleto_data.")
+    private List<BoletoData> listaBoletos;
 
     @Data
     @Builder

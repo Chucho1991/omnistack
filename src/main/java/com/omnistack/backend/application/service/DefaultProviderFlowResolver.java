@@ -26,6 +26,12 @@ public class DefaultProviderFlowResolver implements ProviderFlowResolver {
 
     @Override
     public ProviderFlowSelection resolve(BaseTransactionRequest request, Capability capability) {
+        log.debug("Resolving provider flow. capability={}, categoryCode={}, subcategoryCode={}, serviceProviderCode={}, rmsItemCode={}",
+                capability,
+                request.getCategoryCode(),
+                request.getSubcategoryCode(),
+                request.getServiceProviderCode(),
+                request.getRmsItemCode());
         ServiceDefinition serviceDefinition = catalogCacheService.getRequiredService(
                 request.getCategoryCode(),
                 request.getSubcategoryCode(),
@@ -39,7 +45,8 @@ public class DefaultProviderFlowResolver implements ProviderFlowResolver {
         TransactionFlowStrategy strategy = strategies.stream()
                 .filter(candidate -> candidate.supports(serviceDefinition, capability))
                 .findFirst()
-                .orElseThrow(() -> new IntegrationException("No existe estrategia configurada para el proveedor/capacidad"));
+                .orElseThrow(() -> new IntegrationException(
+                        "El producto solicitado no esta completamente configurado"));
 
         log.info(
                 "Provider flow resolved. capability={}, categoryCode={}, subcategoryCode={}, serviceProviderCode={}, rmsItemCode={}, movementType={}, strategy={}",

@@ -40,7 +40,11 @@ public class BusinessLinesService implements BusinessLinesUseCase {
         List<BusinessLineCollectionSubcategoryResponse> collectionSubcategories = businessLinesCatalogCacheService.getCatalogSnapshot(request)
                 .getCategories().stream()
                 .flatMap(category -> category.getSubcategories().stream()
-                        .map(subcategory -> toCollectionSubcategoryResponse(category.getCategoryCode(), category.getCategoryName(), subcategory, request)))
+                        .map(subcategory -> toCollectionSubcategoryResponse(
+                                category.getCategoryCode(),
+                                category.getCategoryName(),
+                                subcategory,
+                                request)))
                 .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
                 .collect(Collectors.toList());
 
@@ -65,18 +69,24 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .build();
     }
 
-    private BusinessLineProviderResponse toProviderResponse(ServiceProvider provider, BusinessLinesRequest request) {
+    private BusinessLineProviderResponse toProviderResponse(
+            ServiceProvider provider,
+            BusinessLinesRequest request) {
         return BusinessLineProviderResponse.builder()
                 .serviceProviderCode(provider.getServiceProviderCode())
                 .rucProvider(provider.getRucProvider())
                 .providerName(provider.getProviderName())
                 .active(provider.isActive())
                 .services(provider.getServices().stream()
-                        .filter(service -> request.getMovementTypeFilter() == null
-                                || service.getMovementType() == request.getMovementTypeFilter())
+                        .filter(service -> isVisibleService(service, request))
                         .map(service -> toServiceResponse(service, provider.getProviderName()))
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    private boolean isVisibleService(ServiceDefinition service, BusinessLinesRequest request) {
+        return request.getMovementTypeFilter() == null
+                || service.getMovementType() == request.getMovementTypeFilter();
     }
 
     private BusinessLineServiceResponse toServiceResponse(ServiceDefinition service, String providerName) {

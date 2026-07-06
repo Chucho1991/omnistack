@@ -52,8 +52,6 @@ public class LoteriaPega3PrecheckStrategy extends AbstractProviderStrategy imple
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
@@ -88,6 +86,11 @@ public class LoteriaPega3PrecheckStrategy extends AbstractProviderStrategy imple
                     .entryTypes(getStringList(productPayload, "entry_types"))
                     .betAmountOptions(getBigDecimalList(productPayload, "bet_amount_options"))
                     .minCost(getBigDecimalValue(productPayload, "min_cost"))
+                    .maxCost(getBigDecimalValue(productPayload, "max_cost"))
+                    .futureDrawsLimit(getIntegerValue(productPayload, "future_draws_limit"))
+                    .advanceDrawLimit(getIntegerValue(productPayload, "advance_draw_limit"))
+                    .playTypes(getStringList(productPayload, "play_types"))
+                    .prizeLiabilityThreshold(getBigDecimalValue(productPayload, "prize_liability_threshold"))
                     .build();
         }
 
@@ -148,10 +151,8 @@ public class LoteriaPega3PrecheckStrategy extends AbstractProviderStrategy imple
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 

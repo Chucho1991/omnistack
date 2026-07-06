@@ -18,6 +18,8 @@ import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrat
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.VerifyStrategy;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.service.ComprobanteUrlService;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderConfigService;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsDefsService;
@@ -52,6 +54,7 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
     private static final String PROVIDER_NAME = "Loteria Tradicionales";
 
     private final TradicionalVerifyPort verifyPort;
+    private final ComprobanteUrlService comprobanteUrlService;
     private final ProviderConfigService providerConfigService;
     private final ProviderWsDefsService providerWsDefsService;
     private final ProviderWsService providerWsService;
@@ -64,8 +67,6 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
@@ -110,7 +111,7 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
                 .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
                 .authorization(request.getAuthorization())
-                .comprobanteB64(stringValue(payload, "comprobante_b64"));
+                .comprobanteUrl(comprobanteUrlService.storeAndBuildUrl(stringValue(payload, "comprobante_b64")));
 
         if (isError) {
             builder.error(ErrorDetail.builder()
@@ -129,10 +130,8 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 }

@@ -113,6 +113,41 @@ public abstract class AbstractProviderStrategy implements TransactionFlowStrateg
     }
 
     /**
+     * Resuelve un valor por rms_item_code desde IN_OMNI_PROVEEDOR_WS_DEFS cuando el request no
+     * lo trae explicito. Usa el formato multi-item "{fieldPrefix}.{rmsItemCode}" (mismo patron que
+     * "item.{rmsItemCode}"). Lanza excepcion si no hay valor explicito NI configurado en DB — evita
+     * caer en un default fijo en codigo que puede no aplicar al item real que se esta consultando.
+     *
+     * @param explicitValue valor recibido en el request, si vino
+     * @param defsService servicio de WS_DEFS
+     * @param providerKey clave del proveedor
+     * @param wsKey clave de operacion (ej: "PRECHECK.CASHIN")
+     * @param fieldPrefix prefijo del campo en WS_DEFS (ej: "juego_id")
+     * @param rmsItemCode item consultado
+     * @param providerName nombre legible del proveedor para el mensaje de error
+     * @throws IntegrationException si no hay valor explicito ni configurado
+     */
+    protected String resolveItemDefault(
+            String explicitValue,
+            ProviderWsDefsService defsService,
+            String providerKey,
+            String wsKey,
+            String fieldPrefix,
+            String rmsItemCode,
+            String providerName) {
+        if (explicitValue != null && !explicitValue.isBlank()) {
+            return explicitValue;
+        }
+        String derived = defsService.getString(providerKey, wsKey, fieldPrefix + "." + rmsItemCode);
+        if (derived == null || derived.isBlank()) {
+            throw new IntegrationException(providerName + ": falta '" + fieldPrefix
+                    + "' en el request y no hay default configurado en IN_OMNI_PROVEEDOR_WS_DEFS para '"
+                    + fieldPrefix + "." + rmsItemCode + "' (wsKey=" + wsKey + ")");
+        }
+        return derived;
+    }
+
+    /**
      * Extrae un valor del payload como String.
      *
      * @param payload mapa de datos del proveedor

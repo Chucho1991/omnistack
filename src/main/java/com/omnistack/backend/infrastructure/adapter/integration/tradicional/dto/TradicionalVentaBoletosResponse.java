@@ -1,6 +1,8 @@
 package com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +18,46 @@ public class TradicionalVentaBoletosResponse {
     private String token;
     private String ventaId;
     private String fechaVenta;
-    private List<Object> listaSUE;
+    private List<Sue> listaSUE;
 
     public boolean isSuccess() {
         return "0".equals(String.valueOf(codError));
+    }
+
+    @Getter
+    @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Sue {
+        private String anuncio1;
+        private String anuncio2;
+        private List<SorteoDetalle> listaSorteos;
+    }
+
+    @Getter
+    @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class SorteoDetalle {
+        private String juegoId;
+        private String sorteoId;
+        private String nombreJuego;
+        private String nombreSorteo;
+        private String fechaSorteo;
+        private String fechaCaducidad;
+        private BigDecimal precioVentaPublico;
+        private BigDecimal premioMayorPrimeraSuerte;
+
+        @JsonProperty("ListaR")
+        private List<TicketDetalle> listaR;
+    }
+
+    @Getter
+    @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TicketDetalle {
+        private String clave;
+        private String numero;
+        private Integer cantidad;
+        private BigDecimal valor;
+        private String codigoQR;
     }
 }

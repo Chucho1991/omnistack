@@ -1,54 +1,39 @@
 package com.omnistack.backend.shared.validation;
 
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
-import com.omnistack.backend.domain.enums.MovementType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import java.util.List;
 
 /**
  * Validador de datos minimos requeridos para solicitudes transaccionales.
+ * Ejecuta una cadena de {@link TransactionValidationRule} independientes —
+ * agregar una regla nueva es agregar una clase a la lista RULES, sin tocar
+ * las reglas existentes ni esta clase.
  */
 public class TransactionRequestValidator implements ConstraintValidator<ValidTransactionRequest, BaseTransactionRequest> {
 
+    private static final List<TransactionValidationRule> RULES = List.of(
+            new IdentifierRequiredRule()
+    );
+
     /**
-     * Verifica combinaciones validas de identificadores por tipo de movimiento.
+     * Ejecuta la cadena de reglas de validacion. Corta en la primera que falle.
      *
      * @param value solicitud base a validar.
      * @param context contexto de validacion de Bean Validation.
-     * @return {@code true} si la solicitud es consistente con la regla definida.
+     * @return {@code true} si la solicitud cumple todas las reglas aplicables.
      */
     @Override
     public boolean isValid(BaseTransactionRequest value, ConstraintValidatorContext context) {
         if (value == null) {
             return true;
         }
-
-        if (value.getMovementType() == null) {
-            return hasText(value.getPhone())
-                    || hasText(value.getDocument())
-                    || hasText(value.getUserid())
-                    || hasText(value.getWithdrawId())
-                    || hasText(value.getPassword());
+        for (TransactionValidationRule rule : RULES) {
+            if (!rule.isSatisfiedBy(value)) {
+                return false;
+            }
         }
-
-        if (value.getMovementType() == MovementType.CASH_IN) {
-            return hasText(value.getPhone()) || hasText(value.getDocument()) || hasText(value.getUserid());
-        }
-
-        if (value.getMovementType() == MovementType.CASH_OUT) {
-            return hasText(value.getWithdrawId()) || hasText(value.getPassword());
-        }
-
         return true;
-    }
-
-    /**
-     * Determina si una cadena contiene texto no vacio.
-     *
-     * @param value valor a evaluar.
-     * @return {@code true} cuando existe contenido no blanco.
-     */
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
     }
 }

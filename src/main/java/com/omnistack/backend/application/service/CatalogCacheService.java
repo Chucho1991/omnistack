@@ -87,6 +87,16 @@ public class CatalogCacheService implements CatalogCachePort {
             String providerCode,
             String rmsItemCode) {
         return findService(categoryCode, subcategoryCode, providerCode, rmsItemCode)
-                .orElseThrow(() -> new CatalogNotFoundException("No se encontro configuracion del servicio solicitada"));
+                .orElseThrow(() -> {
+                    List<ServiceDefinition> snapshot = currentSnapshot.get().getServices();
+                    log.warn("ServiceDefinition not found. searched=[category={}, subcategory={}, provider={}, rmsItem={}] snapshotSize={} snapshotServices={}",
+                            categoryCode, subcategoryCode, providerCode, rmsItemCode,
+                            snapshot.size(),
+                            snapshot.stream()
+                                    .map(s -> "[cat=" + s.getCategoryCode() + ",sub=" + s.getSubcategoryCode()
+                                            + ",prov=" + s.getServiceProviderCode() + ",item=" + s.getRmsItemCode() + "]")
+                                    .toList());
+                    return new CatalogNotFoundException("No se encontro configuracion del servicio solicitada");
+                });
     }
 }

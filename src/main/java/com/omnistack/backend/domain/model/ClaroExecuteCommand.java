@@ -20,4 +20,14 @@ public class ClaroExecuteCommand {
     String amount;
     String offerId;
     String authorizationNumber;
+    String companyId;
+    String externalOperation;
+    String consumerId;
+    String channelId;
+    String mediaId;
+    String mediaDetailId;
+    String subscriberType;
+    String subscriptionType;
+    String codCaja;
+    String codSite;
 }

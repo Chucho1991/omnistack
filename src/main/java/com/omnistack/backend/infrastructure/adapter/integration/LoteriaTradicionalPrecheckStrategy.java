@@ -8,7 +8,6 @@ import com.omnistack.backend.application.dto.PrecheckResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.application.port.out.TradicionalFigurasQueryPort;
 import com.omnistack.backend.application.port.out.TradicionalJuegoQueryPort;
-import com.omnistack.backend.application.port.out.TradicionalNumerosQueryPort;
 import com.omnistack.backend.application.port.out.TradicionalSorteosQueryPort;
 import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
 import com.omnistack.backend.application.port.out.strategy.PrecheckStrategy;
@@ -22,21 +21,22 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.domain.model.TradicionalFigurasQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalJuegoQueryCommand;
-import com.omnistack.backend.domain.model.TradicionalNumerosQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalSorteosQueryCommand;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalFigurasQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalJuegoQueryResponse;
-import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalNumerosQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalSorteosQueryResponse;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Estrategia PRECHECK CASH_IN para LN Tradicionales. Realiza hasta 4 llamadas:
- * RecuperarJuegosPorMedio, RecuperarSorteosDisponibles, RecuperarFigurasPorJuego,
- * RecuperarNumerosDisponiblesPorCombinacion.
+ * Estrategia PRECHECK CASH_IN para LN Tradicionales. Es prevalidacion pura,
+ * sin efectos secundarios en el proveedor: RecuperarJuegosPorMedio,
+ * RecuperarSorteosDisponibles, RecuperarFigurasPorJuego. La busqueda y
+ * reserva de combinaciones (RecuperarNumerosDisponiblesPorCombinacion, que
+ * el proveedor documenta como "obtener Y RESERVAR") vive en
+ * {@link TradicionalCreateTicketStrategy} porque tiene efecto secundario —
+ * no corresponde a prevalidacion.
  */
 @Component
 @RequiredArgsConstructor
@@ -46,13 +46,11 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
     private static final String PROVIDER_NAME = "Loteria Tradicionales";
     private static final String PRECHECK_SORTEOS_KEY = "PRECHECK_SORTEOS";
     private static final String PRECHECK_FIGURAS_KEY = "PRECHECK_FIGURAS";
-    private static final String PRECHECK_NUMEROS_KEY = "PRECHECK_NUMEROS";
-    private static final String DEFAULT_JUEGO_ID = "1";
+    private static final String JUEGO_ID_FIELD_PREFIX = "juego_id";
 
     private final TradicionalJuegoQueryPort juegoQueryPort;
     private final TradicionalSorteosQueryPort sorteosQueryPort;
     private final TradicionalFigurasQueryPort figurasQueryPort;
-    private final TradicionalNumerosQueryPort numerosQueryPort;
     private final ProviderConfigService providerConfigService;
     private final ProviderWsDefsService providerWsDefsService;
     private final ProviderWsService providerWsService;
@@ -65,8 +63,6 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
@@ -81,21 +77,12 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
         String juegosUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
         String sorteosUrl = providerWsService.findUrl(PROVIDER_KEY, toWsKey(PRECHECK_SORTEOS_KEY, serviceDefinition.getMovementType())).orElse(null);
         String figurasUrl = providerWsService.findUrl(PROVIDER_KEY, toWsKey(PRECHECK_FIGURAS_KEY, serviceDefinition.getMovementType())).orElse(null);
-        String numerosUrl = providerWsService.findUrl(PROVIDER_KEY, toWsKey(PRECHECK_NUMEROS_KEY, serviceDefinition.getMovementType())).orElse(null);
 
-        String gameId = null;
-        String drawId = null;
-        String combinacion = null;
-        Boolean sugerir = null;
-        Integer registros = null;
-        if (request instanceof PrecheckRequest precheckRequest) {
-            gameId = precheckRequest.getGameId();
-            drawId = precheckRequest.getDrawId();
-            combinacion = precheckRequest.getCombinacion();
-            sugerir = precheckRequest.getSugerir();
-            registros = precheckRequest.getRegistros();
-        }
-        String juegoId = gameId != null ? gameId : DEFAULT_JUEGO_ID;
+        String gameId = request instanceof PrecheckRequest precheckRequest ? precheckRequest.getGameId() : null;
+        String juegoId = resolveItemDefault(
+                gameId, providerWsDefsService, PROVIDER_KEY,
+                toWsKey(capability.name(), serviceDefinition.getMovementType()),
+                JUEGO_ID_FIELD_PREFIX, request.getRmsItemCode(), PROVIDER_NAME);
 
         // Call 1: RecuperarJuegosPorMedio (always)
         TradicionalJuegoQueryCommand juegoCmd = TradicionalJuegoQueryCommand.builder()
@@ -139,28 +126,7 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             figurasResponse = figurasQueryPort.queryFiguras(figurasCmd, figurasUrl);
         }
 
-        // Call 4: RecuperarNumerosDisponiblesPorCombinacion (only if drawId is provided)
-        ExternalTransactionResponse numerosResponse = null;
-        if (numerosUrl != null && !numerosUrl.isBlank()
-                && drawId != null && !drawId.isBlank()) {
-            TradicionalNumerosQueryCommand numerosCmd = TradicionalNumerosQueryCommand.builder()
-                    .uuid(request.getUuid()).chain(request.getChain()).store(request.getStore())
-                    .storeName(request.getStoreName()).pos(request.getPos())
-                    .channelPos(request.getChannelPos().name())
-                    .categoryCode(request.getCategoryCode()).subcategoryCode(request.getSubcategoryCode())
-                    .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
-                    .medioId(provider.getMedioId()).userName(provider.getAuth().getLogin().getUsername())
-                    .juegoId(juegoId).sorteoId(drawId)
-                    .combinacion(combinacion != null ? combinacion : "")
-                    .combinacionFigura("")
-                    .sugerir(sugerir != null ? sugerir : false)
-                    .cantidad(0)
-                    .registros(registros != null ? registros : 10)
-                    .build();
-            numerosResponse = numerosQueryPort.queryNumeros(numerosCmd, numerosUrl);
-        }
-
-        return buildResponse(request, juegosResponse, sorteosResponse, figurasResponse, numerosResponse);
+        return buildResponse(request, juegosResponse, sorteosResponse, figurasResponse);
     }
 
     @SuppressWarnings("unchecked")
@@ -168,8 +134,7 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             BaseTransactionRequest request,
             ExternalTransactionResponse juegosResp,
             ExternalTransactionResponse sorteosResp,
-            ExternalTransactionResponse figurasResp,
-            ExternalTransactionResponse numerosResp) {
+            ExternalTransactionResponse figurasResp) {
 
         boolean isError = !juegosResp.isApproved();
 
@@ -179,11 +144,11 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             Object rawJuegos = juegosResp.getPayload().get("juegos");
             if (rawJuegos instanceof List<?> list) {
                 games = list.stream()
-                        .filter(j -> j instanceof TradicionalJuegoQueryResponse)
+                        .filter(j -> j instanceof TradicionalJuegoQueryResponse.Juego)
                         .map(j -> {
-                            TradicionalJuegoQueryResponse jg = (TradicionalJuegoQueryResponse) j;
+                            TradicionalJuegoQueryResponse.Juego jg = (TradicionalJuegoQueryResponse.Juego) j;
                             return PrecheckResponse.TradicionalGame.builder()
-                                    .gameId(jg.getJuegoId()).nombre(jg.getNombre()).descripcion(jg.getDescripcion())
+                                    .gameId(jg.getJuegoId()).nombre(jg.getNombreJuego())
                                     .build();
                         }).collect(java.util.stream.Collectors.toList());
             }
@@ -202,6 +167,10 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
                                     .drawId(sorteo.getSorteoId()).nombre(sorteo.getNombre())
                                     .fecha(sorteo.getFecha()).precio(sorteo.getPrecio())
                                     .premioMayor(sorteo.getPremioMayor()).disponible(sorteo.getDisponible())
+                                    .cantidadFraccion(sorteo.getCantidadFraccion())
+                                    .tieneRevancha(sorteo.getTieneRevancha())
+                                    .juegoRevanchaId(sorteo.getJuegoRevanchaId())
+                                    .sorteoRevanchaId(sorteo.getSorteoRevanchaId())
                                     .build();
                         }).collect(java.util.stream.Collectors.toList());
             }
@@ -224,28 +193,6 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             }
         }
 
-        // Build available numbers list
-        List<PrecheckResponse.TradicionalNumber> availableNumbers = null;
-        Integer totalNumbers = null;
-        if (numerosResp != null && numerosResp.isApproved() && numerosResp.getPayload() != null) {
-            Object rawNumeros = numerosResp.getPayload().get("listaNumeros");
-            Object rawTotal = numerosResp.getPayload().get("totalResults");
-            if (rawTotal instanceof Integer intTotal) {
-                totalNumbers = intTotal;
-            }
-            if (rawNumeros instanceof List<?> list) {
-                availableNumbers = list.stream()
-                        .filter(n -> n instanceof TradicionalNumerosQueryResponse.Numero)
-                        .map(n -> {
-                            TradicionalNumerosQueryResponse.Numero num = (TradicionalNumerosQueryResponse.Numero) n;
-                            return PrecheckResponse.TradicionalNumber.builder()
-                                    .numero(num.getNumero()).disponible(num.getDisponible())
-                                    .precio(num.getPrecio())
-                                    .build();
-                        }).collect(java.util.stream.Collectors.toList());
-            }
-        }
-
         PrecheckResponse.PrecheckResponseBuilder<?, ?> builder = PrecheckResponse.builder()
                 .chain(request.getChain()).store(request.getStore()).storeName(request.getStoreName())
                 .pos(request.getPos()).channelPos(request.getChannelPos().name())
@@ -253,8 +200,7 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
                 .categoryCode(request.getCategoryCode()).subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
-                .games(games).draws(draws).figures(figures)
-                .availableNumbers(availableNumbers).totalNumbers(totalNumbers);
+                .games(games).draws(draws).figures(figures);
 
         if (isError) {
             builder.error(ErrorDetail.builder()
@@ -273,10 +219,8 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 }

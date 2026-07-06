@@ -43,7 +43,7 @@ public class TransactionController {
      * @param request datos de entrada requeridos para el precheck transaccional
      * @return respuesta HTTP con el resultado del precheck
      */
-    @PostMapping(ApiPaths.V1_PRECHECK)
+    @PostMapping({ApiPaths.V1_PRECHECK, ApiPaths.V1_PRECHECK_LOWER})
     @Operation(summary = "Precheck transaccional", responses = {
         @ApiResponse(responseCode = "200", description = "Precheck exitoso"),
         @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
@@ -105,7 +105,7 @@ public class TransactionController {
      * @param request datos del ticket a crear
      * @return respuesta HTTP con el resultado de la creacion del ticket
      */
-    @PostMapping(ApiPaths.V1_CREATE_TICKET)
+    @PostMapping({ApiPaths.V1_CREATE_TICKET, ApiPaths.V1_CREATE_TICKET_LOWER})
     @Operation(summary = "Creacion de ticket Pega3", responses = {
         @ApiResponse(responseCode = "200", description = "Ticket creado exitosamente"),
         @ApiResponse(responseCode = "400", description = "Solicitud invalida", content = @Content(schema = @Schema(implementation = ErrorDetail.class)))

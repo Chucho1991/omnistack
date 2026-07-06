@@ -40,6 +40,7 @@ import com.omnistack.backend.domain.model.TradicionalVentaBoletosCommand;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,7 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
 
     private static final String PROVIDER_KEY = "tradicional";
     private static final String PROVIDER_NAME = "Loteria Tradicionales";
+    private static final String JUEGO_ID_FIELD_PREFIX = "juego_id";
 
     private final TradicionalVentaBoletosPort ventaBoletosPort;
     private final ProviderConfigService providerConfigService;
@@ -67,8 +69,6 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
@@ -83,14 +83,16 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
         if (!(request instanceof ExecuteRequest executeRequest)) {
             throw new IntegrationException("Tradicionales EXECUTE requiere un ExecuteRequest");
         }
-        if (executeRequest.getBoletoData() == null) {
-            throw new IntegrationException("Tradicionales requiere boleto_data para EXECUTE");
+        List<ExecuteRequest.BoletoData> boletosData = executeRequest.getListaBoletos() != null && !executeRequest.getListaBoletos().isEmpty()
+                ? executeRequest.getListaBoletos()
+                : (executeRequest.getBoletoData() != null ? List.of(executeRequest.getBoletoData()) : null);
+        if (boletosData == null || boletosData.isEmpty()) {
+            throw new IntegrationException("Tradicionales requiere boleto_data o lista_boletos para EXECUTE");
         }
         if (executeRequest.getAmount() == null) {
             throw new IntegrationException("Tradicionales requiere amount para EXECUTE");
         }
 
-        ExecuteRequest.BoletoData boletoData = executeRequest.getBoletoData();
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
         String clienteId = provider.getShopId() != null ? provider.getShopId()
@@ -113,10 +115,17 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
                 .nombreComprador(executeRequest.getUsername())
                 .numeroCelularComprador(request.getPhone())
                 .correoElectronicoComprador(null)
-                .juegoId(boletoData.getGameId())
-                .sorteoId(boletoData.getDrawId())
-                .numero(boletoData.getNumero())
-                .cantidadBoletos(boletoData.getCantidadBoletos() != null ? boletoData.getCantidadBoletos() : 1)
+                .boletos(boletosData.stream()
+                        .map(boletoData -> TradicionalVentaBoletosCommand.BoletoEntry.builder()
+                                .juegoId(resolveItemDefault(
+                                        boletoData.getGameId(), providerWsDefsService, PROVIDER_KEY,
+                                        toWsKey(capability.name(), serviceDefinition.getMovementType()),
+                                        JUEGO_ID_FIELD_PREFIX, request.getRmsItemCode(), PROVIDER_NAME))
+                                .sorteoId(boletoData.getDrawId())
+                                .numero(boletoData.getNumero())
+                                .cantidadBoletos(boletoData.getCantidadBoletos() != null ? boletoData.getCantidadBoletos() : 1)
+                                .build())
+                        .collect(java.util.stream.Collectors.toList()))
                 .build();
 
         ExternalTransactionResponse externalResponse = ventaBoletosPort.ventaBoletos(command, operationUrl);
@@ -136,6 +145,8 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
                 .errorFlag(isError)
                 .authorization(stringValue(payload, "authorization"))
                 .amount(request.getAmount())
+                .boletoClave(stringValue(payload, "boletoClave"))
+                .boletoQr(stringValue(payload, "boletoQr"))
                 .fechaVenta(stringValue(payload, "fechaVenta"));
 
         if (isError) {
@@ -155,10 +166,8 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 }

@@ -10,13 +10,19 @@ import com.omnistack.backend.application.dto.ErrorDetail;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.StatusDetail;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.VerifyRequest;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.VerifyResponse;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.port.out.Pega3ComprobanteQueryPort;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.Pega3VerifyTicketPort;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.VerifyStrategy;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.service.ComprobanteUrlService;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderConfigService;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
@@ -31,6 +37,8 @@ import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
+import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.model.Pega3ComprobanteQueryCommand;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.Pega3VerifyTicketCommand;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
@@ -50,8 +58,11 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
 
     private static final String PROVIDER_KEY = "pega3";
     private static final String PROVIDER_NAME = "Loteria Pega3";
+    private static final String VERIFY_COMPROBANTE_KEY = "VERIFY_COMPROBANTE";
 
     private final Pega3VerifyTicketPort pega3VerifyTicketPort;
+    private final Pega3ComprobanteQueryPort pega3ComprobanteQueryPort;
+    private final ComprobanteUrlService comprobanteUrlService;
     private final ProviderConfigService providerConfigService;
     private final ProviderWsDefsService providerWsDefsService;
     private final ProviderWsService providerWsService;
@@ -64,8 +75,6 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
     }
 
@@ -98,10 +107,55 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
                 .build();
 
         ExternalTransactionResponse externalResponse = pega3VerifyTicketPort.verifyTicket(command, operationUrl);
-        return buildResponse(request, externalResponse);
+        String comprobanteB64 = fetchComprobanteIfAvailable(request, serviceDefinition, provider);
+        return buildResponse(request, externalResponse, comprobanteB64);
     }
 
-    private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
+    /**
+     * Genera el comprobante PDF (GenerarComprobantePega) solo si la operacion esta configurada
+     * y el request trae "transaccion" — la respuesta de ConsultarTicket/CrearTicket de Pega3
+     * no incluye ese dato, por lo que hoy no hay forma de obtenerlo automaticamente.
+     */
+    private String fetchComprobanteIfAvailable(
+            BaseTransactionRequest request,
+            ServiceDefinition serviceDefinition,
+            AppProperties.ProviderProperties provider) {
+        String transaccion = request instanceof VerifyRequest verifyRequest ? verifyRequest.getTransaccion() : null;
+        if (transaccion == null || transaccion.isBlank()) {
+            return null;
+        }
+        String comprobanteUrl = providerWsService
+                .findUrl(PROVIDER_KEY, toWsKey(VERIFY_COMPROBANTE_KEY, serviceDefinition.getMovementType()))
+                .orElse(null);
+        if (comprobanteUrl == null || comprobanteUrl.isBlank()) {
+            return null;
+        }
+
+        Pega3ComprobanteQueryCommand comprobanteCommand = Pega3ComprobanteQueryCommand.builder()
+                .uuid(request.getUuid())
+                .chain(request.getChain())
+                .store(request.getStore())
+                .storeName(request.getStoreName())
+                .pos(request.getPos())
+                .channelPos(request.getChannelPos().name())
+                .categoryCode(request.getCategoryCode())
+                .subcategoryCode(request.getSubcategoryCode())
+                .serviceProviderCode(request.getServiceProviderCode())
+                .rmsItemCode(request.getRmsItemCode())
+                .ventaId(request.getAuthorization())
+                .idUsuario(provider.getAuth().getLogin().getUsername())
+                .transaccion(transaccion)
+                .puntoDeVenta(request.getStoreName())
+                .build();
+
+        ExternalTransactionResponse comprobanteResponse = pega3ComprobanteQueryPort.generarComprobante(comprobanteCommand, comprobanteUrl);
+        if (!comprobanteResponse.isApproved()) {
+            return null;
+        }
+        return stringValue(comprobanteResponse.getPayload(), "comprobante_b64");
+    }
+
+    private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse, String comprobanteB64) {
         Map<String, Object> payload = externalResponse.getPayload();
         boolean isError = !externalResponse.isApproved();
 
@@ -121,7 +175,8 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
                 .ticketNumber(stringValue(payload, "ticket_number"))
                 .ticketStatus(stringValue(payload, "ticket_status"))
                 .winner(getBooleanValue(payload, "is_winner"))
-                .prizeAmount(decimalValue(payload, "prize_amount"));
+                .prizeAmount(decimalValue(payload, "prize_amount"))
+                .comprobanteUrl(comprobanteUrlService.storeAndBuildUrl(comprobanteB64));
 
         if (isError) {
             builder.error(ErrorDetail.builder()
@@ -140,10 +195,8 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 

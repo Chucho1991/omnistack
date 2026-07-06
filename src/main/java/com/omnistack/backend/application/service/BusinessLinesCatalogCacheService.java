@@ -64,6 +64,11 @@ public class BusinessLinesCatalogCacheService {
         }
     }
 
+    public void clearCache() {
+        snapshots.clear();
+        log.info("Business lines catalog cache cleared");
+    }
+
     record RequestCacheKey(String channelPos) {
         static RequestCacheKey from(BusinessLinesRequest request) {
             return new RequestCacheKey(

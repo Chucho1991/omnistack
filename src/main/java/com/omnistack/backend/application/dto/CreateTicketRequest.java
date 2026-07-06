@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -32,16 +31,31 @@ import lombok.experimental.SuperBuilder;
 public class CreateTicketRequest extends BaseTransactionRequest {
 
     @DecimalMin(value = "0.0", inclusive = false)
-    @NotNull
-    @Schema(example = "5.00")
+    @Schema(example = "5.00", description = "Requerido solo para Pega3 (Tradicionales no lo necesita en este paso)")
     private BigDecimal amount;
 
     @Valid
-    @NotNull
     @JsonProperty("ticket_data")
     @JsonAlias("ticketData")
-    @Schema(description = "Datos del ticket a generar")
+    @Schema(description = "Datos del ticket a generar (solo Pega3)")
     private TicketData ticketData;
+
+    @JsonProperty("draw_id")
+    @Schema(example = "7151", description = "ID de sorteo, requerido (solo Tradicionales)")
+    private String drawId;
+
+    @Schema(example = "", description = "Combinacion de numeros a buscar/reservar, vacio = sin filtro (solo Tradicionales)")
+    private String combinacion;
+
+    @Schema(example = "false", description = "Sugerir combinaciones alternativas si no hay match exacto (solo Tradicionales)")
+    private Boolean sugerir;
+
+    @Schema(example = "10", description = "Cantidad de registros a retornar (solo Tradicionales)")
+    private Integer registros;
+
+    @JsonProperty("figura_id")
+    @Schema(example = "01", description = "Codigo de mascota/fruta (solo Tradicionales)")
+    private String figuraId;
 
     @Override
     public BigDecimal getAmount() {

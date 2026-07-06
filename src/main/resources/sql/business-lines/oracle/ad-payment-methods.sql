@@ -1,7 +1,7 @@
 SELECT
     TO_CHAR(sp.TERCERO)     AS service_provider_code,
-    sp.CODIGO_ITEM_RMS      AS rms_item_code,
-    pf.COD_COM_FORMPAG_SERV AS service_payment_method_id,
+    TRIM(sp.CODIGO_ITEM_RMS) AS rms_item_code,
+    pf.COD_FORMA_PAGO       AS service_payment_method_id,
     CASE WHEN pf.COD_FORMA_PAGO = 1 THEN 'EFECTIVO'
          WHEN pf.COD_FORMA_PAGO = 2 THEN 'TARJETA_CREDITO'
          ELSE TO_CHAR(pf.COD_FORMA_PAGO) END AS payment_method_code,

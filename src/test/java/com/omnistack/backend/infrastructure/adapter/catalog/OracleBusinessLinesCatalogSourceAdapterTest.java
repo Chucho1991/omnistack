@@ -42,6 +42,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(sqlProvider.getRmsSuppliersSql()).thenReturn("rms-suppliers");
         when(sqlProvider.getAdPaymentMethodsSql()).thenReturn("ad-pm");
         when(sqlProvider.getAdCapabilitiesSql()).thenReturn("omni-cap");
+        when(sqlProvider.getAdMovementTypesSql()).thenReturn("movement-types");
         when(sqlProvider.getInputFieldsSql()).thenReturn("input-fields");
 
         // AD: parametros de servicio (via gpf_omnistack. — rmsTemplate)
@@ -50,10 +51,10 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                         "1", "100713841", true, false, "RECA", false,
                         "1", "200", "10000", "3", "3", true, "<html>consent</html>")));
 
-        // RMS: metadata del item (CLASS/SUBCLASS, desc, tipo)
+        // RMS: metadata del item (CLASS/SUBCLASS, desc)
         when(rmsTemplate.query(eq("rms-items"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.RmsItemRow(
-                        "100713841", "1", "ENTRETENIMIENTO", "1", "APUESTAS", "ECUABET CASH IN", "CASH_IN")));
+                        "100713841", "1", "ENTRETENIMIENTO", "1", "APUESTAS", "ECUABET CASH IN")));
 
         // RMS: supplier (nombre y RUC del proveedor)
         when(rmsTemplate.query(eq("rms-suppliers"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
@@ -69,6 +70,10 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(prodTemplate.query(eq("omni-cap"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("1", "PRECHECK"),
                 new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("1", "CREATE_TICKET")));
+
+        // PROD (TUKUNAFUNC): movement_type por rms_item_code
+        when(prodTemplate.query(eq("movement-types"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.MovementTypeRow("100713841", "CASH_IN")));
 
         // AD: campos de entrada (stub vacio — via rmsTemplate)
         when(rmsTemplate.query(eq("input-fields"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of());

@@ -1,5 +1,7 @@
 package com.omnistack.backend.infrastructure.adapter.integration.loteria;
 
+import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -67,7 +69,10 @@ class Bet593WithdrawWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.withdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -122,7 +127,10 @@ class Bet593WithdrawWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.withdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -222,7 +230,10 @@ class Bet593WithdrawWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.validateWithdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -266,7 +277,10 @@ class Bet593WithdrawWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.reverseWithdraw(Bet593WithdrawCommand.builder()
                 .uuid(GENERATED_UUID)
@@ -310,7 +324,10 @@ class Bet593WithdrawWebClientAdapterTest {
                 timeoutWebClient,
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         IntegrationException exception = assertThrows(IntegrationException.class, () -> adapter.withdraw(
                 Bet593WithdrawCommand.builder()
@@ -373,7 +390,18 @@ class Bet593WithdrawWebClientAdapterTest {
         }
 
         @Override
+        public String getToken(String providerKey) {
+            return currentToken;
+        }
+
+        @Override
         public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            currentToken = refreshedToken;
+            return refreshedToken;
+        }
+
+        @Override
+        public String refreshToken(String providerKey) {
             currentToken = refreshedToken;
             return refreshedToken;
         }

@@ -2,6 +2,11 @@ package com.omnistack.backend.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +14,9 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Respuesta interna para creacion de ticket Pega3.
+ * Respuesta interna para creacion de ticket (Pega3) o busqueda/reserva de
+ * combinaciones (Tradicionales — RecuperarNumerosDisponiblesPorCombinacion,
+ * que segun el proveedor "obtiene y reserva").
  */
 @SuperBuilder
 @NoArgsConstructor
@@ -57,4 +64,35 @@ public class CreateTicketResponse extends BaseTransactionResponse {
     @JsonProperty("ticket_number")
     @Schema(example = "TICKET-12345", description = "ticketNumber del proveedor Pega3")
     private String ticketNumber;
+
+    @JsonProperty("available_numbers")
+    @Schema(description = "Combinaciones encontradas/reservadas (solo Tradicionales)")
+    private List<TradicionalNumber> availableNumbers;
+
+    @JsonProperty("total_numbers")
+    @Schema(description = "Total de combinaciones encontradas (solo Tradicionales)")
+    private Integer totalNumbers;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TradicionalNumber {
+        private String numero;
+        private Boolean disponible;
+        private BigDecimal precio;
+        private String figura;
+
+        @JsonProperty("juego_id")
+        private String juegoId;
+
+        @JsonProperty("sorteo_id")
+        private String sorteoId;
+
+        /** Id de boleto — asocia Pozo Millonario con su Revancha cuando comparten valor. */
+        private String boleto;
+
+        @JsonProperty("fracciones")
+        private String fracciones;
+    }
 }

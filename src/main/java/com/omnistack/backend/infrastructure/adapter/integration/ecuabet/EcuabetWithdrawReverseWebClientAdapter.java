@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -60,31 +61,38 @@ public class EcuabetWithdrawReverseWebClientAdapter implements EcuabetWithdrawRe
         String requestJson = JsonUtil.toJsonSilently(request);
         traceToConsole("ECUABET withdraw reverse request", url, requestJson);
 
-        EcuabetWithdrawResponse response = omnistackWebClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(headers -> addHeaders(headers, command))
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
-                        .defaultIfEmpty("")
-                        .flatMap(body -> {
-                            traceErrorToConsole("ECUABET withdraw reverse error", url, body);
-                            wsExtLogService.log(ProviderCallLog.builder()
-                                    .uuid(command.getUuid())
-                                    .providerKey(PROVIDER_KEY)
-                                    .wsKey(WS_KEY)
-                                    .url(url)
-                                    .requestJson(requestJson)
-                                    .responseJson(body)
-                                    .durationMs(System.currentTimeMillis() - startMs)
-                                    .isError(true)
-                                    .errorMessage(buildErrorMessage(body))
-                                    .build());
-                            return Mono.error(new IntegrationException(buildErrorMessage(body)));
-                        }))
-                .bodyToMono(EcuabetWithdrawResponse.class)
-                .block();
+        EcuabetWithdrawResponse response;
+        try {
+            response = omnistackWebClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> addHeaders(headers, command))
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("")
+                            .flatMap(body -> {
+                                traceErrorToConsole("ECUABET withdraw reverse error", url, body);
+                                wsExtLogService.log(ProviderCallLog.builder()
+                                        .uuid(command.getUuid())
+                                        .providerKey(PROVIDER_KEY)
+                                        .wsKey(WS_KEY)
+                                        .url(url)
+                                        .requestJson(requestJson)
+                                        .responseJson(body)
+                                        .durationMs(System.currentTimeMillis() - startMs)
+                                        .isError(true)
+                                        .errorMessage(buildErrorMessage(body))
+                                        .build());
+                                return Mono.error(new IntegrationException(buildErrorMessage(body)));
+                            }))
+                    .bodyToMono(EcuabetWithdrawResponse.class)
+                    .block();
+        } catch (WebClientRequestException exception) {
+            String message = EcuabetTransportErrorMapper.buildMessage("reverso de nota de retiro", url, exception);
+            traceErrorToConsole("ECUABET withdraw reverse transport error", url, message);
+            throw new IntegrationException(message, exception);
+        }
 
         if (response == null) {
             throw new IntegrationException("ECUABET no retorno contenido para reverso de nota de retiro");
@@ -126,10 +134,7 @@ public class EcuabetWithdrawReverseWebClientAdapter implements EcuabetWithdrawRe
             EcuabetWithdrawCommand command,
             AppProperties.ProviderProperties provider) {
         validateProviderConfiguration(provider);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = providerTokenResolverUseCase.getToken(PROVIDER_KEY);
 
         return EcuabetWithdrawReverseRequest.builder()
                 .shop(provider.getShopId())

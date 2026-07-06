@@ -1,7 +1,6 @@
 package com.omnistack.backend.infrastructure.adapter.integration.tradicional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.TradicionalAnularVentaPort;
@@ -25,6 +24,7 @@ import com.omnistack.backend.domain.model.TradicionalVentaBoletosCommand;
 import com.omnistack.backend.domain.model.TradicionalVerifyCommand;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalAnularVentaRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalAnularVentaResponse;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalComprobanteResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalFigurasQueryRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalFigurasQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalJuegoQueryRequest;
@@ -37,7 +37,6 @@ import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalVentaBoletosResponse;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import com.omnistack.backend.shared.util.JsonUtil;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,32 +84,37 @@ public class TradicionalWebClientAdapter implements
     @Override
     public ExternalTransactionResponse queryJuegos(TradicionalJuegoQueryCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
 
         TradicionalJuegoQueryRequest request = TradicionalJuegoQueryRequest.builder()
                 .userName(resolveUserName(provider))
                 .token(token)
-                .medioId(provider.getMedioId())
+                .medioId(String.valueOf(provider.getMedioId()))
                 .build();
 
-        String body = invokePost(operationPath, provider, request, "queryJuegos", "consulta juegos Tradicionales",
-                command.getUuid(), WS_KEY_PRECHECK);
+        TradicionalJuegoQueryResponse response = invokePost(
+                operationPath, provider, request, TradicionalJuegoQueryResponse.class,
+                "queryJuegos", "consulta juegos Tradicionales", command.getUuid(), WS_KEY_PRECHECK);
 
-        List<TradicionalJuegoQueryResponse> juegos;
-        try {
-            juegos = objectMapper.readValue(body, new TypeReference<List<TradicionalJuegoQueryResponse>>() {});
-        } catch (JsonProcessingException e) {
-            throw new IntegrationException("Tradicionales queryJuegos retorno un body no parseable");
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalJuegoQueryRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalJuegoQueryResponse.class,
+                    "queryJuegos retry", "consulta juegos Tradicionales", command.getUuid(), WS_KEY_PRECHECK);
         }
 
         Map<String, Object> payload = new LinkedHashMap<>();
-        boolean isError = juegos == null || juegos.isEmpty();
-        payload.put("juegos", juegos != null ? juegos : Collections.emptyList());
+        boolean isError = !isSuccess(response.getCodError())
+                || response.getListaDetalle() == null || response.getListaDetalle().isEmpty();
+        payload.put("juegos", response.getListaDetalle() != null ? response.getListaDetalle() : Collections.emptyList());
+        payload.put("codError", response.getCodError());
+        payload.put("msgError", response.getMsgError());
 
         return ExternalTransactionResponse.builder()
                 .approved(!isError)
-                .externalCode(isError ? "ERROR" : "0")
-                .externalMessage(isError ? "No se obtuvieron juegos disponibles" : "")
+                .externalCode(String.valueOf(response.getCodError()))
+                .externalMessage(response.getMsgError() != null ? response.getMsgError() : "")
                 .payload(payload)
                 .build();
     }
@@ -118,18 +122,26 @@ public class TradicionalWebClientAdapter implements
     @Override
     public ExternalTransactionResponse querySorteos(TradicionalSorteosQueryCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
 
         TradicionalSorteosQueryRequest request = TradicionalSorteosQueryRequest.builder()
                 .userName(resolveUserName(provider))
                 .token(token)
-                .medioId(provider.getMedioId())
+                .medioId(String.valueOf(provider.getMedioId()))
                 .juegoId(command.getJuegoId())
                 .build();
 
         TradicionalSorteosQueryResponse response = invokePost(
                 operationPath, provider, request, TradicionalSorteosQueryResponse.class,
                 "querySorteos", "consulta sorteos Tradicionales", command.getUuid(), WS_KEY_PRECHECK_SORTEOS);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalSorteosQueryRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalSorteosQueryResponse.class,
+                    "querySorteos retry", "consulta sorteos Tradicionales", command.getUuid(), WS_KEY_PRECHECK_SORTEOS);
+        }
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = !isSuccess(response.getCodError());
@@ -148,18 +160,26 @@ public class TradicionalWebClientAdapter implements
     @Override
     public ExternalTransactionResponse queryFiguras(TradicionalFigurasQueryCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
 
         TradicionalFigurasQueryRequest request = TradicionalFigurasQueryRequest.builder()
                 .userName(resolveUserName(provider))
                 .token(token)
-                .medioId(provider.getMedioId())
+                .medioId(String.valueOf(provider.getMedioId()))
                 .juegoId(command.getJuegoId())
                 .build();
 
         TradicionalFigurasQueryResponse response = invokePost(
                 operationPath, provider, request, TradicionalFigurasQueryResponse.class,
                 "queryFiguras", "consulta figuras Tradicionales", command.getUuid(), WS_KEY_PRECHECK_FIGURAS);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalFigurasQueryRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalFigurasQueryResponse.class,
+                    "queryFiguras retry", "consulta figuras Tradicionales", command.getUuid(), WS_KEY_PRECHECK_FIGURAS);
+        }
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = !isSuccess(response.getCodError());
@@ -178,12 +198,12 @@ public class TradicionalWebClientAdapter implements
     @Override
     public ExternalTransactionResponse queryNumeros(TradicionalNumerosQueryCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
 
         TradicionalNumerosQueryRequest request = TradicionalNumerosQueryRequest.builder()
                 .userName(resolveUserName(provider))
                 .token(token)
-                .medioId(provider.getMedioId())
+                .medioId(String.valueOf(provider.getMedioId()))
                 .juegoId(command.getJuegoId())
                 .sorteoId(command.getSorteoId())
                 .combinacion(command.getCombinacion())
@@ -196,6 +216,14 @@ public class TradicionalWebClientAdapter implements
         TradicionalNumerosQueryResponse response = invokePost(
                 operationPath, provider, request, TradicionalNumerosQueryResponse.class,
                 "queryNumeros", "consulta numeros Tradicionales", command.getUuid(), WS_KEY_PRECHECK_NUMEROS);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalNumerosQueryRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalNumerosQueryResponse.class,
+                    "queryNumeros retry", "consulta numeros Tradicionales", command.getUuid(), WS_KEY_PRECHECK_NUMEROS);
+        }
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = !isSuccess(response.getCodError());
@@ -215,12 +243,12 @@ public class TradicionalWebClientAdapter implements
     @Override
     public ExternalTransactionResponse ventaBoletos(TradicionalVentaBoletosCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
 
         TradicionalVentaBoletosRequest request = TradicionalVentaBoletosRequest.builder()
                 .userName(resolveUserName(provider))
                 .token(token)
-                .medioId(provider.getMedioId())
+                .medioId(String.valueOf(provider.getMedioId()))
                 .reservaId(command.getReservaId())
                 .cliente(command.getCliente())
                 .totalVenta(command.getTotalVenta())
@@ -237,21 +265,20 @@ public class TradicionalWebClientAdapter implements
                                                 .total(command.getTotalVenta())
                                                 .build()))
                                 .build()))
-                .listaJuegos(List.of(
-                        TradicionalVentaBoletosRequest.JuegoEntry.builder()
-                                .juegoId(command.getJuegoId())
-                                .listaSorteos(List.of(
-                                        TradicionalVentaBoletosRequest.SorteoEntry.builder()
-                                                .sorteoId(command.getSorteoId())
-                                                .numero(command.getNumero())
-                                                .cantidadBoletos(command.getCantidadBoletos())
-                                                .build()))
-                                .build()))
+                .listaJuegos(buildListaJuegos(command.getBoletos()))
                 .build();
 
         TradicionalVentaBoletosResponse response = invokePost(
                 operationPath, provider, request, TradicionalVentaBoletosResponse.class,
                 "ventaBoletos", "venta boletos Tradicionales", command.getUuid(), WS_KEY_EXECUTE);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalVentaBoletosRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalVentaBoletosResponse.class,
+                    "ventaBoletos retry", "venta boletos Tradicionales", command.getUuid(), WS_KEY_EXECUTE);
+        }
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = !response.isSuccess();
@@ -262,6 +289,12 @@ public class TradicionalWebClientAdapter implements
         payload.put("fechaVenta", response.getFechaVenta());
         payload.put("transaccion", response.getTransaccion());
 
+        TradicionalVentaBoletosResponse.TicketDetalle primerTicket = firstTicketDetalle(response);
+        if (primerTicket != null) {
+            payload.put("boletoClave", primerTicket.getClave());
+            payload.put("boletoQr", primerTicket.getCodigoQR());
+        }
+
         return ExternalTransactionResponse.builder()
                 .approved(!isError)
                 .externalCode(String.valueOf(response.getCodError()))
@@ -270,15 +303,50 @@ public class TradicionalWebClientAdapter implements
                 .build();
     }
 
+    private List<TradicionalVentaBoletosRequest.JuegoEntry> buildListaJuegos(
+            List<TradicionalVentaBoletosCommand.BoletoEntry> boletos) {
+        Map<String, List<TradicionalVentaBoletosRequest.SorteoEntry>> sorteosPorJuego = new LinkedHashMap<>();
+        for (TradicionalVentaBoletosCommand.BoletoEntry boleto : boletos) {
+            sorteosPorJuego
+                    .computeIfAbsent(boleto.getJuegoId(), key -> new java.util.ArrayList<>())
+                    .add(TradicionalVentaBoletosRequest.SorteoEntry.builder()
+                            .sorteoId(boleto.getSorteoId())
+                            .numero(boleto.getNumero())
+                            .cantidadBoletos(boleto.getCantidadBoletos())
+                            .build());
+        }
+        return sorteosPorJuego.entrySet().stream()
+                .map(entry -> TradicionalVentaBoletosRequest.JuegoEntry.builder()
+                        .juegoId(entry.getKey())
+                        .listaSorteos(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private TradicionalVentaBoletosResponse.TicketDetalle firstTicketDetalle(TradicionalVentaBoletosResponse response) {
+        if (response.getListaSUE() == null || response.getListaSUE().isEmpty()) {
+            return null;
+        }
+        TradicionalVentaBoletosResponse.Sue sue = response.getListaSUE().get(0);
+        if (sue.getListaSorteos() == null || sue.getListaSorteos().isEmpty()) {
+            return null;
+        }
+        TradicionalVentaBoletosResponse.SorteoDetalle sorteoDetalle = sue.getListaSorteos().get(0);
+        if (sorteoDetalle.getListaR() == null || sorteoDetalle.getListaR().isEmpty()) {
+            return null;
+        }
+        return sorteoDetalle.getListaR().get(0);
+    }
+
     @Override
     public ExternalTransactionResponse anularVenta(TradicionalAnularVentaCommand command, String operationPath) {
         AppProperties.ProviderProperties provider = getProviderProperties();
-        String token = resolveToken(command.getCategoryCode(), command.getSubcategoryCode(), provider);
+        String token = resolveToken();
 
         TradicionalAnularVentaRequest request = TradicionalAnularVentaRequest.builder()
                 .userName(resolveUserName(provider))
                 .token(token)
-                .medioId(provider.getMedioId())
+                .medioId(String.valueOf(provider.getMedioId()))
                 .clienteId(command.getClienteId())
                 .ordenCompra(command.getOrdenCompra())
                 .motivo(command.getMotivo())
@@ -287,6 +355,14 @@ public class TradicionalWebClientAdapter implements
         TradicionalAnularVentaResponse response = invokePost(
                 operationPath, provider, request, TradicionalAnularVentaResponse.class,
                 "anularVenta", "anulacion venta Tradicionales", command.getUuid(), WS_KEY_REVERSE);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalAnularVentaRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalAnularVentaResponse.class,
+                    "anularVenta retry", "anulacion venta Tradicionales", command.getUuid(), WS_KEY_REVERSE);
+        }
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = !response.isSuccess();
@@ -313,9 +389,9 @@ public class TradicionalWebClientAdapter implements
         log.info("Tradicionales generateComprobante GET url={}", fullUrl);
         long startMs = System.currentTimeMillis();
 
-        byte[] bytes;
+        TradicionalComprobanteResponse response;
         try {
-            bytes = omnistackWebClient.get()
+            response = omnistackWebClient.get()
                     .uri(fullUrl)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
@@ -336,7 +412,7 @@ public class TradicionalWebClientAdapter implements
                                         .build());
                                 return Mono.error(new IntegrationException(errMsg));
                             }))
-                    .bodyToMono(byte[].class)
+                    .bodyToMono(TradicionalComprobanteResponse.class)
                     .block();
         } catch (WebClientRequestException exception) {
             String errMsg = "Error de conexion al invocar GenerarComprobanteVenta: " + rootCauseMessage(exception);
@@ -355,20 +431,21 @@ public class TradicionalWebClientAdapter implements
         }
 
         Map<String, Object> payload = new LinkedHashMap<>();
-        boolean isError = bytes == null || bytes.length == 0;
+        boolean isError = response == null || response.getBase64() == null || response.getBase64().isBlank();
         wsExtLogService.log(ProviderCallLog.builder()
                 .uuid(command.getUuid())
                 .providerKey(PROVIDER_KEY)
                 .wsKey(WS_KEY_VERIFY)
                 .url(fullUrl)
                 .requestJson(null)
-                .responseJson(isError ? null : "[binary pdf " + (bytes != null ? bytes.length : 0) + " bytes]")
+                .responseJson(isError ? null : "[pdf " + response.getFileName() + "]")
                 .durationMs(System.currentTimeMillis() - startMs)
                 .isError(isError)
                 .errorMessage(isError ? "GenerarComprobanteVenta no retorno contenido" : null)
                 .build());
         if (!isError) {
-            payload.put("comprobante_b64", Base64.getEncoder().encodeToString(bytes));
+            payload.put("comprobante_b64", response.getBase64());
+            payload.put("file_name", response.getFileName());
         }
         payload.put("ventaId", command.getVentaId());
 
@@ -478,8 +555,8 @@ public class TradicionalWebClientAdapter implements
         return provider;
     }
 
-    private String resolveToken(String categoryCode, String subcategoryCode, AppProperties.ProviderProperties provider) {
-        return providerTokenResolverUseCase.getToken(categoryCode, subcategoryCode, provider.getServiceProviderCode());
+    private String resolveToken() {
+        return providerTokenResolverUseCase.getToken(PROVIDER_KEY);
     }
 
     private String resolveUserName(AppProperties.ProviderProperties provider) {
@@ -493,6 +570,28 @@ public class TradicionalWebClientAdapter implements
 
     private boolean isSuccess(Object codError) {
         return codError != null && "0".equals(String.valueOf(codError));
+    }
+
+    /**
+     * Loteria Nacional mantiene una sola sesion activa por usuario: loguearse para
+     * Bet593 o Pega3 con la misma cuenta invalida la sesion de Tradicionales aunque
+     * nuestro token cacheado no haya vencido segun el TTL local. Ante ese rechazo,
+     * forzamos un refresh y reintentamos una vez (mismo patron que
+     * Bet593WithdrawWebClientAdapter.isInvalidTokenResponse).
+     */
+    private boolean isInvalidTokenMessage(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String message = value.toLowerCase(java.util.Locale.ROOT);
+        return message.contains("token")
+                && (message.contains("invalid")
+                || message.contains("inval")
+                || message.contains("expir")
+                || message.contains("venc")
+                || message.contains("caduc")
+                || message.contains("autoriz")
+                || message.contains("sesion"));
     }
 
 

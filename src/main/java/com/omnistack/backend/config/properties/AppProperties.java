@@ -1,6 +1,7 @@
 package com.omnistack.backend.config.properties;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,6 +20,16 @@ public class AppProperties {
     private BusinessLines businessLines = new BusinessLines();
     private Integrations integrations = new Integrations();
     private Datasource datasource = new Datasource();
+    private Comprobantes comprobantes = new Comprobantes();
+
+    /**
+     * Propiedades de almacenamiento y publicacion de comprobantes de venta (PDF).
+     */
+    @Data
+    public static class Comprobantes {
+        private String storagePath = "./data/comprobantes";
+        private String publicBaseUrl = "http://localhost:8086";
+    }
 
     /**
      * Propiedades de metadata Swagger.
@@ -86,8 +97,8 @@ public class AppProperties {
     public static class Integrations {
         private int defaultConnectTimeoutMs = 60000;
         private int defaultReadTimeoutMs = 60000;
+        private List<String> tlsProtocols = List.of("TLSv1.2");
         private boolean mockEnabled;
-        private boolean sslVerificationDisabled = false;
     }
 
     /**

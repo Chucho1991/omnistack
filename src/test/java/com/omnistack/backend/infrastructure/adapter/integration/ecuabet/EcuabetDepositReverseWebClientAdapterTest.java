@@ -1,5 +1,7 @@
 package com.omnistack.backend.infrastructure.adapter.integration.ecuabet;
 
+import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -58,7 +60,10 @@ class EcuabetDepositReverseWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-test", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-test"; }
+                    public String getToken(String providerKey) { return "token-test"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.reverseDeposit(EcuabetDepositCommand.builder()
                 .uuid("uuid-1")

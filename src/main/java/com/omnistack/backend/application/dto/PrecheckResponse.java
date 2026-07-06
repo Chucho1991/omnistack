@@ -108,6 +108,26 @@ public class PrecheckResponse extends BaseTransactionResponse {
         @JsonProperty("min_cost")
         @Schema(example = "1.00")
         private BigDecimal minCost;
+
+        @JsonProperty("max_cost")
+        @Schema(example = "30.00", description = "Monto maximo de apuesta (maxWager del proveedor)")
+        private BigDecimal maxCost;
+
+        @JsonProperty("future_draws_limit")
+        @Schema(example = "12", description = "Ventana maxima de sorteos futuros para reserva")
+        private Integer futureDrawsLimit;
+
+        @JsonProperty("advance_draw_limit")
+        @Schema(example = "1", description = "Cantidad de sorteos futuros que se pueden saltar")
+        private Integer advanceDrawLimit;
+
+        @JsonProperty("play_types")
+        @Schema(example = "[\"Straight\", \"Box\"]")
+        private List<String> playTypes;
+
+        @JsonProperty("prize_liability_threshold")
+        @Schema(example = "5000.00", description = "Monto de premio a partir del cual el proveedor exige control de riesgo antes de continuar (RN-07)")
+        private BigDecimal prizeLiabilityThreshold;
     }
 
     /**
@@ -139,14 +159,6 @@ public class PrecheckResponse extends BaseTransactionResponse {
     @Schema(description = "Lista de figuras del juego (solo Tradicionales — Loteria)")
     private List<TradicionalFigura> figures;
 
-    @JsonProperty("available_numbers")
-    @Schema(description = "Lista de numeros disponibles para el sorteo (solo Tradicionales)")
-    private List<TradicionalNumber> availableNumbers;
-
-    @JsonProperty("total_numbers")
-    @Schema(description = "Total de numeros disponibles (solo Tradicionales)")
-    private Integer totalNumbers;
-
     @Data
     @Builder
     @NoArgsConstructor
@@ -171,6 +183,21 @@ public class PrecheckResponse extends BaseTransactionResponse {
         @JsonProperty("premio_mayor")
         private java.math.BigDecimal premioMayor;
         private Boolean disponible;
+
+        @JsonProperty("cantidad_fraccion")
+        @Schema(description = "Cantidad de fracciones por entero (solo La Loteria; 0 o null en juegos sin fraccion)")
+        private Integer cantidadFraccion;
+
+        @JsonProperty("tiene_revancha")
+        @Schema(description = "True si el sorteo tiene un Pozo Revancha asociado (solo Pozo Millonario)")
+        private Boolean tieneRevancha;
+
+        @JsonProperty("juego_revancha_id")
+        @Schema(example = "17", description = "juegoId del Pozo Revancha asociado")
+        private String juegoRevanchaId;
+
+        @JsonProperty("sorteo_revancha_id")
+        private String sorteoRevanchaId;
     }
 
     @Data
@@ -182,15 +209,5 @@ public class PrecheckResponse extends BaseTransactionResponse {
         private String figuraId;
         private String nombre;
         private String descripcion;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TradicionalNumber {
-        private String numero;
-        private Boolean disponible;
-        private java.math.BigDecimal precio;
     }
 }

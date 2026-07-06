@@ -81,19 +81,19 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
             String subscriberId) {
         return "<umsprot version=\"1\">"
                 + "<exec_req function=\"validateRechargeRetail\">"
-                + field("validateRechargeRetail", "COMPANYID", provider.getCompanyId())
-                + field("validateRechargeRetail", "EXTERNALOPERATION", provider.getExternalOperation())
+                + field("validateRechargeRetail", "COMPANYID", command.getCompanyId())
+                + field("validateRechargeRetail", "EXTERNALOPERATION", command.getExternalOperation())
                 + field("validateRechargeRetail", "EXTERNALTRANSACTIONDATE", trxDate)
                 + field("validateRechargeRetail", "USERNAME", provider.getAuth().getLogin().getUsername())
                 + field("validateRechargeRetail", "PASSWORD", provider.getAuth().getLogin().getPassword())
-                + field("validateRechargeRetail", "MEDIAID", provider.getMediaId())
+                + field("validateRechargeRetail", "MEDIAID", command.getMediaId())
                 + field("validateRechargeRetail", "TERMINAL", provider.getShopIp())
-                + field("validateRechargeRetail", "CODCAJA", provider.getCodCaja())
-                + field("validateRechargeRetail", "CODSITE", provider.getCodSite())
+                + field("validateRechargeRetail", "CODCAJA", command.getCodCaja())
+                + field("validateRechargeRetail", "CODSITE", command.getCodSite())
                 + field("validateRechargeRetail", "SUBSCRIBERID", subscriberId)
                 + field("validateRechargeRetail", "QUANTITY", command.getAmount())
                 + field("validateRechargeRetail", "OFFERID", command.getOfferId())
-                + field("validateRechargeRetail", "EXTERNALTRANSACTIONID", command.getUuid())
+                + field("validateRechargeRetail", "EXTERNALTRANSACTIONID", toNumericTransactionId(command.getUuid()))
                 + "</exec_req>"
                 + "</umsprot>";
     }
@@ -105,25 +105,25 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
             String subscriberId) {
         return "<umsprot version=\"1\">"
                 + "<exec_req function=\"processRechargeRetail\">"
-                + field("processRechargeRetail", "COMPANYID", provider.getCompanyId())
-                + field("processRechargeRetail", "CONSUMERID", provider.getConsumerId())
-                + field("processRechargeRetail", "EXTERNALOPERATION", provider.getExternalOperation())
+                + field("processRechargeRetail", "COMPANYID", command.getCompanyId())
+                + field("processRechargeRetail", "CONSUMERID", command.getConsumerId())
+                + field("processRechargeRetail", "EXTERNALOPERATION", command.getExternalOperation())
                 + field("processRechargeRetail", "EXTERNALTRANSACTIONDATE", trxDate)
-                + field("processRechargeRetail", "CHANNELID", provider.getChannelId())
-                + field("processRechargeRetail", "MEDIAID", provider.getMediaId())
-                + field("processRechargeRetail", "MEDIADETAILID", provider.getMediaDetailId())
+                + field("processRechargeRetail", "CHANNELID", command.getChannelId())
+                + field("processRechargeRetail", "MEDIAID", command.getMediaId())
+                + field("processRechargeRetail", "MEDIADETAILID", command.getMediaDetailId())
                 + field("processRechargeRetail", "USERNAME", provider.getAuth().getLogin().getUsername())
                 + field("processRechargeRetail", "PASSWORD", provider.getAuth().getLogin().getPassword())
                 + field("processRechargeRetail", "TERMINAL", provider.getShopIp())
-                + field("processRechargeRetail", "CODCAJA", provider.getCodCaja())
-                + field("processRechargeRetail", "CODSITE", provider.getCodSite())
+                + field("processRechargeRetail", "CODCAJA", command.getCodCaja())
+                + field("processRechargeRetail", "CODSITE", command.getCodSite())
                 + field("processRechargeRetail", "SUBSCRIBERID", subscriberId)
-                + field("processRechargeRetail", "SUBSCRIBERTYPE", provider.getSubscriberType())
-                + field("processRechargeRetail", "SUBSCRIPTIONTYPE", provider.getSubscriptionType())
+                + field("processRechargeRetail", "SUBSCRIBERTYPE", command.getSubscriberType())
+                + field("processRechargeRetail", "SUBSCRIPTIONTYPE", command.getSubscriptionType())
                 + field("processRechargeRetail", "QUANTITY", command.getAmount())
                 + field("processRechargeRetail", "OFFERID", command.getOfferId())
                 + field("processRechargeRetail", "AUTHORIZATIONNUMBER", command.getAuthorizationNumber())
-                + field("processRechargeRetail", "EXTERNALTRANSACTIONID", command.getUuid())
+                + field("processRechargeRetail", "EXTERNALTRANSACTIONID", toNumericTransactionId(command.getUuid()))
                 + field("processRechargeRetail", "TOKEN", provider.getToken())
                 + field("processRechargeRetail", "LATITUDE", provider.getLatitude())
                 + field("processRechargeRetail", "LONGITUDE", provider.getLongitude())
@@ -139,6 +139,9 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
             String elementName,
             String requestAmount,
             String phone) {
+        if (!responseXml.trim().startsWith("<")) {
+            throw new IntegrationException("Servicio CLARO temporalmente no disponible");
+        }
         Map<String, String> fields;
         try {
             fields = parseXmlFields(responseXml, elementName);
@@ -146,7 +149,9 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
             throw new IntegrationException("CLARO retorno XML no parseable: " + e.getMessage(), e);
         }
 
-        String idCode = fields.getOrDefault("ID_CODE", "");
+        // Claro usa nombres distintos segun la operacion: "ID_CODIGO" en validateRechargeRetail
+        // (PRECHECK), "ID_CODE" en processRechargeRetail (EXECUTE). Se aceptan ambos.
+        String idCode = fields.getOrDefault("ID_CODE", fields.getOrDefault("ID_CODIGO", ""));
         String status = fields.getOrDefault("STATUS", "");
         String systemMessage = fields.getOrDefault("SYSTEMMESSAGE", "");
         String authorizationNumber = fields.getOrDefault("AUTHORIZATIONNUMBER", "");
@@ -204,7 +209,8 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
         try {
             responseBody = omnistackWebClient.post()
                     .uri(url)
-                    .contentType(MediaType.APPLICATION_XML)
+                    .contentType(MediaType.parseMediaType("text/xml;charset=UTF-8"))
+                    .header("SOAPAction", "\"\"")
                     .bodyValue(xmlBody)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
@@ -213,16 +219,10 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
                                 log.error("CLARO {} error url={} body={}", logOperation, url, body);
                                 String errMsg = "Error HTTP al invocar " + errorOperation + ": " + body;
                                 wsExtLogService.log(ProviderCallLog.builder()
-                                        .uuid(uuid)
-                                        .providerKey(PROVIDER_KEY)
-                                        .wsKey(wsKey)
-                                        .url(url)
-                                        .requestJson(xmlBody)
-                                        .responseJson(body)
+                                        .uuid(uuid).providerKey(PROVIDER_KEY).wsKey(wsKey).url(url)
+                                        .requestJson(xmlBody).responseJson(body)
                                         .durationMs(System.currentTimeMillis() - startMs)
-                                        .isError(true)
-                                        .errorMessage(errMsg)
-                                        .build());
+                                        .isError(true).errorMessage(errMsg).build());
                                 return Mono.error(new IntegrationException(errMsg));
                             }))
                     .bodyToMono(String.class)
@@ -230,16 +230,10 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
         } catch (WebClientRequestException exception) {
             String errMsg = "Error de conexion al invocar " + errorOperation + ": " + rootCauseMessage(exception);
             wsExtLogService.log(ProviderCallLog.builder()
-                    .uuid(uuid)
-                    .providerKey(PROVIDER_KEY)
-                    .wsKey(wsKey)
-                    .url(url)
-                    .requestJson(xmlBody)
-                    .responseJson(null)
+                    .uuid(uuid).providerKey(PROVIDER_KEY).wsKey(wsKey).url(url)
+                    .requestJson(xmlBody).responseJson(null)
                     .durationMs(System.currentTimeMillis() - startMs)
-                    .isError(true)
-                    .errorMessage(errMsg)
-                    .build());
+                    .isError(true).errorMessage(errMsg).build());
             throw new IntegrationException(errMsg, exception);
         }
 
@@ -248,15 +242,10 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
         }
         log.info("CLARO {} response url={} body={}", logOperation, url, responseBody);
         wsExtLogService.log(ProviderCallLog.builder()
-                .uuid(uuid)
-                .providerKey(PROVIDER_KEY)
-                .wsKey(wsKey)
-                .url(url)
-                .requestJson(xmlBody)
-                .responseJson(responseBody)
+                .uuid(uuid).providerKey(PROVIDER_KEY).wsKey(wsKey).url(url)
+                .requestJson(xmlBody).responseJson(responseBody)
                 .durationMs(System.currentTimeMillis() - startMs)
-                .isError(false)
-                .build());
+                .isError(false).build());
         return responseBody;
     }
 
@@ -291,5 +280,18 @@ public class ClaroXmlAdapter implements ClaroPrecheckPort, ClaroExecutePort {
         return message == null || message.isBlank()
                 ? current.getClass().getSimpleName()
                 : current.getClass().getSimpleName() + ": " + message;
+    }
+
+    // CLARO exige EXTERNALTRANSACTIONID como NUMBER(15). El uuid de OmniStack es un UUID4
+    // (alfanumérico), así que derivamos un número de 15 dígitos determinístico a partir de él.
+    private static String toNumericTransactionId(String uuid) {
+        try {
+            long bits = java.util.UUID.fromString(uuid).getLeastSignificantBits();
+            return String.format("%015d", Math.abs(bits) % 1_000_000_000_000_000L);
+        } catch (IllegalArgumentException e) {
+            // uuid no tiene formato estándar — usar hash del string
+            long hash = Math.abs((long) uuid.hashCode() * 31L + uuid.length());
+            return String.format("%015d", hash % 1_000_000_000_000_000L);
+        }
     }
 }

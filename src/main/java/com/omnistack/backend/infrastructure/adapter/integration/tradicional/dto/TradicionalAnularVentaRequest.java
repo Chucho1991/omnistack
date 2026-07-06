@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TradicionalAnularVentaRequest {
     String userName;
     String token;
-    Integer medioId;
+    String medioId;
     String clienteId;
     String ordenCompra;
     String motivo;

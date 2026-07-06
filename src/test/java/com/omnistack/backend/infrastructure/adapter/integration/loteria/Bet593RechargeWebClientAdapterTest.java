@@ -1,5 +1,7 @@
 package com.omnistack.backend.infrastructure.adapter.integration.loteria;
 
+import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -71,7 +73,10 @@ class Bet593RechargeWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.recharge(Bet593RechargeCommand.builder()
                 .uuid("uuid-bet593")
@@ -131,7 +136,10 @@ class Bet593RechargeWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.validateRecharge(Bet593RechargeCommand.builder()
                 .uuid("uuid-bet593")
@@ -247,7 +255,10 @@ class Bet593RechargeWebClientAdapterTest {
                 WebClient.builder().build(),
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         var response = adapter.reverseRecharge(Bet593RechargeCommand.builder()
                 .uuid("ca9b201a-a668-45ed-876c-00affcb18580")
@@ -296,7 +307,10 @@ class Bet593RechargeWebClientAdapterTest {
                 timeoutWebClient,
                 providerConfigService(),
                 new ObjectMapper(),
-                (categoryCode, subcategoryCode, serviceProviderCode) -> "token-dinamico", Mockito.mock(WsExtLogService.class));
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) { return "token-dinamico"; }
+                    public String getToken(String providerKey) { return "token-dinamico"; }
+                }, Mockito.mock(WsExtLogService.class));
 
         IntegrationException exception = assertThrows(IntegrationException.class, () -> adapter.recharge(
                 Bet593RechargeCommand.builder()
@@ -361,7 +375,18 @@ class Bet593RechargeWebClientAdapterTest {
         }
 
         @Override
+        public String getToken(String providerKey) {
+            return currentToken;
+        }
+
+        @Override
         public String refreshToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+            currentToken = refreshedToken;
+            return refreshedToken;
+        }
+
+        @Override
+        public String refreshToken(String providerKey) {
             currentToken = refreshedToken;
             return refreshedToken;
         }

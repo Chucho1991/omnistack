@@ -20,8 +20,13 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "app.datasource.prod.url")
 public class OracleProviderConfigAdapter implements ProviderConfigPort {
 
+    // Registros fijos (VALOR_ORIGEN IS NULL):  clave = "providerkey|config_key"
+    // Registros de mapeo (VALOR_ORIGEN IS NOT NULL): clave = "providerkey|config_key|valor_origen"
     private static final String LOAD_ALL_SQL =
-            "SELECT LOWER(PROVEEDOR_KEY) || '|' || LOWER(CONFIG_KEY) AS cache_key, CONFIG_VALOR "
+            "SELECT LOWER(PROVEEDOR_KEY) || '|' || LOWER(CONFIG_KEY) "
+            + "    || CASE WHEN VALOR_ORIGEN IS NOT NULL THEN '|' || LOWER(VALOR_ORIGEN) ELSE '' END "
+            + "  AS cache_key, "
+            + "CONFIG_VALOR "
             + "FROM IN_OMNI_PROVEEDOR_CONFIG";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;

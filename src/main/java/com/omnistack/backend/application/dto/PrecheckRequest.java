@@ -27,19 +27,6 @@ public class PrecheckRequest extends BaseTransactionRequest {
     private BigDecimal amount;
 
     @JsonProperty("game_id")
-    @Schema(example = "1", description = "ID de juego (solo Tradicionales)")
+    @Schema(example = "1", description = "ID de juego (solo Tradicionales). Opcional — si no se envia, se deriva del rms_item_code.")
     private String gameId;
-
-    @JsonProperty("draw_id")
-    @Schema(example = "7210", description = "ID de sorteo (solo Tradicionales)")
-    private String drawId;
-
-    @Schema(example = "20911", description = "Combinacion de numeros para consulta (solo Tradicionales)")
-    private String combinacion;
-
-    @Schema(example = "false", description = "Sugerir numeros disponibles (solo Tradicionales)")
-    private Boolean sugerir;
-
-    @Schema(example = "10", description = "Cantidad de registros a retornar (solo Tradicionales)")
-    private Integer registros;
 }

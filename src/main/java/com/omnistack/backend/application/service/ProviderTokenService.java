@@ -62,6 +62,22 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
     }
 
     /**
+     * Resuelve el token directamente por clave de proveedor, sin pasar por la
+     * busqueda ambigua por categoria/subcategoria/codigo de proveedor.
+     */
+    @Override
+    public String getToken(String providerKey) {
+        AppProperties.ProviderProperties provider = providerConfigService.getProviderProperties(providerKey);
+        if (provider == null) {
+            throw new IntegrationException("No existe configuracion para el proveedor " + providerKey);
+        }
+        if (usesStaticToken(provider)) {
+            return getStaticToken(provider);
+        }
+        return getDynamicToken(providerKey, provider, false).getToken();
+    }
+
+    /**
      * Regenera el token vigente para el proveedor indicado y actualiza el cache.
      *
      * @param categoryCode categoria comercial
@@ -77,6 +93,22 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
             return getStaticToken(provider);
         }
         return getDynamicToken(entry.getKey(), provider, true).getToken();
+    }
+
+    /**
+     * Regenera el token vigente para el proveedor indicado (por clave de
+     * proveedor) y actualiza el cache. Ver {@link #getToken(String)}.
+     */
+    @Override
+    public String refreshToken(String providerKey) {
+        AppProperties.ProviderProperties provider = providerConfigService.getProviderProperties(providerKey);
+        if (provider == null) {
+            throw new IntegrationException("No existe configuracion para el proveedor " + providerKey);
+        }
+        if (usesStaticToken(provider)) {
+            return getStaticToken(provider);
+        }
+        return getDynamicToken(providerKey, provider, true).getToken();
     }
 
     /**
@@ -155,14 +187,29 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
 
     private synchronized ProviderToken getDynamicToken(String providerKey, AppProperties.ProviderProperties provider, boolean forceRefresh) {
         Instant now = clock.instant();
-        String cacheKey = cacheKey(provider.getCategoryCode(), provider.getSubcategoryCode(), provider.getServiceProviderCode());
-        CachedProviderToken current = tokenCache.get(cacheKey);
+        // Cache por providerKey (no por categoria/subcategoria/codigo de proveedor: dos
+        // proveedores distintos, ej. tradicional y pega3, pueden compartir esos 3 valores
+        // cuando ninguno tiene subcategoryCode propio configurado).
+        //
+        // OJO: se probo cachear por "sesion compartida" (loginUrl+usuario) asumiendo que
+        // Loteria Nacional acepta cualquier token vigente de la cuenta sin importar el
+        // productoVender usado al loguear (tradicional/loteria/pega3 comparten cuenta).
+        // La evidencia real lo contradice: un token obtenido con productoVender=Pega3 fue
+        // rechazado por un endpoint de Tradicionales aun siendo la sesion mas reciente de
+        // esa cuenta ("Usuario sin token de sesion valido"). Es decir, el token SI esta
+        // atado a su propio producto — lo que SI parece cierto es que loguearse para un
+        // producto invalida la sesion vigente de los otros del lado del proveedor. Por eso
+        // el cache debe seguir siendo por providerKey (cada producto con su propio token),
+        // y la mitigacion real es reintentar con refresh forzado cuando el proveedor
+        // rechaza el token (ver TradicionalWebClientAdapter, patron ya usado en
+        // Bet593WithdrawWebClientAdapter.isInvalidTokenResponse).
+        CachedProviderToken current = tokenCache.get(providerKey);
         if (!forceRefresh && current != null && !current.isExpired(now)) {
             return current.token();
         }
 
         ProviderToken refreshedToken = requestNewToken(providerKey, provider, now);
-        tokenCache.put(cacheKey, new CachedProviderToken(refreshedToken));
+        tokenCache.put(providerKey, new CachedProviderToken(refreshedToken));
         return refreshedToken;
     }
 
@@ -283,18 +330,6 @@ public class ProviderTokenService implements ProviderTokenResolverUseCase, Provi
             score++;
         }
         return score;
-    }
-
-    private String cacheKey(String categoryCode, String subcategoryCode, String serviceProviderCode) {
-        return String.join("|",
-                defaultKeyPart(categoryCode),
-                defaultKeyPart(subcategoryCode),
-                defaultKeyPart(serviceProviderCode));
-    }
-
-    private String defaultKeyPart(String value) {
-        String normalized = normalize(value);
-        return normalized != null ? normalized : "*";
     }
 
     private String normalize(String value) {

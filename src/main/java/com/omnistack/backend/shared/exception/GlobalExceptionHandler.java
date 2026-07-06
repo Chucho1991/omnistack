@@ -42,6 +42,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException exception) {
+        log.warn("BusinessException: {}", exception.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error(
                 resolveErrorCode(exception.getMessage()),
                 exception.getMessage()));
@@ -55,6 +56,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IntegrationException.class)
     public ResponseEntity<ErrorResponse> handleIntegration(IntegrationException exception) {
+        log.warn("IntegrationException: {}", exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error(
                 resolveErrorCode(exception.getMessage()),
                 exception.getMessage()));
@@ -68,6 +70,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(CatalogNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleCatalog(CatalogNotFoundException exception) {
+        log.warn("CatalogNotFoundException: {}", exception.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error(
                 ErrorCodes.ERROR_DESCRIPTION_OBTAINED,
                 exception.getMessage()));

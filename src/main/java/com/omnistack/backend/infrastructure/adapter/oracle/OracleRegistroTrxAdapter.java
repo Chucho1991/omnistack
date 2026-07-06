@@ -36,7 +36,7 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
                 + " PROVEEDOR, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE, "
                 + " CAPABILITY, AUTHORIZATION, MONTO, MONEDA, COD_ESTADO, ES_ERROR) "
                 + "VALUES "
-                + "(SEQ_IN_OMNI_REGISTRO_TRX.NEXTVAL, :uuid, :cadena, :farmacia, :nombreFarmacia, :pos, :canal, "
+                + "((SELECT NVL(MAX(CODIGO), 0) + 1 FROM " + schema + ".IN_OMNI_REGISTRO_TRX), :uuid, :cadena, :farmacia, :nombreFarmacia, :pos, :canal, "
                 + " :proveedor, :categoryCode, :subcategoryCode, :serviceProviderCode, :rmsItemCode, "
                 + " :capability, :authorization, :monto, :moneda, :codEstado, 'N')";
     }

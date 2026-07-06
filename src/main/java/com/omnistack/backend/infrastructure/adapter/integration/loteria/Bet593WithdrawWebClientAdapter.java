@@ -101,8 +101,7 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
         if (isInvalidTokenResponse(response)) {
             traceToConsole(traceLabel + " token refresh", url,
                     "Token invalido detectado; regenerando token y reintentando");
-            providerTokenResolverUseCase.refreshToken(
-                    command.getCategoryCode(), command.getSubcategoryCode(), provider.getServiceProviderCode());
+            providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
             request = buildExternalRequest(command, provider, operationKey);
             response = executeWithdrawRequest(request, url, traceLabel + " retry", command.getUuid(), wsKey);
         }
@@ -194,10 +193,7 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
             AppProperties.ProviderProperties provider,
             String operationKey) {
         validateProviderConfiguration(provider);
-        String providerToken = providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        String providerToken = providerTokenResolverUseCase.getToken(PROVIDER_KEY);
         String username = provider.getAuth().getLogin().getUsername();
 
         return Bet593WithdrawRequest.builder()
@@ -220,15 +216,9 @@ public class Bet593WithdrawWebClientAdapter implements Bet593WithdrawPort, Bet59
             AppProperties.ProviderProperties provider,
             boolean forceRefreshToken) {
         if (forceRefreshToken) {
-            return providerTokenResolverUseCase.refreshToken(
-                    command.getCategoryCode(),
-                    command.getSubcategoryCode(),
-                    provider.getServiceProviderCode());
+            return providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
         }
-        return providerTokenResolverUseCase.getToken(
-                command.getCategoryCode(),
-                command.getSubcategoryCode(),
-                provider.getServiceProviderCode());
+        return providerTokenResolverUseCase.getToken(PROVIDER_KEY);
     }
 
     private String resolveTransactionNumber(Bet593WithdrawCommand command, String operationKey) {

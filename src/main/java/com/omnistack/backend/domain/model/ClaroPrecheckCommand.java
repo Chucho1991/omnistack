@@ -19,4 +19,10 @@ public class ClaroPrecheckCommand {
     String phone;
     String amount;
     String offerId;
+    // campos resueltos desde AD_ITEM_SERVICIO y PROVEEDOR_CONFIG
+    String companyId;
+    String externalOperation;
+    String mediaId;
+    String codCaja;
+    String codSite;
 }

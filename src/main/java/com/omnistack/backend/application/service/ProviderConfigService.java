@@ -140,6 +140,18 @@ public class ProviderConfigService {
         return cache.keySet().stream().anyMatch(k -> k.startsWith(prefix));
     }
 
+    /**
+     * Traduce un valor interno (origen del POS) al valor externo que espera el proveedor.
+     * Busca la fila donde VALOR_ORIGEN = valorOrigen para el proveedor y campo dados.
+     * Retorna null si no existe mapeo para ese valor de origen.
+     *
+     * Ejemplo: mapValue("claro", "company_id", "1") → "2"  (Fybeca→CLARO)
+     */
+    public String mapValue(String providerKey, String configKey, String valorOrigen) {
+        if (valorOrigen == null) return null;
+        return cache.get(cacheKey(providerKey, configKey) + "|" + valorOrigen.toLowerCase());
+    }
+
     private static String cacheKey(String providerKey, String configKey) {
         return providerKey.toLowerCase() + "|" + configKey.toLowerCase();
     }

@@ -5,10 +5,10 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TradicionalJuegoQueryRequest {
     String userName;
     String token;
-    Integer medioId;
+    String medioId;
 }

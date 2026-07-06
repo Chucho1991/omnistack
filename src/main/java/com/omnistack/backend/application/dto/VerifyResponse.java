@@ -88,7 +88,8 @@ public class VerifyResponse extends BaseTransactionResponse {
     @Schema(example = "0.00", description = "Monto del premio (solo Pega3)")
     private BigDecimal prizeAmount;
 
-    @JsonProperty("comprobante_b64")
-    @Schema(description = "Comprobante de venta en base64 (solo Tradicionales y Pega3)")
-    private String comprobanteB64;
+    @JsonProperty("comprobante_url")
+    @Schema(example = "http://localhost:8086/v1/comprobantes/3f2a1b90-1234-4d56-9abc-1234567890ab.pdf",
+            description = "URL para descargar el comprobante de venta en PDF (solo Tradicionales y Pega3)")
+    private String comprobanteUrl;
 }
