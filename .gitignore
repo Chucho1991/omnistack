@@ -47,3 +47,4 @@ coverage/
 
 # Local configs
 settings.xml
+/.kiro

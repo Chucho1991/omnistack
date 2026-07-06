@@ -111,6 +111,7 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - Reutilizar mappers, factories y utilitarios antes de duplicar lógica.
 - Dejar `TODO` solo cuando exista una razón real y con contexto suficiente.
 - Mantener el código preparado para escalar sin romper contratos existentes.
+- Cuando un servicio requiere código de autorización homologado (`AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'`), no manipular el authorization directamente en las estrategias — la homologación se resuelve en `TransactionOrchestrationService` de forma transparente para la estrategia.
 
 ## Flujo mínimo para cambios futuros
 1. Definir el caso de uso y sus puertos de entrada/salida.

@@ -58,6 +58,26 @@ All transaction endpoints (`/v1/preCheck`, `/v1/execute`, `/v1/verify`, `/v1/rev
 4. Each external HTTP call logs to `WsExtLogService.log(ProviderCallLog)` (async via `loggingExecutor`) which writes to `IN_OMNI_LOGS_WS_EXT`
 5. `OracleAuditLogAdapter` saves to `IN_OMNI_LOGS_APP` (async, `loggingExecutor`)
 6. `OracleRegistroTrxAdapter` saves to `IN_OMNI_REGISTRO_TRX` for EXECUTE, CREATE_TICKET, and REVERSE (not precheck/verify)
+7. If `ServiceDefinition.homologatedAuth` is `true`, `TransactionOrchestrationService` generates a homologated code (10-char alphanumeric), stores the original in `AUTHORIZATION` and the homologated code in `CP_VAR1`, then returns the homologated code to the POS
+
+### Homologated authorization code
+
+When `AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'` for a given item, OmniStack generates an internal authorization code instead of exposing the provider's raw code to the POS.
+
+**EXECUTE / CREATE_TICKET flow:**
+1. `ServiceDefinition.isHomologatedAuth()` returns `true`
+2. Strategy executes normally — provider returns its original authorization
+3. `HomologatedCodeService.generate()` produces a 10-char alphanumeric code (timestamp base-36 + random)
+4. `IN_OMNI_REGISTRO_TRX`: `AUTHORIZATION` = provider's original, `CP_VAR1` = homologated code
+5. Response to POS: `authorization` field = homologated code
+
+**REVERSE flow:**
+1. POS sends the homologated code in `authorization`
+2. `TransactionOrchestrationService.resolveOriginalAuthForReverse()` queries `IN_OMNI_REGISTRO_TRX` by `CP_VAR1`
+3. Replaces `request.authorization` with the original provider code
+4. Strategy sends the original to the provider
+
+Key classes: `HomologatedCodeService` (generation), `RegistroTrxPort.findOriginalAuthByHomologatedCode()` (resolution), `TransactionOrchestrationService` (orchestration).
 
 ### Catalog — two separate caches
 
@@ -178,6 +198,7 @@ Numbered SQL scripts must be run in order:
 
 - `docs/bdd/local-setup/` — one-time local dev environment (admin, RMS DDL, grants)
 - `docs/bdd/omnistack/` — OmniStack schema DDL + DML (01 = DDL, 02+ = data/fixes)
+  - Script `25` adds `ID_HOMOLOGADO` column to `AD_SERVICIO_PARAMETROS`
 
 When adding a new provider, append new numbered scripts to `docs/bdd/omnistack/` — never modify existing ones.
 
@@ -197,7 +218,7 @@ When adding a new provider, append new numbered scripts to `docs/bdd/omnistack/`
 
 - All amounts: `BigDecimal` with 2 decimals, dot separator (`1000.00`); `double` only appears in legacy DTOs
 - `uuid` from the request propagates to every external provider as its correlation ID (`codigotrn` for LN, `EXTERNALTRANSACTIONID` for Claro)
-- `authorization` in every OmniStack response holds the provider's tracking ID, regardless of what the provider names it
+- `authorization` in every OmniStack response holds the provider's tracking ID, regardless of what the provider names it — **unless** the item has `ID_HOMOLOGADO = 'S'`, in which case it holds the homologated code and the original is stored in `IN_OMNI_REGISTRO_TRX.AUTHORIZATION`
 - Internal credentials (tokens, shop IDs, API keys) are **never** passed from the front-end — they come from `ProviderConfigService`
 - `movement_type` in `BaseTransactionRequest` is optional — OmniStack resolves it from the catalog and sets it on the request before invoking the strategy
 - Lombok throughout; no manual getters/setters
