@@ -43,6 +43,7 @@ public class TransactionOrchestrationService implements TransactionUseCase {
     private final RegistroTrxPort registroTrxPort;
     private final HomologatedCodeService homologatedCodeService;
     private final CashOutQuotaService cashOutQuotaService;
+    private final TransactionAmountValidationService transactionAmountValidationService;
 
     @Override
     public PrecheckResponse precheck(PrecheckRequest request) {
@@ -76,6 +77,12 @@ public class TransactionOrchestrationService implements TransactionUseCase {
 
         boolean isHomologated = selection.getServiceDefinition().isHomologatedAuth();
         boolean isCashOutQuota = cashOutQuotaService.appliesTo(selection.getServiceDefinition());
+
+        // Control de monto maximo/minimo por transaccion (aplica a todos los items excepto CASH_OUT
+        // que ya tiene su propia validacion de monto dentro del control de cupo diario)
+        if ((capability == Capability.PRECHECK || capability == Capability.EXECUTE) && !isCashOutQuota) {
+            validateTransactionAmount(request, selection);
+        }
 
         // Control de cupo CASH_OUT: reservar cupo en PRECHECK antes de invocar al proveedor
         if (capability == Capability.PRECHECK && isCashOutQuota) {
@@ -147,6 +154,18 @@ public class TransactionOrchestrationService implements TransactionUseCase {
                         () -> log.warn("Homologacion REVERSE: no se encontro authorization original para "
                                 + "codigo homologado='{}'. Se enviara el valor recibido al proveedor.", homologatedCode)
                 );
+    }
+
+    /**
+     * Valida que el monto de la transaccion este dentro del rango permitido
+     * [MONTO_MIN, MONTO_MAX] configurado para el item. Lanza BusinessException si no cumple.
+     */
+    private void validateTransactionAmount(BaseTransactionRequest request, ProviderFlowSelection selection) {
+        BigDecimal amount = request.getAmount();
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        transactionAmountValidationService.validate(amount, selection.getServiceDefinition());
     }
 
     /**
