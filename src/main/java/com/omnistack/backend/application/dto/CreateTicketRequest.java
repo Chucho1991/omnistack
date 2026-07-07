@@ -57,6 +57,14 @@ public class CreateTicketRequest extends BaseTransactionRequest {
     @Schema(example = "01", description = "Codigo de mascota/fruta (solo Tradicionales)")
     private String figuraId;
 
+    @JsonProperty("cantidad_fracciones")
+    @Schema(example = "1", description = "Cantidad de fracciones solicitadas — 1..N para Fraccion, "
+            + "el valor de cantidad_fraccion del sorteo (PrecheckResponse.TradicionalDraw) para Entero. "
+            + "Solo Tradicionales, exclusivo de La Loteria (fracciones no aplica a Lotto/Pozo). "
+            + "Interpretacion pendiente de confirmar con Loteria: el proveedor documenta este campo como "
+            + "'cantidad de fracciones solicitadas', no como un slot especifico de la grilla 1-20 de RF-04.")
+    private Integer cantidadFracciones;
+
     @Override
     public BigDecimal getAmount() {
         return amount;

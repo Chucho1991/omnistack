@@ -229,6 +229,7 @@ public class TradicionalWebClientAdapter implements
         boolean isError = !isSuccess(response.getCodError());
         payload.put("listaNumeros", response.getListaNumeros());
         payload.put("totalResults", response.getTotalResults());
+        payload.put("numeroReserva", response.getNumeroReserva());
         payload.put("codError", response.getCodError());
         payload.put("msgError", response.getMsgError());
 
@@ -293,6 +294,9 @@ public class TradicionalWebClientAdapter implements
         if (primerTicket != null) {
             payload.put("boletoClave", primerTicket.getClave());
             payload.put("boletoQr", primerTicket.getCodigoQR());
+            if (primerTicket.getListaNumeroFracciones() != null && !primerTicket.getListaNumeroFracciones().isEmpty()) {
+                payload.put("fraccionesVendidas", primerTicket.getListaNumeroFracciones().get(0).getNumeroFraccion());
+            }
         }
 
         return ExternalTransactionResponse.builder()

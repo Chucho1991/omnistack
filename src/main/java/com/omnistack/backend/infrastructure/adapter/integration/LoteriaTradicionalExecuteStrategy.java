@@ -92,6 +92,9 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
         if (executeRequest.getAmount() == null) {
             throw new IntegrationException("Tradicionales requiere amount para EXECUTE");
         }
+        if (executeRequest.getReservaId() == null || executeRequest.getReservaId().isBlank()) {
+            throw new IntegrationException("Tradicionales requiere reserva_id (devuelto por CREATE_TICKET) para EXECUTE");
+        }
 
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
@@ -108,7 +111,7 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
                 .userName(provider.getAuth().getLogin().getUsername())
                 .cliente(clienteId)
                 .ordenCompra(request.getUuid())
-                .reservaId(request.getUuid())
+                .reservaId(executeRequest.getReservaId())
                 .totalVenta(executeRequest.getAmount())
                 .formaCobro(provider.getCanal() != null ? provider.getCanal() : "BMV")
                 .numeroIdentificacion(request.getDocument())
@@ -147,7 +150,8 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
                 .amount(request.getAmount())
                 .boletoClave(stringValue(payload, "boletoClave"))
                 .boletoQr(stringValue(payload, "boletoQr"))
-                .fechaVenta(stringValue(payload, "fechaVenta"));
+                .fechaVenta(stringValue(payload, "fechaVenta"))
+                .fraccionesVendidas(stringValue(payload, "fraccionesVendidas"));
 
         if (isError) {
             builder.error(ErrorDetail.builder()

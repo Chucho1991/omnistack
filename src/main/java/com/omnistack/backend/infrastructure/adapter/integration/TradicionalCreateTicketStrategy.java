@@ -93,9 +93,11 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
         Boolean sugerir = createTicketRequest.getSugerir();
         Integer registros = createTicketRequest.getRegistros();
         String figuraId = createTicketRequest.getFiguraId();
+        Integer cantidadFracciones = createTicketRequest.getCantidadFracciones() != null
+                ? createTicketRequest.getCantidadFracciones() : 0;
 
         ExternalTransactionResponse numerosResponse = queryNumeros(
-                request, provider, juegoId, drawId, combinacion, figuraId, sugerir, registros, numerosUrl);
+                request, provider, juegoId, drawId, combinacion, figuraId, sugerir, registros, cantidadFracciones, numerosUrl);
 
         ExternalTransactionResponse revanchaNumerosResponse = null;
         if (sorteosUrl != null && !sorteosUrl.isBlank()) {
@@ -104,7 +106,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
             if (revanchaInfo != null) {
                 revanchaNumerosResponse = queryNumeros(
                         request, provider, revanchaInfo.juegoRevanchaId(), revanchaInfo.sorteoRevanchaId(),
-                        combinacion, figuraId, sugerir, registros, numerosUrl);
+                        combinacion, figuraId, sugerir, registros, cantidadFracciones, numerosUrl);
             }
         }
 
@@ -128,7 +130,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     private ExternalTransactionResponse queryNumeros(
             BaseTransactionRequest request, AppProperties.ProviderProperties provider,
             String juegoId, String sorteoId, String combinacion, String figuraId,
-            Boolean sugerir, Integer registros, String numerosUrl) {
+            Boolean sugerir, Integer registros, Integer cantidadFracciones, String numerosUrl) {
         TradicionalNumerosQueryCommand numerosCmd = TradicionalNumerosQueryCommand.builder()
                 .uuid(request.getUuid()).chain(request.getChain()).store(request.getStore())
                 .storeName(request.getStoreName()).pos(request.getPos())
@@ -140,7 +142,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                 .combinacion(combinacion != null ? combinacion : "")
                 .combinacionFigura(figuraId != null ? figuraId : "")
                 .sugerir(sugerir != null ? sugerir : false)
-                .cantidad(0)
+                .cantidad(cantidadFracciones)
                 .registros(registros != null ? registros : 10)
                 .build();
         return numerosQueryPort.queryNumeros(numerosCmd, numerosUrl);
@@ -183,8 +185,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                 .map(n -> {
                     TradicionalNumerosQueryResponse.Numero num = (TradicionalNumerosQueryResponse.Numero) n;
                     return CreateTicketResponse.TradicionalNumber.builder()
-                            .numero(num.getNumero()).disponible(num.getDisponible())
-                            .precio(num.getPrecio())
+                            .numero(num.getNumero())
                             .figura(num.getFigura())
                             .juegoId(num.getJuegoId())
                             .sorteoId(num.getSorteoId())
@@ -214,6 +215,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
         Integer totalNumbers = numerosResp != null && numerosResp.getPayload() != null
                 && numerosResp.getPayload().get("totalResults") instanceof Integer intTotal
                 ? intTotal : null;
+        String reservaId = numerosResp != null ? stringValue(numerosResp.getPayload(), "numeroReserva") : null;
 
         CreateTicketResponse.CreateTicketResponseBuilder<?, ?> builder = CreateTicketResponse.builder()
                 .chain(request.getChain()).store(request.getStore()).storeName(request.getStoreName())
@@ -222,7 +224,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                 .categoryCode(request.getCategoryCode()).subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
-                .availableNumbers(availableNumbers).totalNumbers(totalNumbers);
+                .availableNumbers(availableNumbers).totalNumbers(totalNumbers).reservaId(reservaId);
 
         if (isError) {
             builder.error(ErrorDetail.builder()

@@ -59,5 +59,21 @@ public class TradicionalVentaBoletosResponse {
         private Integer cantidad;
         private BigDecimal valor;
         private String codigoQR;
+
+        /**
+         * Fracciones especificas asignadas por el proveedor a este boleto (solo La Loteria).
+         * El proveedor documenta que el segundo registro de este arreglo puede traer el
+         * codigo de mascota en vez de otra fraccion (solo aplica a Pozo Millonario).
+         */
+        private List<NumeroFraccion> listaNumeroFracciones;
+    }
+
+    @Getter
+    @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class NumeroFraccion {
+        private String numeroFraccion;
+        private String nombreCombinacion;
+        private BigDecimal valorPremio;
     }
 }

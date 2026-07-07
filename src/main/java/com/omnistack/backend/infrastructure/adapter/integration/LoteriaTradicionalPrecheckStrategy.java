@@ -23,8 +23,8 @@ import com.omnistack.backend.domain.model.TradicionalFigurasQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalJuegoQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalSorteosQueryCommand;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalFigurasQueryResponse;
-import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalJuegoQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalSorteosQueryResponse;
+import com.omnistack.backend.shared.exception.IntegrationException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -47,6 +47,7 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
     private static final String PRECHECK_SORTEOS_KEY = "PRECHECK_SORTEOS";
     private static final String PRECHECK_FIGURAS_KEY = "PRECHECK_FIGURAS";
     private static final String JUEGO_ID_FIELD_PREFIX = "juego_id";
+    private static final String JUEGO_ID_POZO_MILLONARIO = "5";
 
     private final TradicionalJuegoQueryPort juegoQueryPort;
     private final TradicionalSorteosQueryPort sorteosQueryPort;
@@ -126,33 +127,18 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             figurasResponse = figurasQueryPort.queryFiguras(figurasCmd, figurasUrl);
         }
 
-        return buildResponse(request, juegosResponse, sorteosResponse, figurasResponse);
+        return buildResponse(request, juegoId, juegosResponse, sorteosResponse, figurasResponse);
     }
 
     @SuppressWarnings("unchecked")
     private PrecheckResponse buildResponse(
             BaseTransactionRequest request,
+            String juegoId,
             ExternalTransactionResponse juegosResp,
             ExternalTransactionResponse sorteosResp,
             ExternalTransactionResponse figurasResp) {
 
         boolean isError = !juegosResp.isApproved();
-
-        // Build games list
-        List<PrecheckResponse.TradicionalGame> games = null;
-        if (juegosResp.isApproved() && juegosResp.getPayload() != null) {
-            Object rawJuegos = juegosResp.getPayload().get("juegos");
-            if (rawJuegos instanceof List<?> list) {
-                games = list.stream()
-                        .filter(j -> j instanceof TradicionalJuegoQueryResponse.Juego)
-                        .map(j -> {
-                            TradicionalJuegoQueryResponse.Juego jg = (TradicionalJuegoQueryResponse.Juego) j;
-                            return PrecheckResponse.TradicionalGame.builder()
-                                    .gameId(jg.getJuegoId()).nombre(jg.getNombreJuego())
-                                    .build();
-                        }).collect(java.util.stream.Collectors.toList());
-            }
-        }
 
         // Build draws list
         List<PrecheckResponse.TradicionalDraw> draws = null;
@@ -166,7 +152,7 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
                             return PrecheckResponse.TradicionalDraw.builder()
                                     .drawId(sorteo.getSorteoId()).nombre(sorteo.getNombre())
                                     .fecha(sorteo.getFecha()).precio(sorteo.getPrecio())
-                                    .premioMayor(sorteo.getPremioMayor()).disponible(sorteo.getDisponible())
+                                    .premioMayor(sorteo.getPremioMayor())
                                     .cantidadFraccion(sorteo.getCantidadFraccion())
                                     .tieneRevancha(sorteo.getTieneRevancha())
                                     .juegoRevanchaId(sorteo.getJuegoRevanchaId())
@@ -193,6 +179,21 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
             }
         }
 
+        // El proveedor puede responder codError=0 (sin error tecnico) pero sin datos utiles
+        // (listaDetalle=null) — ej. sin sorteos abiertos para venta en este momento. Sin sorteos
+        // no hay como continuar el flujo para ningun juego; sin figuras, Pozo Millonario no puede
+        // completar la seleccion de mascota (RN-05/RF-06 de negocio).
+        if (!isError) {
+            if (draws == null || draws.isEmpty()) {
+                throw new IntegrationException(
+                        "Loteria Nacional no tiene sorteos disponibles para el juego " + juegoId + " en este momento");
+            }
+            if (JUEGO_ID_POZO_MILLONARIO.equals(juegoId) && (figures == null || figures.isEmpty())) {
+                throw new IntegrationException(
+                        "Loteria Nacional no tiene figuras/mascotas disponibles para Pozo Millonario en este momento");
+            }
+        }
+
         PrecheckResponse.PrecheckResponseBuilder<?, ?> builder = PrecheckResponse.builder()
                 .chain(request.getChain()).store(request.getStore()).storeName(request.getStoreName())
                 .pos(request.getPos()).channelPos(request.getChannelPos().name())
@@ -200,7 +201,7 @@ public class LoteriaTradicionalPrecheckStrategy extends AbstractProviderStrategy
                 .categoryCode(request.getCategoryCode()).subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
-                .games(games).draws(draws).figures(figures);
+                .draws(draws).figures(figures);
 
         if (isError) {
             builder.error(ErrorDetail.builder()

@@ -80,6 +80,20 @@ Key classes: `CashOutQuotaService`, `CashOutQuotaPort`, `OracleCashOutQuotaAdapt
 
 Table: `TUKUNAFUNC.IN_OMNI_CASHOUT_CUPO_DIARIO` (DDL: `docs/bdd/omnistack/26_DDL_CASHOUT_CUPO_DIARIO.sql`).
 
+### Transaction amount validation (non-CASH_OUT)
+
+For all services that are NOT `CASH_OUT`, `TransactionOrchestrationService` enforces per-transaction amount limits before calling the provider:
+
+**PRECHECK and EXECUTE:** `TransactionAmountValidationService.validate()` checks:
+1. Transaction amount ≤ `MONTO_MAX` from `AD_SERVICIO_PARAMETROS` (via `ServiceDefinition.getMaxAmount()`)
+2. Transaction amount ≥ `MONTO_MIN` from `AD_SERVICIO_PARAMETROS` (via `ServiceDefinition.getMinAmount()`)
+
+If the amount violates either limit, throws `BusinessException` (HTTP 422) with a descriptive message including the amount, the limit, and the item code.
+
+This control is per-transaction only — no daily accumulation or quota reservation is involved (unlike CASH_OUT). CASH_OUT items are excluded because they already validate the amount inside `CashOutQuotaService.reserveQuota()`.
+
+Key class: `TransactionAmountValidationService`.
+
 ### Homologated authorization code
 
 When `AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'` for a given item, OmniStack generates an internal authorization code instead of exposing the provider's raw code to the POS.

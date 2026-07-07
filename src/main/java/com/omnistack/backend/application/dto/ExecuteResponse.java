@@ -86,4 +86,9 @@ public class ExecuteResponse extends BaseTransactionResponse {
     @JsonProperty("fecha_venta")
     @Schema(example = "2025-04-17", description = "Fecha de venta (solo Tradicionales)")
     private String fechaVenta;
+
+    @JsonProperty("fracciones_vendidas")
+    @Schema(example = "05,06,07,11,12,15,17,21,23,24",
+            description = "CSV de las fracciones especificas asignadas por el proveedor a este boleto (solo La Loteria)")
+    private String fraccionesVendidas;
 }

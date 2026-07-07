@@ -3855,12 +3855,12 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1122\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713842\",\n  \"currency\": \"USD\",\n  \"authorization\": \"AUTO-TRAD-1122\",\n  \"games\": [\n    {\n      \"game_id\": \"1\",\n      \"nombre\": \"Lotería Nacional\",\n      \"descripcion\": \"Juego Lotería Nacional\"\n    }\n  ],\n  \"draws\": [\n    {\n      \"draw_id\": \"7151\",\n      \"nombre\": \"Sorteo 7151\",\n      \"fecha\": \"2026-07-05\",\n      \"precio\": 1.0,\n      \"premio_mayor\": 500000.0,\n      \"disponible\": true,\n      \"cantidad_fraccion\": null,\n      \"tiene_revancha\": false,\n      \"juego_revancha_id\": null,\n      \"sorteo_revancha_id\": null\n    }\n  ],\n  \"figures\": []\n}"
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1122\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713842\",\n  \"currency\": \"USD\",\n  \"authorization\": \"AUTO-TRAD-1122\",\n  \"draws\": [\n    {\n      \"draw_id\": \"7151\",\n      \"nombre\": \"Sorteo 7151\",\n      \"fecha\": \"2026-07-05\",\n      \"precio\": 1.0,\n      \"premio_mayor\": 500000.0,\n      \"cantidad_fraccion\": null,\n      \"tiene_revancha\": false,\n      \"juego_revancha_id\": null,\n      \"sorteo_revancha_id\": null\n    }\n  ],\n  \"figures\": []\n}"
                 }
               ]
             },
             {
-              "name": "2. CREATE_TICKET — Buscar y reservar combinaciones",
+              "name": "2. CREATE_TICKET — Buscar combinaciones disponibles (sin fraccion aun)",
               "id": "9b4aec81-d90e-46bd-b764-93f55a89cf84",
               "request": {
                 "method": "POST",
@@ -3931,7 +3931,83 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1122\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713842\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"17528\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"1\",\n      \"sorteo_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10\"\n    },\n    {\n      \"numero\": \"62806\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"1\",\n      \"sorteo_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10\"\n    },\n    {\n      \"numero\": \"74554\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"1\",\n      \"sorteo_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10\"\n    },\n    {\n      \"numero\": \"50273\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"1\",\n      \"sorteo_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10\"\n    }\n  ],\n  \"total_numbers\": 4\n}"
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1122\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713842\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"17528\",\n      \"figura\": null,\n      \"game_id\": \"1\",\n      \"draw_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20\"\n    },\n    {\n      \"numero\": \"62806\",\n      \"figura\": null,\n      \"game_id\": \"1\",\n      \"draw_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20\"\n    },\n    {\n      \"numero\": \"74554\",\n      \"figura\": null,\n      \"game_id\": \"1\",\n      \"draw_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20\"\n    },\n    {\n      \"numero\": \"50273\",\n      \"figura\": null,\n      \"game_id\": \"1\",\n      \"draw_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20\"\n    }\n  ],\n  \"total_numbers\": 4,\n  \"reserva_id\": \"535852\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2b. CREATE_TICKET — Reservar combinacion elegida + cantidad de fracciones",
+              "id": "9b4aec81-d90e-46bd-b764-93f55a89cf85",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"draw_id\": \"7151\",\n  \"combinacion\": \"17528\",\n  \"cantidad_fracciones\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/createTicket",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "createTicket"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Lotería Nacional: 1 fracción reservada sobre la combinación elegida",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"draw_id\": \"7151\",\n  \"combinacion\": \"17528\",\n  \"cantidad_fracciones\": 1\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/createTicket",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "createTicket"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1122\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713842\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"17528\",\n      \"figura\": null,\n      \"game_id\": \"1\",\n      \"draw_id\": \"7151\",\n      \"boleto\": null,\n      \"fracciones\": \"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20\"\n    }\n  ],\n  \"total_numbers\": 1,\n  \"reserva_id\": \"535861\"\n}"
                 }
               ]
             },
@@ -3948,7 +4024,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3979,7 +4055,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4021,7 +4097,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"1\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4066,7 +4142,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"4.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"lista_boletos\": [\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"17528\",\n      \"cantidad_boletos\": 1\n    },\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"62806\",\n      \"cantidad_boletos\": 1\n    }\n  ]\n}",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"4.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"lista_boletos\": [\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"17528\",\n      \"cantidad_boletos\": 1\n    },\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"62806\",\n      \"cantidad_boletos\": 1\n    }\n  ],\n  \"reserva_id\": \"535852\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4097,7 +4173,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"4.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"lista_boletos\": [\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"17528\",\n      \"cantidad_boletos\": 1\n    },\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"62806\",\n      \"cantidad_boletos\": 1\n    }\n  ]\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"4.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"lista_boletos\": [\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"17528\",\n      \"cantidad_boletos\": 1\n    },\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"62806\",\n      \"cantidad_boletos\": 1\n    }\n  ],\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4139,7 +4215,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"4.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"lista_boletos\": [\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"17528\",\n      \"cantidad_boletos\": 1\n    },\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"62806\",\n      \"cantidad_boletos\": 1\n    }\n  ]\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"amount\": \"4.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"lista_boletos\": [\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"17528\",\n      \"cantidad_boletos\": 1\n    },\n    {\n      \"game_id\": \"1\",\n      \"draw_id\": \"{{TR-drawId}}\",\n      \"numero\": \"62806\",\n      \"cantidad_boletos\": 1\n    }\n  ],\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4444,7 +4520,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1123\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713844\",\n  \"currency\": \"USD\",\n  \"authorization\": \"AUTO-TRAD-1123\",\n  \"games\": [\n    {\n      \"game_id\": \"2\",\n      \"nombre\": \"Lotto\",\n      \"descripcion\": \"Juego Lotto\"\n    }\n  ],\n  \"draws\": [\n    {\n      \"draw_id\": \"3201\",\n      \"nombre\": \"Sorteo 3201\",\n      \"fecha\": \"2026-07-05\",\n      \"precio\": 1.0,\n      \"premio_mayor\": 300000.0,\n      \"disponible\": true,\n      \"cantidad_fraccion\": null,\n      \"tiene_revancha\": false,\n      \"juego_revancha_id\": null,\n      \"sorteo_revancha_id\": null\n    }\n  ],\n  \"figures\": []\n}"
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1123\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713844\",\n  \"currency\": \"USD\",\n  \"authorization\": \"AUTO-TRAD-1123\",\n  \"draws\": [\n    {\n      \"draw_id\": \"3201\",\n      \"nombre\": \"Sorteo 3201\",\n      \"fecha\": \"2026-07-05\",\n      \"precio\": 1.0,\n      \"premio_mayor\": 300000.0,\n      \"cantidad_fraccion\": null,\n      \"tiene_revancha\": false,\n      \"juego_revancha_id\": null,\n      \"sorteo_revancha_id\": null\n    }\n  ],\n  \"figures\": []\n}"
                 }
               ]
             },
@@ -4520,7 +4596,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1123\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713844\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"326747\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"2\",\n      \"sorteo_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"517194\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"2\",\n      \"sorteo_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"593984\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"2\",\n      \"sorteo_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"034845\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"2\",\n      \"sorteo_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    }\n  ],\n  \"total_numbers\": 4\n}"
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1123\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713844\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"326747\",\n      \"figura\": null,\n      \"game_id\": \"2\",\n      \"draw_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"517194\",\n      \"figura\": null,\n      \"game_id\": \"2\",\n      \"draw_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"593984\",\n      \"figura\": null,\n      \"game_id\": \"2\",\n      \"draw_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"034845\",\n      \"figura\": null,\n      \"game_id\": \"2\",\n      \"draw_id\": \"3201\",\n      \"boleto\": null,\n      \"fracciones\": null\n    }\n  ],\n  \"total_numbers\": 4,\n  \"reserva_id\": \"535870\"\n}"
                 }
               ]
             },
@@ -4537,7 +4613,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4568,7 +4644,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4610,7 +4686,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"2\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4915,7 +4991,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1124\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713846\",\n  \"currency\": \"USD\",\n  \"authorization\": \"AUTO-TRAD-1124\",\n  \"games\": [\n    {\n      \"game_id\": \"5\",\n      \"nombre\": \"Pozo Millonario\",\n      \"descripcion\": \"Juego Pozo Millonario\"\n    }\n  ],\n  \"draws\": [\n    {\n      \"draw_id\": \"1115\",\n      \"nombre\": \"Sorteo 1115\",\n      \"fecha\": \"2026-07-31\",\n      \"precio\": 1.0,\n      \"premio_mayor\": 1000000.0,\n      \"disponible\": true,\n      \"cantidad_fraccion\": 0,\n      \"tiene_revancha\": true,\n      \"juego_revancha_id\": \"17\",\n      \"sorteo_revancha_id\": \"102\"\n    }\n  ],\n  \"figures\": [\n    {\n      \"figura_id\": \"01\",\n      \"nombre\": \"Conejo\",\n      \"descripcion\": \"Mascota Pozo — abreviatura CON\"\n    },\n    {\n      \"figura_id\": \"02\",\n      \"nombre\": \"Perro\",\n      \"descripcion\": \"Mascota Pozo — abreviatura PER\"\n    },\n    {\n      \"figura_id\": \"03\",\n      \"nombre\": \"Galápago\",\n      \"descripcion\": \"Mascota Pozo — abreviatura GAL\"\n    },\n    {\n      \"figura_id\": \"04\",\n      \"nombre\": \"Delfín\",\n      \"descripcion\": \"Mascota Pozo — abreviatura DEL\"\n    },\n    {\n      \"figura_id\": \"05\",\n      \"nombre\": \"Foca\",\n      \"descripcion\": \"Mascota Pozo — abreviatura FOC\"\n    },\n    {\n      \"figura_id\": \"06\",\n      \"nombre\": \"Cóndor\",\n      \"descripcion\": \"Mascota Pozo — abreviatura CÓN\"\n    },\n    {\n      \"figura_id\": \"07\",\n      \"nombre\": \"Llama\",\n      \"descripcion\": \"Mascota Pozo — abreviatura LLA\"\n    },\n    {\n      \"figura_id\": \"08\",\n      \"nombre\": \"Mono\",\n      \"descripcion\": \"Mascota Pozo — abreviatura MON\"\n    }\n  ],\n  \"available_numbers\": [\n    {\n      \"numero\": \"7516609\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4099127\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4735778\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4800414\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3151372\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"6670291\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"2338472\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3853667\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    }\n  ],\n  \"total_numbers\": 8\n}"
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1124\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713846\",\n  \"currency\": \"USD\",\n  \"authorization\": \"AUTO-TRAD-1124\",\n  \"draws\": [\n    {\n      \"draw_id\": \"1115\",\n      \"nombre\": \"Sorteo 1115\",\n      \"fecha\": \"2026-07-31\",\n      \"precio\": 1.0,\n      \"premio_mayor\": 1000000.0,\n      \"cantidad_fraccion\": 0,\n      \"tiene_revancha\": true,\n      \"juego_revancha_id\": \"17\",\n      \"sorteo_revancha_id\": \"102\"\n    }\n  ],\n  \"figures\": [\n    {\n      \"figura_id\": \"01\",\n      \"nombre\": \"Conejo\",\n      \"descripcion\": \"Mascota Pozo — abreviatura CON\"\n    },\n    {\n      \"figura_id\": \"02\",\n      \"nombre\": \"Perro\",\n      \"descripcion\": \"Mascota Pozo — abreviatura PER\"\n    },\n    {\n      \"figura_id\": \"03\",\n      \"nombre\": \"Galápago\",\n      \"descripcion\": \"Mascota Pozo — abreviatura GAL\"\n    },\n    {\n      \"figura_id\": \"04\",\n      \"nombre\": \"Delfín\",\n      \"descripcion\": \"Mascota Pozo — abreviatura DEL\"\n    },\n    {\n      \"figura_id\": \"05\",\n      \"nombre\": \"Foca\",\n      \"descripcion\": \"Mascota Pozo — abreviatura FOC\"\n    },\n    {\n      \"figura_id\": \"06\",\n      \"nombre\": \"Cóndor\",\n      \"descripcion\": \"Mascota Pozo — abreviatura CÓN\"\n    },\n    {\n      \"figura_id\": \"07\",\n      \"nombre\": \"Llama\",\n      \"descripcion\": \"Mascota Pozo — abreviatura LLA\"\n    },\n    {\n      \"figura_id\": \"08\",\n      \"nombre\": \"Mono\",\n      \"descripcion\": \"Mascota Pozo — abreviatura MON\"\n    }\n  ],\n  \"available_numbers\": [\n    {\n      \"numero\": \"7516609\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4099127\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4735778\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4800414\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3151372\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"6670291\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"2338472\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3853667\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    }\n  ],\n  \"total_numbers\": 8,\n  \"reserva_id\": \"535880\"\n}"
                 }
               ]
             },
@@ -4991,7 +5067,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1124\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713846\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"7516609\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4099127\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4735778\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4800414\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"5\",\n      \"sorteo_id\": \"1115\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3151372\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"6670291\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"2338472\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3853667\",\n      \"disponible\": true,\n      \"precio\": 1.0,\n      \"figura\": null,\n      \"juego_id\": \"17\",\n      \"sorteo_id\": \"102\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    }\n  ],\n  \"total_numbers\": 8\n}"
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Transacción exitosa\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1124\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100713846\",\n  \"available_numbers\": [\n    {\n      \"numero\": \"7516609\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4099127\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4735778\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"4800414\",\n      \"figura\": null,\n      \"game_id\": \"5\",\n      \"draw_id\": \"1115\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3151372\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"508085\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"6670291\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"510791\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"2338472\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"517090\",\n      \"fracciones\": null\n    },\n    {\n      \"numero\": \"3853667\",\n      \"figura\": null,\n      \"game_id\": \"17\",\n      \"draw_id\": \"102\",\n      \"boleto\": \"528593\",\n      \"fracciones\": null\n    }\n  ],\n  \"total_numbers\": 8,\n  \"reserva_id\": \"535880\"\n}"
                 }
               ]
             },
@@ -5008,7 +5084,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5039,7 +5115,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -5081,7 +5157,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  }\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1124,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713846\",\n  \"amount\": \"1.00\",\n  \"document\": \"2300630247\",\n  \"username\": \"Ariel Castillo\",\n  \"phone\": \"0967451486\",\n  \"boleto_data\": {\n    \"game_id\": \"3\",\n    \"draw_id\": \"{{TR-drawId}}\",\n    \"numero\": \"{{TR-numero}}\",\n    \"cantidad_boletos\": 1\n  },\n  \"reserva_id\": \"535852\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"

@@ -2,7 +2,6 @@ package com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +13,10 @@ public class TradicionalNumerosQueryResponse {
     private Object codError;
     private String msgError;
     private Integer totalResults;
+
+    /** Id de la pre-reserva que crea el proveedor en esta consulta; debe reenviarse tal cual
+     * en VentaBoletos.reservaId para vender los numeros aqui reservados. */
+    private String numeroReserva;
 
     @JsonProperty("listaDetalle")
     private List<Numero> listaNumeros;
@@ -48,8 +51,5 @@ public class TradicionalNumerosQueryResponse {
 
         /** Cantidad de fracciones reservadas. */
         private String reserva;
-
-        private Boolean disponible;
-        private BigDecimal precio;
     }
 }

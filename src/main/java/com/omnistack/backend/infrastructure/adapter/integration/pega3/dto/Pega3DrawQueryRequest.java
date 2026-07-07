@@ -5,12 +5,13 @@ import lombok.Builder;
 import lombok.Value;
 
 /**
- * Request externo para consultar sorteo activo Pega3 (ObtieneSorteosActivo).
+ * Request externo para consultar sorteo activo Pega3 (ObtieneSorteosActivoxJuego).
  */
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Pega3DrawQueryRequest {
+    String deviceId;
     String token;
     String productoVender;
 }

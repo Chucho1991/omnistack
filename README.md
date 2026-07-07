@@ -593,6 +593,16 @@ La resolucion de flujos depende de:
 
 No hay logica por proveedor en los controllers. Las integraciones externas quedan reales por defecto. Si un servicio catalogado no tiene estrategia y endpoint externo configurados, OMNISTACK responde error de configuracion en lugar de simular una respuesta exitosa.
 
+### Validacion de monto maximo/minimo por transaccion
+
+Para todos los servicios que NO son CASH_OUT, el orquestador valida que el monto de cada transaccion este dentro del rango [`MONTO_MIN`, `MONTO_MAX`] configurado en `AD_SERVICIO_PARAMETROS` para el item correspondiente.
+
+- Se ejecuta en PRECHECK y EXECUTE antes de invocar al proveedor externo.
+- Si el monto excede MONTO_MAX o es inferior a MONTO_MIN, responde HTTP 422 con error de negocio descriptivo.
+- Este control es por transaccion individual — no involucra cupos diarios ni acumulados.
+- Clase responsable: `TransactionAmountValidationService`
+- Los items CASH_OUT quedan excluidos porque ya tienen validacion de monto dentro de `CashOutQuotaService`.
+
 ### ECUABET Buscar usuario
 
 La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST /user/search` con:

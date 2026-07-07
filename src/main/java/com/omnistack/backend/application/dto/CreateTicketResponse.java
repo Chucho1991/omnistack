@@ -2,7 +2,6 @@ package com.omnistack.backend.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,20 +72,23 @@ public class CreateTicketResponse extends BaseTransactionResponse {
     @Schema(description = "Total de combinaciones encontradas (solo Tradicionales)")
     private Integer totalNumbers;
 
+    @JsonProperty("reserva_id")
+    @Schema(description = "Id de la pre-reserva generada por el proveedor (solo Tradicionales) — "
+            + "debe reenviarse tal cual en EXECUTE para vender los numeros aqui reservados")
+    private String reservaId;
+
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TradicionalNumber {
         private String numero;
-        private Boolean disponible;
-        private BigDecimal precio;
         private String figura;
 
-        @JsonProperty("juego_id")
+        @JsonProperty("game_id")
         private String juegoId;
 
-        @JsonProperty("sorteo_id")
+        @JsonProperty("draw_id")
         private String sorteoId;
 
         /** Id de boleto — asocia Pozo Millonario con su Revancha cuando comparten valor. */

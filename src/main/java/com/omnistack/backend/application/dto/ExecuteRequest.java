@@ -41,6 +41,11 @@ public class ExecuteRequest extends BaseTransactionRequest {
     @Schema(description = "Carrito de jugadas: multiples boletos/juegos en una misma venta (solo Tradicionales). Si viene, tiene prioridad sobre boleto_data.")
     private List<BoletoData> listaBoletos;
 
+    @JsonProperty("reserva_id")
+    @Schema(example = "535852", description = "Id de la pre-reserva devuelto por CREATE_TICKET (reserva_id) — "
+            + "obligatorio en Tradicionales para vender los numeros reservados")
+    private String reservaId;
+
     @Data
     @Builder
     @NoArgsConstructor

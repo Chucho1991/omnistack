@@ -34,8 +34,6 @@ public class TradicionalSorteosQueryResponse {
         @JsonProperty("valorPremio")
         private BigDecimal premioMayor;
 
-        private Boolean disponible;
-
         @JsonProperty("cantidadFraccion")
         private Integer cantidadFraccion;
 

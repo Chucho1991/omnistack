@@ -147,10 +147,6 @@ public class PrecheckResponse extends BaseTransactionResponse {
         private String drawDate;
     }
 
-    @JsonProperty("games")
-    @Schema(description = "Lista de juegos disponibles (solo Tradicionales)")
-    private List<TradicionalGame> games;
-
     @JsonProperty("draws")
     @Schema(description = "Lista de sorteos disponibles (solo Tradicionales)")
     private List<TradicionalDraw> draws;
@@ -158,17 +154,6 @@ public class PrecheckResponse extends BaseTransactionResponse {
     @JsonProperty("figures")
     @Schema(description = "Lista de figuras del juego (solo Tradicionales — Loteria)")
     private List<TradicionalFigura> figures;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TradicionalGame {
-        @JsonProperty("game_id")
-        private String gameId;
-        private String nombre;
-        private String descripcion;
-    }
 
     @Data
     @Builder
@@ -182,7 +167,6 @@ public class PrecheckResponse extends BaseTransactionResponse {
         private java.math.BigDecimal precio;
         @JsonProperty("premio_mayor")
         private java.math.BigDecimal premioMayor;
-        private Boolean disponible;
 
         @JsonProperty("cantidad_fraccion")
         @Schema(description = "Cantidad de fracciones por entero (solo La Loteria; 0 o null en juegos sin fraccion)")

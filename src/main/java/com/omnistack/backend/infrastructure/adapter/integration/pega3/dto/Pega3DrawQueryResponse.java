@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response externo de sorteo activo Pega3 (ObtieneSorteosActivo).
+ * Response externo de sorteo activo Pega3 (ObtieneSorteosActivoxJuego).
  */
 @Getter
 @Setter
