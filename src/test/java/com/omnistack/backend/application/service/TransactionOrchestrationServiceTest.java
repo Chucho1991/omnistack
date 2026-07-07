@@ -8,16 +8,20 @@ import com.omnistack.backend.application.dto.BaseTransactionResponse;
 import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
 import com.omnistack.backend.application.dto.StatusDetail;
+import com.omnistack.backend.application.port.out.CashOutQuotaPort;
 import com.omnistack.backend.application.port.out.ProviderFlowResolver;
 import com.omnistack.backend.application.port.out.RegistroTrxPort;
 import com.omnistack.backend.application.port.out.strategy.TransactionFlowStrategy;
 import com.omnistack.backend.domain.enums.Capability;
 import com.omnistack.backend.domain.enums.ChannelPos;
 import com.omnistack.backend.domain.enums.MovementType;
+import com.omnistack.backend.domain.model.CashOutQuotaEntry;
 import com.omnistack.backend.domain.model.ProviderFlowSelection;
 import com.omnistack.backend.domain.model.RegistroTrx;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -66,7 +70,15 @@ class TransactionOrchestrationServiceTest {
                     @Override public void save(RegistroTrx entry) { }
                     @Override public Optional<String> findOriginalAuthByHomologatedCode(String code) { return Optional.empty(); }
                 },
-                new HomologatedCodeService());
+                new HomologatedCodeService(),
+                new CashOutQuotaService(new CashOutQuotaPort() {
+                    @Override public BigDecimal getConsumedQuota(String chain, String store, String rmsItemCode, LocalDate operationDate) { return BigDecimal.ZERO; }
+                    @Override public void saveReservation(CashOutQuotaEntry entry) { }
+                    @Override public boolean confirmReservation(String uuid) { return true; }
+                    @Override public boolean revertReservation(String uuid, LocalDate operationDate) { return true; }
+                    @Override public int expireStaleReservations(LocalDateTime cutoffTimestamp) { return 0; }
+                    @Override public Optional<CashOutQuotaEntry> findByUuid(String uuid) { return Optional.empty(); }
+                }));
 
         ExecuteRequest request = ExecuteRequest.builder()
                 .uuid("uuid-bet593-cashout")

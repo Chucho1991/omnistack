@@ -192,7 +192,19 @@ sino:
 - LN TRAD: campo `motivo` en el body de AnularVentaBoletos
 - Ecuabet: no tiene campo motivo en la spec — ignorar o no enviar
 
-### 5.6 Variables de entorno por proveedor
+### 5.6 Control de cupos diarios CASH_OUT
+
+OmniStack implementa un control de cupos maximos diarios de retiro por local (farmacia) para servicios con `MovementType.CASH_OUT`.
+
+- `MONTO_MAX` de `AD_SERVICIO_PARAMETROS` es el cupo maximo diario por local y tambien el maximo por transaccion.
+- **PRECHECK**: Reserva cupo (estado `RESERVADO`). Si no hay cupo disponible, responde error de negocio (HTTP 422).
+- **EXECUTE**: Confirma la reserva (estado `CONFIRMADO`).
+- **REVERSE mismo dia**: Restituye cupo (estado `REVERTIDO`). Si es otro dia, no se restituye.
+- **Timeout** (configurable, default 30 min): Reservas no confirmadas se expiran automaticamente (estado `EXPIRADO`).
+- Tabla: `TUKUNAFUNC.IN_OMNI_CASHOUT_CUPO_DIARIO`
+- Variables: `APP_CASHOUT_QUOTA_RESERVATION_TIMEOUT_MINUTES`, `APP_CASHOUT_QUOTA_EXPIRATION_SCHEDULER_RATE_MS`
+
+### 5.7 Variables de entorno por proveedor
 Consultar el archivo `OmniStack-TST_postman_environment_v3.json` para los valores de desarrollo. Las variables críticas son:
 
 ```

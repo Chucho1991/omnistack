@@ -60,6 +60,26 @@ All transaction endpoints (`/v1/preCheck`, `/v1/execute`, `/v1/verify`, `/v1/rev
 6. `OracleRegistroTrxAdapter` saves to `IN_OMNI_REGISTRO_TRX` for EXECUTE, CREATE_TICKET, and REVERSE (not precheck/verify)
 7. If `ServiceDefinition.homologatedAuth` is `true`, `TransactionOrchestrationService` generates a homologated code (10-char alphanumeric), stores the original in `AUTHORIZATION` and the homologated code in `CP_VAR1`, then returns the homologated code to the POS
 
+### Cash-out daily quota control
+
+For `CASH_OUT` services (`MovementType.CASH_OUT`), `TransactionOrchestrationService` enforces a daily quota limit per store (farmacia) before and after provider invocation:
+
+**PRECHECK:** `CashOutQuotaService.reserveQuota()` validates:
+1. Transaction amount ≤ `MONTO_MAX` (max per transaction)
+2. Transaction amount ≤ available daily quota (`MONTO_MAX` − already consumed)
+
+If valid, inserts a `RESERVADO` row in `IN_OMNI_CASHOUT_CUPO_DIARIO`. If not, throws `BusinessException` (HTTP 422).
+
+**EXECUTE:** `CashOutQuotaService.confirmQuota()` changes the entry from `RESERVADO` → `CONFIRMADO`.
+
+**REVERSE:** `CashOutQuotaService.revertQuota()` changes the entry to `REVERTIDO` **only if the reverse happens on the same calendar day** as the original transaction. If the reverse is on a later date, the quota is NOT restored (it belonged to a different day's allocation).
+
+**Expiration scheduler:** `CashOutQuotaExpirationScheduler` runs every `app.cashout-quota.expiration-scheduler-rate-ms` (default 60s) and expires any `RESERVADO` entry older than `app.cashout-quota.reservation-timeout-minutes` (default 30 min), setting its state to `EXPIRADO` and restoring the quota.
+
+Key classes: `CashOutQuotaService`, `CashOutQuotaPort`, `OracleCashOutQuotaAdapter`, `CashOutQuotaExpirationScheduler`, `CashOutQuotaEntry`, `CashOutQuotaStatus`.
+
+Table: `TUKUNAFUNC.IN_OMNI_CASHOUT_CUPO_DIARIO` (DDL: `docs/bdd/omnistack/26_DDL_CASHOUT_CUPO_DIARIO.sql`).
+
 ### Homologated authorization code
 
 When `AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'` for a given item, OmniStack generates an internal authorization code instead of exposing the provider's raw code to the POS.
@@ -169,6 +189,7 @@ Audit log inserts use `SELECT NVL(MAX(CODIGO), 0) + 1 FROM table` as a PK sequen
 | `IN_OMNI_LOGS_APP` | `OracleAuditLogAdapter` | Every transaction (EXECUTE, PRECHECK, VERIFY, REVERSE) — async |
 | `IN_OMNI_LOGS_WS_EXT` | `OracleWsExtLogAdapter` | Every external HTTP call to provider — async via `WsExtLogService.log()` |
 | `IN_OMNI_REGISTRO_TRX` | `OracleRegistroTrxAdapter` | EXECUTE, CREATE_TICKET, REVERSE on success — async |
+| `IN_OMNI_CASHOUT_CUPO_DIARIO` | `OracleCashOutQuotaAdapter` | PRECHECK (reserve), EXECUTE (confirm), REVERSE (revert) for CASH_OUT — sync |
 
 ### Provider token management
 
@@ -199,6 +220,7 @@ Numbered SQL scripts must be run in order:
 - `docs/bdd/local-setup/` — one-time local dev environment (admin, RMS DDL, grants)
 - `docs/bdd/omnistack/` — OmniStack schema DDL + DML (01 = DDL, 02+ = data/fixes)
   - Script `25` adds `ID_HOMOLOGADO` column to `AD_SERVICIO_PARAMETROS`
+  - Script `26` creates `IN_OMNI_CASHOUT_CUPO_DIARIO` table for CASH_OUT daily quota control
 
 When adding a new provider, append new numbered scripts to `docs/bdd/omnistack/` — never modify existing ones.
 

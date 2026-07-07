@@ -74,6 +74,8 @@ Propiedades principales:
 - `app.integrations.default-read-timeout-ms`
 - `app.integrations.tls-protocols`
 - `app.integrations.mock-enabled`
+- `app.cashout-quota.reservation-timeout-minutes`
+- `app.cashout-quota.expiration-scheduler-rate-ms`
 - `app.integration.providers.default.base-url`
 - `app.integration.providers.default.technical-user`
 - `app.integration.providers.ecuabet.base-url`
@@ -153,6 +155,8 @@ Variables de entorno principales:
 - `APP_INTEGRATIONS_DEFAULT_READ_TIMEOUT_MS` (default `60000`)
 - `APP_INTEGRATIONS_TLS_PROTOCOLS` (default `TLSv1.2`)
 - `APP_INTEGRATIONS_MOCK_ENABLED`
+- `APP_CASHOUT_QUOTA_RESERVATION_TIMEOUT_MINUTES` (default `30`)
+- `APP_CASHOUT_QUOTA_EXPIRATION_SCHEDULER_RATE_MS` (default `60000`)
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_BASE_URL`
 - `APP_INTEGRATION_PROVIDERS_DEFAULT_TECHNICAL_USER`
 - `APP_INTEGRATION_PROVIDERS_ECUABET_BASE_URL`
@@ -532,6 +536,48 @@ Cuando un item tiene `AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'`, OmniStack no 
 - **REVERSE**: el POS envia el codigo homologado en `authorization`. OmniStack resuelve el codigo original del proveedor desde BD y lo envia al endpoint externo.
 
 Script de migracion: `docs/bdd/omnistack/25_ALTER_AD_SERVICIO_PARAMETROS_ID_HOMOLOGADO.sql`
+
+## Control de cupos diarios CASH_OUT
+
+OmniStack implementa un control de cupos maximos diarios de retiro por local (farmacia) para transacciones CASH_OUT. El cupo se administra a nivel de item RMS por farmacia.
+
+### Reglas de negocio
+
+- El campo `MONTO_MAX` de `AD_SERVICIO_PARAMETROS` define simultaneamente:
+  - El monto maximo por transaccion individual
+  - El cupo maximo diario por local para ese item CASH_OUT
+- Si una transaccion alcanza el cupo maximo diario, el local no puede emitir un nuevo CASH_OUT hasta el dia siguiente.
+
+### Flujo del cupo
+
+1. **PRECHECK**: Reserva el monto como cupo pendiente (estado `RESERVADO`). Si el cupo disponible es insuficiente, responde `is_error=true` con codigo `BUSINESS_ERROR` (HTTP 422).
+2. **EXECUTE**: Confirma la reserva (estado `CONFIRMADO`). El cupo queda consumido definitivamente.
+3. **REVERSE** (mismo dia): Restituye el cupo al saldo disponible del local (estado `REVERTIDO`). Si el reverso se realiza en una fecha posterior a la transaccion original, el cupo NO se restablece.
+4. **Expiracion automatica**: Un scheduler periodico expira reservas no confirmadas tras el timeout configurable (estado `EXPIRADO`), restituyendo el cupo.
+
+### Tabla de bitacora
+
+Esquema: `TUKUNAFUNC`  
+Tabla: `IN_OMNI_CASHOUT_CUPO_DIARIO`  
+Script DDL: `docs/bdd/omnistack/26_DDL_CASHOUT_CUPO_DIARIO.sql`
+
+Estados: `RESERVADO` | `CONFIRMADO` | `EXPIRADO` | `REVERTIDO`
+
+### Configuracion
+
+| Property | Env var | Default | Descripcion |
+|---|---|---|---|
+| `app.cashout-quota.reservation-timeout-minutes` | `APP_CASHOUT_QUOTA_RESERVATION_TIMEOUT_MINUTES` | `30` | Minutos para confirmar una reserva antes de expirarla |
+| `app.cashout-quota.expiration-scheduler-rate-ms` | `APP_CASHOUT_QUOTA_EXPIRATION_SCHEDULER_RATE_MS` | `60000` | Intervalo del scheduler de expiracion (ms) |
+
+### Clases involucradas
+
+- `CashOutQuotaService` — logica de negocio (reservar, confirmar, revertir, expirar)
+- `CashOutQuotaPort` — puerto de salida
+- `OracleCashOutQuotaAdapter` — adaptador Oracle
+- `CashOutQuotaExpirationScheduler` — scheduler periodico
+- `CashOutQuotaEntry` — modelo de dominio
+- `CashOutQuotaStatus` — enum de estados
 
 ## Integraciones externas
 

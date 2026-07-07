@@ -1,0 +1,8 @@
+INSERT INTO ${schema}.IN_OMNI_CASHOUT_CUPO_DIARIO (
+    ID_CUPO, UUID, CADENA, FARMACIA, POS, RMS_ITEM_CODE, SERVICE_PROVIDER_CODE,
+    MONTO, ESTADO, FECHA_OPERACION, FECHA_RESERVA
+) VALUES (
+    ${schema}.SEQ_IN_OMNI_CASHOUT_CUPO.NEXTVAL,
+    :uuid, :cadena, :farmacia, :pos, :rmsItemCode, :serviceProviderCode,
+    :monto, 'RESERVADO', :fechaOperacion, SYSTIMESTAMP
+)

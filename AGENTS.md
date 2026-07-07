@@ -112,6 +112,8 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - Dejar `TODO` solo cuando exista una razón real y con contexto suficiente.
 - Mantener el código preparado para escalar sin romper contratos existentes.
 - Cuando un servicio requiere código de autorización homologado (`AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'`), no manipular el authorization directamente en las estrategias — la homologación se resuelve en `TransactionOrchestrationService` de forma transparente para la estrategia.
+- El control de cupos diarios CASH_OUT se gestiona de forma transparente en `TransactionOrchestrationService`. Las estrategias de proveedor NO deben implementar validaciones de cupo propias — la reserva (PRECHECK), confirmación (EXECUTE), restitución (REVERSE) y expiración por timeout se manejan centralmente.
+- Para transacciones CASH_OUT, el `MONTO_MAX` de `AD_SERVICIO_PARAMETROS` actúa como cupo máximo diario por local y como monto máximo por transacción individual. No crear lógica de validación de montos duplicada en las estrategias.
 
 ## Flujo mínimo para cambios futuros
 1. Definir el caso de uso y sus puertos de entrada/salida.

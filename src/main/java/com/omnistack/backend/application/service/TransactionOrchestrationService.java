@@ -20,6 +20,7 @@ import com.omnistack.backend.domain.enums.TransactionStatus;
 import com.omnistack.backend.domain.model.ProviderFlowSelection;
 import com.omnistack.backend.domain.model.RegistroTrx;
 import com.omnistack.backend.domain.model.TransactionAuditLog;
+import com.omnistack.backend.shared.exception.BusinessException;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import com.omnistack.backend.shared.util.JsonUtil;
 import java.math.BigDecimal;
@@ -41,6 +42,7 @@ public class TransactionOrchestrationService implements TransactionUseCase {
     private final AuditLogService auditLogService;
     private final RegistroTrxPort registroTrxPort;
     private final HomologatedCodeService homologatedCodeService;
+    private final CashOutQuotaService cashOutQuotaService;
 
     @Override
     public PrecheckResponse precheck(PrecheckRequest request) {
@@ -73,6 +75,12 @@ public class TransactionOrchestrationService implements TransactionUseCase {
         request.setMovementType(selection.getServiceDefinition().getMovementType());
 
         boolean isHomologated = selection.getServiceDefinition().isHomologatedAuth();
+        boolean isCashOutQuota = cashOutQuotaService.appliesTo(selection.getServiceDefinition());
+
+        // Control de cupo CASH_OUT: reservar cupo en PRECHECK antes de invocar al proveedor
+        if (capability == Capability.PRECHECK && isCashOutQuota) {
+            reserveCashOutQuota(request, selection);
+        }
 
         // Para REVERSE con homologacion: resolver el authorization original del proveedor
         if (capability == Capability.REVERSE && isHomologated && request.getAuthorization() != null) {
@@ -86,6 +94,16 @@ public class TransactionOrchestrationService implements TransactionUseCase {
             auditLogService.save(buildAuditLog(request, response, selection, capability, endpoint,
                     TransactionStatus.SUCCESS, null, null, 200, startTime, endTime));
 
+            // Control de cupo CASH_OUT: confirmar reserva en EXECUTE exitoso
+            if (capability == Capability.EXECUTE && isCashOutQuota) {
+                confirmCashOutQuota(request, response);
+            }
+
+            // Control de cupo CASH_OUT: restituir cupo en REVERSE exitoso
+            if (capability == Capability.REVERSE && isCashOutQuota) {
+                revertCashOutQuota(request, response);
+            }
+
             // Aplicar homologacion: generar codigo, persistir con original en AUTHORIZATION
             // y homologado en CP_VAR1, luego reemplazar authorization en el response para el POS
             saveRegistroTrxIfApplicable(request, response, selection, capability, isHomologated);
@@ -95,6 +113,12 @@ public class TransactionOrchestrationService implements TransactionUseCase {
             OffsetDateTime endTime = OffsetDateTime.now();
             auditLogService.save(buildAuditLog(request, null, selection, capability, endpoint,
                     TransactionStatus.FAILED, "INTEGRATION_ERROR", exception.getMessage(), 502, startTime, endTime));
+            throw exception;
+        } catch (BusinessException exception) {
+            // BusinessException (ej: cupo insuficiente) — no se reintenta
+            OffsetDateTime endTime = OffsetDateTime.now();
+            auditLogService.save(buildAuditLog(request, null, selection, capability, endpoint,
+                    TransactionStatus.FAILED, "BUSINESS_ERROR", exception.getMessage(), 422, startTime, endTime));
             throw exception;
         } catch (RuntimeException exception) {
             OffsetDateTime endTime = OffsetDateTime.now();
@@ -123,6 +147,44 @@ public class TransactionOrchestrationService implements TransactionUseCase {
                         () -> log.warn("Homologacion REVERSE: no se encontro authorization original para "
                                 + "codigo homologado='{}'. Se enviara el valor recibido al proveedor.", homologatedCode)
                 );
+    }
+
+    /**
+     * Reserva cupo CASH_OUT en el precheck. Si el cupo es insuficiente o el monto
+     * excede el maximo, lanza BusinessException.
+     */
+    private void reserveCashOutQuota(BaseTransactionRequest request, ProviderFlowSelection selection) {
+        BigDecimal amount = request.getAmount();
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        cashOutQuotaService.reserveQuota(
+                request.getUuid(),
+                request.getChain(),
+                request.getStore(),
+                request.getPos(),
+                request.getRmsItemCode(),
+                request.getServiceProviderCode(),
+                amount,
+                selection.getServiceDefinition().getMaxAmount());
+    }
+
+    /**
+     * Confirma la reserva de cupo CASH_OUT tras un execute exitoso.
+     */
+    private void confirmCashOutQuota(BaseTransactionRequest request, Object response) {
+        if (response instanceof BaseTransactionResponse baseResponse && !baseResponse.isErrorFlag()) {
+            cashOutQuotaService.confirmQuota(request.getUuid());
+        }
+    }
+
+    /**
+     * Restituye el cupo CASH_OUT tras un reverse exitoso (solo si es el mismo dia).
+     */
+    private void revertCashOutQuota(BaseTransactionRequest request, Object response) {
+        if (response instanceof BaseTransactionResponse baseResponse && !baseResponse.isErrorFlag()) {
+            cashOutQuotaService.revertQuota(request.getUuid());
+        }
     }
 
     private TransactionAuditLog buildAuditLog(
