@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "8f8f5a57-8570-4ab9-b70e-2fa3b3d1d90f",
     "name": "OMNISTACK Backend",
-    "description": "Coleccion Postman para los endpoints internos del backend OMNISTACK, organizada por escenarios funcionales.",
+    "description": "Coleccion Postman con todos los endpoints internos del backend OMNISTACK, organizada por escenarios funcionales. Incluye Health, catalogo comercial, flujos transaccionales ECUABET y LOTERIA BET593, creacion de tickets Pega3, administracion de tokens de proveedor, recarga de caches y descarga de comprobantes.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -16,14 +16,24 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/healthcheck",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "healthcheck"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["healthcheck"]
             },
-            "description": "Verifica el estado basico del servicio."
+            "description": "Verifica el estado basico operativo del servicio."
+          },
+          "response": []
+        },
+        {
+          "name": "Actuator Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            },
+            "description": "Estado de salud expuesto por Spring Boot Actuator."
           },
           "response": []
         }
@@ -37,25 +47,15 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Correlation-Id",
-                "value": "{{correlationId}}"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
             ],
             "url": {
               "raw": "{{baseUrl}}/business-lines",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "business-lines"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["business-lines"]
             },
-            "description": "Consulta la oferta comercial disponible por punto de venta. La respuesta incluye ruc_provider en cada service_providers.",
+            "description": "Consulta la oferta comercial parametrizada por punto de venta. Filtro opcional por movement_type_filter (CASH_IN | CASH_OUT).",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"movement_type_filter\": \"{{movementTypeFilter}}\"\n}"
@@ -66,602 +66,310 @@
       ]
     },
     {
-      "name": "Escenarios",
+      "name": "Escenarios / Cashin ECUABET",
       "item": [
         {
-          "name": "Cashin ECUABET",
-          "item": [
-            {
-              "name": "Precheck",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/precheck",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "precheck"
-                  ]
-                },
-                "description": "Realiza validaciones previas para recarga ECUABET CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"userid\": \"{{ecuabetUserId}}\",\n  \"phone\": \"{{customerPhone}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashinAmount}}\n}"
-                }
-              },
-              "response": []
+          "name": "Precheck Cashin ECUABET",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "precheck"]
             },
-            {
-              "name": "Execute",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/execute",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "execute"
-                  ]
-                },
-                "description": "Ejecuta la recarga de saldos ECUABET por flujo CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"userid\": \"{{ecuabetUserId}}\",\n  \"phone\": \"{{customerPhone}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashinAmount}}\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Reverse",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/reverse",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "reverse"
-                  ]
-                },
-                "description": "Reversa una recarga ECUABET por flujo CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"authorization\": \"{{ecuabetReverseAuthorization}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
-                }
-              },
-              "response": []
+            "description": "Busqueda de usuario ECUABET (POST /user/search).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"userid\": \"{{ecuabetUserId}}\",\n  \"phone\": \"{{customerPhone}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashinAmount}}\n}"
             }
-          ]
+          },
+          "response": []
         },
         {
-          "name": "Cashout ECUABET",
-          "item": [
-            {
-              "name": "Precheck",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/precheck",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "precheck"
-                  ]
-                },
-                "description": "Realiza el precheck de nota de retiro ECUABET por flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"userid\": \"{{ecuabetCashoutUserId}}\",\n  \"phone\": \"{{ecuabetCashoutPhone}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdPrecheck}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordPrecheck}}\",\n  \"document\": \"{{ecuabetCashoutDocument}}\",\n  \"amount\": {{ecuabetCashoutPrecheckAmount}}\n}"
-                }
-              },
-              "response": []
+          "name": "Execute Cashin ECUABET",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "execute"]
             },
-            {
-              "name": "Execute",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/execute",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "execute"
-                  ]
-                },
-                "description": "Ejecuta la nota de retiro ECUABET por flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdExecute}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordExecute}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutAmount}}\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Reverse",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/reverse",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "reverse"
-                  ]
-                },
-                "description": "Reversa la nota de retiro ECUABET por flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdReverse}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordReverse}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
-                }
-              },
-              "response": []
+            "description": "Deposito ECUABET (POST /user/deposit).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"userid\": \"{{ecuabetUserId}}\",\n  \"phone\": \"{{customerPhone}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetReverseAmount}}\n}"
             }
-          ]
+          },
+          "response": []
         },
         {
-          "name": "Cashin LOTERIA BET593",
-          "item": [
-            {
-              "name": "Precheck",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/precheck",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "precheck"
-                  ]
-                },
-                "description": "Realiza el precheck de recarga BET593 por Loteria Nacional en flujo CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"amount\": {{loteriaCashinAmount}}\n}"
-                }
-              },
-              "response": []
+          "name": "Reverse Cashin ECUABET",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/reverse",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reverse"]
             },
-            {
-              "name": "Execute",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/execute",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "execute"
-                  ]
-                },
-                "description": "Confirma la recarga BET593 por Loteria Nacional en flujo CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"amount\": {{loteriaCashinAmount}},\n  \"authorization\": \"{{loteriaAuthorization}}\",\n  \"serialnumber\": \"{{loteriaSerialNumber}}\"\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Verify",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/verify",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "verify"
-                  ]
-                },
-                "description": "Valida el estado de una recarga BET593 por Loteria Nacional en flujo CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"authorization\": \"{{loteriaAuthorization}}\",\n  \"serialnumber\": \"{{loteriaSerialNumber}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\"\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Reverse",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/reverse",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "reverse"
-                  ]
-                },
-                "description": "Reversa una recarga BET593 por Loteria Nacional en flujo CASH_IN.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
-                }
-              },
-              "response": []
+            "description": "Rollback de deposito ECUABET (POST /rollback/deposit).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashin}}\",\n  \"authorization\": \"{{ecuabetReverseAuthorization}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
             }
-          ]
-        },
-        {
-          "name": "Cashout LOTERIA BET593",
-          "item": [
-            {
-              "name": "Precheck",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/precheck",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "precheck"
-                  ]
-                },
-                "description": "Consulta la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"withdrawId\": \"{{loteriaWithdrawIdPrecheck}}\",\n  \"amount\": {{loteriaCashoutAmount}}\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Verify",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/verify",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "verify"
-                  ]
-                },
-                "description": "Valida la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"withdrawId\": \"{{loteriaWithdrawIdVerify}}\"\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Execute",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/execute",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "execute"
-                  ]
-                },
-                "description": "Ejecuta la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"{{loteriaCashoutDocument}}\",\n  \"withdrawId\": \"{{loteriaWithdrawIdExecute}}\",\n  \"amount\": {{loteriaCashoutAmount}}\n}"
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Reverse",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Correlation-Id",
-                    "value": "{{correlationId}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/reverse",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "reverse"
-                  ]
-                },
-                "description": "Reversa la nota de retiro BET593 por Loteria Nacional en flujo CASH_OUT.",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"authorization\": \"{{loteriaReverseAuthorization}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
-                }
-              },
-              "response": []
-            }
-          ]
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Operaciones Genericas",
+      "name": "Escenarios / Cashout ECUABET",
       "item": [
         {
-          "name": "Precheck",
+          "name": "Precheck Cashout ECUABET",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Correlation-Id",
-                "value": "{{correlationId}}"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/precheck",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "precheck"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "precheck"]
             },
-            "description": "Ejecuta un precheck generico parametrizable.",
+            "description": "Consulta de nota de retiro ECUABET (POST /user/searchwithdraw).",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{genericCategoryCode}}\",\n  \"subcategory_code\": \"{{genericSubcategoryCode}}\",\n  \"service_provider_code\": \"{{genericServiceProviderCode}}\",\n  \"rms_item_code\": \"{{genericRmsItemCode}}\",\n  \"amount\": {{genericAmount}},\n  \"phone\": \"{{customerPhone}}\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"userid\": \"{{ecuabetCashoutUserId}}\",\n  \"phone\": \"{{ecuabetCashoutPhone}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdPrecheck}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordPrecheck}}\",\n  \"document\": \"{{ecuabetCashoutDocument}}\",\n  \"amount\": {{ecuabetCashoutPrecheckAmount}}\n}"
             }
           },
           "response": []
         },
         {
-          "name": "Execute",
+          "name": "Execute Cashout ECUABET",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Correlation-Id",
-                "value": "{{correlationId}}"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/execute",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "execute"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "execute"]
             },
-            "description": "Ejecuta una transaccion generica parametrizable.",
+            "description": "Ejecucion de nota de retiro ECUABET (POST /user/withdraw).",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{genericCategoryCode}}\",\n  \"subcategory_code\": \"{{genericSubcategoryCode}}\",\n  \"service_provider_code\": \"{{genericServiceProviderCode}}\",\n  \"rms_item_code\": \"{{genericRmsItemCode}}\",\n  \"amount\": {{genericAmount}},\n  \"phone\": \"{{customerPhone}}\"\n}"
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdExecute}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordExecute}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutAmount}}\n}"
             }
           },
           "response": []
         },
         {
-          "name": "Verify",
+          "name": "Reverse Cashout ECUABET",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Correlation-Id",
-                "value": "{{correlationId}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/v1/verify",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "verify"
-              ]
-            },
-            "description": "Verifica una transaccion generica parametrizable.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{genericCategoryCode}}\",\n  \"subcategory_code\": \"{{genericSubcategoryCode}}\",\n  \"service_provider_code\": \"{{genericServiceProviderCode}}\",\n  \"rms_item_code\": \"{{genericRmsItemCode}}\",\n  \"phone\": \"{{customerPhone}}\"\n}"
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reverse",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Correlation-Id",
-                "value": "{{correlationId}}"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/reverse",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "reverse"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reverse"]
             },
-            "description": "Ejecuta un reverso generico parametrizable. Para ECUABET CASH_IN use category_code=759, subcategory_code=161, service_provider_code=12661912, rms_item_code=100713841, authorization numerico, amount y motivo. Para LOTERIA BET593 CASH_IN use category_code=759, subcategory_code=161, service_provider_code=408403, rms_item_code=100708850, uuid, document y motivo. Para CASH_OUT use rms_item_code=100708848, document, authorization y motivo.",
+            "description": "Rollback de nota de retiro ECUABET (POST /rollback/withdraw).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeEcuabet}}\",\n  \"subcategory_code\": \"{{subcategoryCodeEcuabet}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeEcuabet}}\",\n  \"rms_item_code\": \"{{rmsItemCodeEcuabetCashout}}\",\n  \"withdrawId\": \"{{ecuabetWithdrawIdReverse}}\",\n  \"password\": \"{{ecuabetWithdrawPasswordReverse}}\",\n  \"document\": \"{{customerDocument}}\",\n  \"amount\": {{ecuabetCashoutReverseAmount}},\n  \"motivo\": \"{{reverseReason}}\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Escenarios / Cashin LOTERIA BET593",
+      "item": [
+        {
+          "name": "Precheck Cashin LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "precheck"]
+            },
+            "description": "Recarga BET593 (POST /APIVentasLoteria/api/Ventas/RecargarBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"amount\": {{loteriaCashinAmount}}\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Execute Cashin LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "execute"]
+            },
+            "description": "Confirmacion de recarga BET593 (POST /APIVentasLoteria/api/Ventas/ConfirmarBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"authorization\": \"{{loteriaAuthorization}}\",\n  \"serialnumber\": \"{{loteriaSerialNumber}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"amount\": {{loteriaCashinAmount}}\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Cashin LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "verify"]
+            },
+            "description": "Validacion de recarga BET593 (POST /APIVentasLoteria/api/Ventas/ValidarBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"authorization\": \"{{loteriaAuthorization}}\",\n  \"serialnumber\": \"{{loteriaSerialNumber}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reverse Cashin LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/reverse",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reverse"]
+            },
+            "description": "Reverso de recarga BET593 (POST /APIVentasLoteria/api/Ventas/ReversarRetiroBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{loteriaReverseAuthorization}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Escenarios / Cashout LOTERIA BET593",
+      "item": [
+        {
+          "name": "Precheck Cashout LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/precheck",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "precheck"]
+            },
+            "description": "Consulta de nota de retiro BET593 (POST /APIVentasLoteria/api/Ventas/ConsultarRetiroBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"withdrawId\": \"{{loteriaWithdrawIdPrecheck}}\",\n  \"amount\": {{loteriaCashoutAmount}}\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Cashout LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "verify"]
+            },
+            "description": "Validacion de nota de retiro BET593 (POST /APIVentasLoteria/api/Ventas/ConsultarRetiroBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"withdrawId\": \"{{loteriaWithdrawIdVerify}}\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Execute Cashout LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/execute",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "execute"]
+            },
+            "description": "Ejecucion de nota de retiro BET593 (POST /APIVentasLoteria/api/Ventas/RetirarBet593).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"document\": \"{{loteriaCashoutDocument}}\",\n  \"withdrawId\": \"{{loteriaWithdrawIdExecute}}\",\n  \"amount\": {{loteriaCashoutAmount}}\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reverse Cashout LOTERIA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/reverse",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "reverse"]
+            },
+            "description": "Reverso de nota de retiro BET593 (POST /APIVentasLoteria/api/Ventas/ReversarRetiroBet593).",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashout}}\",\n  \"authorization\": \"{{loteriaReverseAuthorization}}\",\n  \"document\": \"{{loteriaCustomerDocument}}\",\n  \"motivo\": \"{{reverseReason}}\"\n}"
@@ -672,34 +380,48 @@
       ]
     },
     {
-      "name": "Provider Tokens",
+      "name": "Tickets Pega3",
       "item": [
         {
-          "name": "Refresh Token LOTERIA",
+          "name": "Create Ticket Pega3",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Correlation-Id",
-                "value": "{{correlationId}}"
-              }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/createTicket",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "createTicket"]
+            },
+            "description": "Crea un ticket de apuesta en el proveedor Pega3 (Loteria Nacional). El campo amount y ticket_data aplican a Pega3; los campos draw_id, combinacion, sugerir, registros, figura_id y cantidad_fracciones aplican a Tradicionales.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"{{$guid}}\",\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\",\n  \"rms_item_code\": \"{{rmsItemCodeLoteriaBet593Cashin}}\",\n  \"amount\": 5.00,\n  \"ticket_data\": {\n    \"draw_number\": 1234,\n    \"entry_type\": \"QUICK_PICK\",\n    \"panels\": [\n      {\n        \"bet_amount\": 5.00,\n        \"numbers\": [1, 2, 3, 4, 5],\n        \"play_types\": [\"WIN\"]\n      }\n    ]\n  }\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Provider Tokens",
+      "item": [
+        {
+          "name": "Refresh Provider Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
             ],
             "url": {
               "raw": "{{baseUrl}}/v1/provider-token/refresh",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "provider-token",
-                "refresh"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "provider-token", "refresh"]
             },
-            "description": "Fuerza la regeneracion del token dinamico del proveedor LOTERIA.",
+            "description": "Fuerza el refresco manual del token del proveedor. Solo aplica a proveedores con auth.mode=LOGIN (LOTERIA).",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"category_code\": \"{{categoryCodeLoteria}}\",\n  \"subcategory_code\": \"{{subcategoryCodeLoteria}}\",\n  \"service_provider_code\": \"{{serviceProviderCodeLoteria}}\"\n}"
@@ -708,220 +430,51 @@
           "response": []
         }
       ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8085"
     },
     {
-      "key": "correlationId",
-      "value": "postman-local-correlation-id"
+      "name": "Administracion Cache",
+      "item": [
+        {
+          "name": "Reload Caches",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "{{correlationId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/cache/reload",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "cache", "reload"]
+            },
+            "description": "Recarga manual de todos los caches de configuracion.",
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "key": "chain",
-      "value": "1"
-    },
-    {
-      "key": "store",
-      "value": "148"
-    },
-    {
-      "key": "storeName",
-      "value": "FYBECA AMAZONAS"
-    },
-    {
-      "key": "pos",
-      "value": "1"
-    },
-    {
-      "key": "channelPos",
-      "value": "POS"
-    },
-    {
-      "key": "movementTypeFilter",
-      "value": "CASH_IN"
-    },
-    {
-      "key": "customerDocument",
-      "value": "0912345678"
-    },
-    {
-      "key": "customerPhone",
-      "value": "123456"
-    },
-    {
-      "key": "serviceProviderCodeEcuabet",
-      "value": "12661912"
-    },
-    {
-      "key": "categoryCodeEcuabet",
-      "value": "759"
-    },
-    {
-      "key": "subcategoryCodeEcuabet",
-      "value": "161"
-    },
-    {
-      "key": "rmsItemCodeEcuabetCashin",
-      "value": "100713841"
-    },
-    {
-      "key": "rmsItemCodeEcuabetCashout",
-      "value": "100708846"
-    },
-    {
-      "key": "ecuabetUserId",
-      "value": "997561"
-    },
-    {
-      "key": "ecuabetCashinAmount",
-      "value": "25.50"
-    },
-    {
-      "key": "ecuabetReverseAuthorization",
-      "value": "91081"
-    },
-    {
-      "key": "ecuabetReverseAmount",
-      "value": "100000.00"
-    },
-    {
-      "key": "ecuabetCashoutUserId",
-      "value": ""
-    },
-    {
-      "key": "ecuabetCashoutPhone",
-      "value": ""
-    },
-    {
-      "key": "ecuabetCashoutDocument",
-      "value": ""
-    },
-    {
-      "key": "ecuabetWithdrawIdPrecheck",
-      "value": "7667"
-    },
-    {
-      "key": "ecuabetWithdrawPasswordPrecheck",
-      "value": "88422"
-    },
-    {
-      "key": "ecuabetCashoutPrecheckAmount",
-      "value": "1.00"
-    },
-    {
-      "key": "ecuabetWithdrawIdExecute",
-      "value": "7668"
-    },
-    {
-      "key": "ecuabetWithdrawPasswordExecute",
-      "value": "77992"
-    },
-    {
-      "key": "ecuabetCashoutAmount",
-      "value": "25.50"
-    },
-    {
-      "key": "ecuabetWithdrawIdReverse",
-      "value": "7671"
-    },
-    {
-      "key": "ecuabetWithdrawPasswordReverse",
-      "value": "03448"
-    },
-    {
-      "key": "ecuabetCashoutReverseAmount",
-      "value": "25.50"
-    },
-    {
-      "key": "serviceProviderCodeLoteria",
-      "value": "408403"
-    },
-    {
-      "key": "categoryCodeLoteria",
-      "value": "759"
-    },
-    {
-      "key": "subcategoryCodeLoteria",
-      "value": "161"
-    },
-    {
-      "key": "rmsItemCodeLoteriaBet593Cashin",
-      "value": "100708850"
-    },
-    {
-      "key": "rmsItemCodeLoteriaBet593Cashout",
-      "value": "100708848"
-    },
-    {
-      "key": "loteriaCustomerDocument",
-      "value": "0901111112"
-    },
-    {
-      "key": "loteriaCashoutDocument",
-      "value": "0911274165"
-    },
-    {
-      "key": "loteriaCashinAmount",
-      "value": "9.99"
-    },
-    {
-      "key": "loteriaCashoutAmount",
-      "value": "17.00"
-    },
-    {
-      "key": "loteriaAuthorization",
-      "value": "9F968187-F436-4F19-8C1F-A7A4DA07A899"
-    },
-    {
-      "key": "loteriaSerialNumber",
-      "value": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511"
-    },
-    {
-      "key": "loteriaWithdrawIdPrecheck",
-      "value": "340468406359"
-    },
-    {
-      "key": "loteriaWithdrawIdVerify",
-      "value": "340468406359"
-    },
-    {
-      "key": "loteriaWithdrawIdExecute",
-      "value": "20240430800100007"
-    },
-    {
-      "key": "loteriaReverseAuthorization",
-      "value": "ca9b201a-a668-45ed-876c-00affcb18580"
-    },
-    {
-      "key": "loteriaReverseTransactionNumber",
-      "value": "ca9b201a-a668-45ed-876c-00affcb18580"
-    },
-    {
-      "key": "genericCategoryCode",
-      "value": "759"
-    },
-    {
-      "key": "genericSubcategoryCode",
-      "value": "161"
-    },
-    {
-      "key": "genericServiceProviderCode",
-      "value": "12661912"
-    },
-    {
-      "key": "genericRmsItemCode",
-      "value": "100713841"
-    },
-    {
-      "key": "genericAmount",
-      "value": "25.50"
-    },
-    {
-      "key": "reverseReason",
-      "value": "Reverso por timeout del proveedor"
+      "name": "Comprobantes",
+      "item": [
+        {
+          "name": "Descargar Comprobante PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/comprobantes/{{comprobanteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "comprobantes", "{{comprobanteId}}"]
+            },
+            "description": "Descarga el comprobante de venta (PDF) generado en VERIFY. El id proviene de la URL retornada en la respuesta de VERIFY."
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
