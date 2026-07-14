@@ -111,7 +111,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 sqlProvider.getAdPaymentMethodsSql(), adParams, adPaymentMethodRowMapper());
         log.debug("[BL-catalog] adPaymentMethods={}", adPaymentMethods.size());
 
-        // --- PROD (TUKUNAFUNC): capabilities por service_provider_code (IN_OMNI_PROVEEDOR_WS) ---
+        // --- PROD (TUKUNAFUNC): capabilities por rms_item_code (IN_OMNI_PROVEEDOR_WS_DEFS) ---
         List<OmniCapabilityRow> omniCapabilities = prodJdbcTemplate.query(
                 sqlProvider.getAdCapabilitiesSql(), new MapSqlParameterSource(), omniCapabilityRowMapper());
         log.debug("[BL-catalog] omniCapabilities={}", omniCapabilities.size());
@@ -137,11 +137,11 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .collect(Collectors.toMap(RmsItemRow::rmsItemCode, r -> r, (a, b) -> a, LinkedHashMap::new));
         Map<String, RmsSupplierRow> rmsSupplierByItem = rmsSuppliers.stream()
                 .collect(Collectors.toMap(RmsSupplierRow::rmsItemCode, r -> r, (a, b) -> a, LinkedHashMap::new));
-        Map<String, List<String>> capabilityCodesByProvider = omniCapabilities.stream()
-                .collect(Collectors.groupingBy(OmniCapabilityRow::serviceProviderCode,
+        Map<String, List<String>> capabilityCodesByItem = omniCapabilities.stream()
+                .collect(Collectors.groupingBy(OmniCapabilityRow::rmsItemCode,
                         LinkedHashMap::new,
                         Collectors.mapping(OmniCapabilityRow::capabilityCode, Collectors.toList())));
-        log.info("[BL-catalog][DIAG] capabilityCodesByProvider keys={}", capabilityCodesByProvider.keySet());
+        log.info("[BL-catalog][DIAG] capabilityCodesByItem keys={}", capabilityCodesByItem.keySet());
         log.info("[BL-catalog][DIAG] activeItemCodes={}", activeItemCodes);
 
         // --- Construir CategorySubcategoryRow: CLASS/SUBCLASS distintos desde RMS ---
@@ -196,13 +196,13 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .toList();
         log.debug("[BL-catalog] serviceRows={}", serviceRows.size());
 
-        // --- Construir CapabilityRow: expandir capabilities por item segun provider ---
+        // --- Construir CapabilityRow: expandir capabilities por item segun WS_DEFS ---
         List<CapabilityRow> capabilityRows = serviceRows.stream()
                 .flatMap(service -> {
-                    List<String> caps = capabilityCodesByProvider.getOrDefault(service.serviceProviderCode(), List.of());
+                    List<String> caps = capabilityCodesByItem.getOrDefault(service.rmsItemCode(), List.of());
                     if (caps.isEmpty()) {
-                        log.info("[BL-catalog][DIAG] sin caps — serviceProviderCode='{}' (len={}) rmsItemCode='{}'",
-                                service.serviceProviderCode(), service.serviceProviderCode() == null ? -1 : service.serviceProviderCode().length(), service.rmsItemCode());
+                        log.info("[BL-catalog][DIAG] sin caps — rmsItemCode='{}' serviceProviderCode='{}'",
+                                service.rmsItemCode(), service.serviceProviderCode());
                     }
                     return caps.stream()
                             .map(cap -> new CapabilityRow(
@@ -421,7 +421,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
 
     private RowMapper<OmniCapabilityRow> omniCapabilityRowMapper() {
         return (rs, rowNum) -> new OmniCapabilityRow(
-                rs.getString("service_provider_code"),
+                rs.getString("rms_item_code"),
                 rs.getString("capability_code"));
     }
 
@@ -485,7 +485,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             String paymentMethodCode,
             boolean active) {}
 
-    record OmniCapabilityRow(String serviceProviderCode, String capabilityCode) {}
+    record OmniCapabilityRow(String rmsItemCode, String capabilityCode) {}
 
     record RmsItemRow(
             String rmsItemCode,

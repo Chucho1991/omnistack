@@ -847,7 +847,7 @@ Request externo generado:
 
 ### LOTERIA BET593 PRECHECK CASH_IN
 
-La recarga de saldos BET593 usa el proveedor Loteria Nacional con resolucion por catalogo `category_code=759`, `subcategory_code=161`, `service_provider_code=408403` y `rms_item_code=100708850`.
+La recarga de saldos BET593 usa el proveedor Loteria Nacional con resolucion por catalogo `category_code=983`, `subcategory_code=1120`, `service_provider_code=408403` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/RecargarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -872,7 +872,7 @@ Request externo generado:
 
 ### LOTERIA BET593 EXECUTE CASH_IN
 
-La confirmacion de recarga de saldos BET593 usa el mismo contexto comercial `category_code=759`, `subcategory_code=161`, `service_provider_code=408403` y `rms_item_code=100708850`.
+La confirmacion de recarga de saldos BET593 usa el mismo contexto comercial `category_code=983`, `subcategory_code=1120`, `service_provider_code=408403` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConfirmarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -890,9 +890,9 @@ Request interno:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "category_code": "1",
-  "subcategory_code": "1",
-  "service_provider_code": "2",
+  "category_code": 983,
+  "subcategory_code": 1120,
+  "service_provider_code": 408403,
   "rms_item_code": "100708850",
   "authorization": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
   "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
@@ -920,7 +920,7 @@ Request externo generado:
 
 ### LOTERIA BET593 VERIFY CASH_IN
 
-La validacion de recarga BET593 consulta el estado de una recarga CASH_IN con el contexto comercial `category_code=759`, `subcategory_code=161`, `service_provider_code=408403` y `rms_item_code=100708850`.
+La validacion de recarga BET593 consulta el estado de una recarga CASH_IN con el contexto comercial `category_code=983`, `subcategory_code=1120`, `service_provider_code=408403` y `rms_item_code=100708850`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ValidarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -938,9 +938,9 @@ Request interno:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "category_code": "1",
-  "subcategory_code": "1",
-  "service_provider_code": "2",
+  "category_code": 983,
+  "subcategory_code": 1120,
+  "service_provider_code": 408403,
   "rms_item_code": "100708850",
   "authorization": "9F968187-F436-4F19-8C1F-A7A4DA07A899",
   "serialnumber": "7366ea56284a06a2a58f561b497386b80fcd3eaea858d0c511",
@@ -965,7 +965,7 @@ Request externo generado:
 
 ### LOTERIA BET593 EXECUTE CASH_OUT
 
-La nota de retiro BET593 usa Loteria Nacional con resolucion por catalogo `category_code=759`, `subcategory_code=161`, `service_provider_code=408403` y `rms_item_code=100708848`.
+La nota de retiro BET593 usa Loteria Nacional con resolucion por catalogo `category_code=983`, `subcategory_code=1121`, `service_provider_code=408403` y `rms_item_code=100708848`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/RetirarBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -983,9 +983,9 @@ Request interno:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "category_code": "1",
-  "subcategory_code": "1",
-  "service_provider_code": "2",
+  "category_code": 983,
+  "subcategory_code": 1121,
+  "service_provider_code": 408403,
   "rms_item_code": "100708848",
   "document": "0911274165",
   "withdrawId": "20240430800100007",
@@ -1019,6 +1019,7 @@ El precheck de nota de retiro BET593 consulta la orden CASH_OUT con el mismo end
 - constantes configurables: `usuario/usuarioId`, `maquina`, `operacion=CONRETIROOL`, `clienteId=58542`, `medioId=23`
 - mapeo request: `uuid -> numeroTransaccion`, `document -> identificacion`, `withdrawId -> numeroRetiro`
 - regla especial: `codError=400022` se interpreta como transaccion ejecutada y responde `status.code=00`, `status.message=Transaccion correcta`
+- **nota:** `subcategory_code` no se valida contra `IN_OMNI_PROVEEDOR_CONFIG` — el proveedor `loteria` tiene dos subcategorias (1120 CI, 1121 CO) y solo puede almacenar una en la tabla de config. El routing por los 4 campos del catalogo ya garantiza la asignacion correcta.
 
 Request interno:
 
@@ -1030,9 +1031,9 @@ Request interno:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "category_code": "1",
-  "subcategory_code": "1",
-  "service_provider_code": "2",
+  "category_code": 983,
+  "subcategory_code": 1121,
+  "service_provider_code": 408403,
   "rms_item_code": "100708848",
   "document": "0901111112",
   "withdrawId": "340468406359",
@@ -1042,7 +1043,7 @@ Request interno:
 
 ### LOTERIA BET593 VERIFY CASH_OUT
 
-La validacion de nota de retiro BET593 consulta el estado de una orden CASH_OUT con el contexto comercial `category_code=759`, `subcategory_code=161`, `service_provider_code=408403` y `rms_item_code=100708848`.
+La validacion de nota de retiro BET593 consulta el estado de una orden CASH_OUT con el contexto comercial `category_code=983`, `subcategory_code=1121`, `service_provider_code=408403` y `rms_item_code=100708848`.
 
 - endpoint externo: `POST /APIVentasLoteria/api/Ventas/ConsultarRetiroBet593`
 - token externo: resuelto por el modulo de tokens mediante `category_code + subcategory_code + service_provider_code`
@@ -1061,9 +1062,9 @@ Request interno:
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "category_code": "1",
-  "subcategory_code": "1",
-  "service_provider_code": "2",
+  "category_code": 983,
+  "subcategory_code": 1121,
+  "service_provider_code": 408403,
   "rms_item_code": "100708848",
   "document": "0901111112",
   "withdrawId": "340468406359"

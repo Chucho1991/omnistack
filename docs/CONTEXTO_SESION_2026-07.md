@@ -157,3 +157,30 @@ confirme por pruebas debe reflejarse ahí también, no solo en código.
 contrato de arriba (ejemplos de PRECHECK sin `games`, CREATE_TICKET con `cantidad_fracciones` y
 `reserva_id`, EXECUTE con `reserva_id` obligatorio, `game_id`/`draw_id` consistentes). Validado con
 `ConvertFrom-Json` en cada edición para asegurar que sigue siendo JSON válido.
+
+
+---
+
+## 8. Fix BET593 PRECHECK CASH_OUT — subcategory_code (2026-07-14)
+
+**Problema:** El request de PRECHECK CASH_OUT con `subcategory_code=1121` fallaba con:
+`"La configuracion de Loteria BET593 no define el valor requerido para subcategory_code"`
+
+**Causa raíz:** `LoteriaBet593WithdrawPrecheckStrategy.validateBusinessContext()` validaba
+`subcategory_code` contra `IN_OMNI_PROVEEDOR_CONFIG` (clave `loteria|subcategory_code`), pero esa
+tabla solo puede almacenar **un** valor para el proveedor `'loteria'`. Los scripts de configuración
+(`04_UPDATE_PROVEEDOR_CONFIG_QA.sql`) lo dejaron en `1120` (CASH_IN). El CASH_OUT usa `1121`, por
+lo que la validación siempre fallaba (o si no se ejecutó el script 04, el valor era `null`).
+
+**Fix aplicado:** Se eliminaron las 2 llamadas a `validateValue("subcategory_code", ...)` del método
+`validateBusinessContext()` en `LoteriaBet593WithdrawPrecheckStrategy`. Esto es consistente con:
+- El comentario del script `04_UPDATE_PROVEEDOR_CONFIG_QA.sql` que dice "subcategory_code no es
+  validado por las strategies de BET593 (el routing por 4 campos en el catálogo ya lo garantiza)"
+- El hecho de que business lines (`AD_SERVICIO_PARAMETROS` + `SUBCLASS`) ya trae `1121` correctamente
+  y el routing por `(category_code, subcategory_code, service_provider_code, rms_item_code)` ya
+  garantiza que la request llega a la strategy correcta
+
+**Archivos modificados:**
+- `src/main/java/.../LoteriaBet593WithdrawPrecheckStrategy.java` — eliminada validación
+- `README.md` — corregidos códigos de catálogo BET593 (eran placeholders 759/161/2, ahora 983/1120|1121/408403)
+- `docs/OmniStack_postman_collection_v10.json` — ya tenía valores correctos, sin cambios necesarios

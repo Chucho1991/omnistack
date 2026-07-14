@@ -23,7 +23,8 @@ The critical business context — field mappings, provider contracts, and integr
 ```
 
 Swagger UI: `http://localhost:8086/swagger-ui.html`  
-API docs: `http://localhost:8086/api-docs`
+API docs: `http://localhost:8086/api-docs`  
+Admin diagnostic: `GET http://localhost:8086/v1/admin/item-config/{rmsItemCode}` (Swagger tag: "Admin - Diagnostico")
 
 For local dev without real providers, set `APP_INTEGRATIONS_MOCK_ENABLED=true` (or copy `.env.example`). This activates `MockExternalProviderClient` instead of real WebClient adapters. Also activates `DefaultProviderTransactionStrategy`, which always returns `false` from `supports()` (intentional — forces an explicit config error if no real strategy matches).
 
@@ -204,6 +205,12 @@ Audit log inserts use `SELECT NVL(MAX(CODIGO), 0) + 1 FROM table` as a PK sequen
 | `IN_OMNI_LOGS_WS_EXT` | `OracleWsExtLogAdapter` | Every external HTTP call to provider — async via `WsExtLogService.log()` |
 | `IN_OMNI_REGISTRO_TRX` | `OracleRegistroTrxAdapter` | EXECUTE, CREATE_TICKET, REVERSE on success — async |
 | `IN_OMNI_CASHOUT_CUPO_DIARIO` | `OracleCashOutQuotaAdapter` | PRECHECK (reserve), EXECUTE (confirm), REVERSE (revert) for CASH_OUT — sync |
+
+### Admin / Diagnostic endpoints
+
+`GET /v1/admin/item-config/{rmsItemCode}` queries all 7 tables involved in item parametrization (AD_SERVICIO_PARAMETROS, ITEM_MASTER, ITEM_SUPPLIER, IN_OMNI_PROVEEDOR_CONFIG, IN_OMNI_PROVEEDOR_WS, IN_OMNI_PROVEEDOR_WS_DEFS, IN_OMNI_INPUT_FIELDS) and returns a JSON with data classified by source table plus an automatic diagnostic of missing configuration.
+
+Classes: `ItemConfigDiagnosticController`, `ItemConfigDiagnosticService`, `OracleItemConfigDiagnosticAdapter`.
 
 ### Provider token management
 

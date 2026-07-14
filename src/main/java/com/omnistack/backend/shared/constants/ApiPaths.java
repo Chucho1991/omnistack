@@ -53,6 +53,10 @@ public final class ApiPaths {
      * Endpoint de descarga de comprobantes de venta (PDF).
      */
     public static final String V1_COMPROBANTES = "/v1/comprobantes";
+    /**
+     * Endpoint de diagnostico de parametrizacion de items.
+     */
+    public static final String V1_ADMIN_ITEM_CONFIG = "/v1/admin/item-config/{rmsItemCode}";
 
     private ApiPaths() {
     }

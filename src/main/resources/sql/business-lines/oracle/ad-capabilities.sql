@@ -1,10 +1,13 @@
 SELECT DISTINCT
-    cfg.CONFIG_VALOR                    AS service_provider_code,
+    d.DEFAULT_VALOR_TEXT                AS rms_item_code,
     REGEXP_SUBSTR(ws.WS_KEY, '^[^.]+') AS capability_code
-FROM IN_OMNI_PROVEEDOR_CONFIG cfg
+FROM IN_OMNI_PROVEEDOR_WS_DEFS d
 JOIN IN_OMNI_PROVEEDOR_WS ws
-    ON ws.PROVEEDOR_KEY = cfg.PROVEEDOR_KEY
-   AND ws.ENABLED       = 'S'
-WHERE cfg.CONFIG_KEY = 'service_provider_code'
+    ON ws.ID_WS   = d.ID_WS
+   AND ws.ENABLED = 'S'
+WHERE d.TIPO_DEF = 'CONFIG'
+  AND (d.DEFAULT_CLAVE = 'item' OR d.DEFAULT_CLAVE LIKE 'item.%')
+  AND d.DEFAULT_VALOR_TEXT IS NOT NULL
   AND REGEXP_SUBSTR(ws.WS_KEY, '^[^.]+')
       IN ('PRECHECK', 'CREATE_TICKET', 'EXECUTE', 'VERIFY', 'REVERSE')
+ORDER BY d.DEFAULT_VALOR_TEXT, capability_code

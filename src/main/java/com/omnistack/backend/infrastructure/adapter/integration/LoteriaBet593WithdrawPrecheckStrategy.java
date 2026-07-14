@@ -142,10 +142,11 @@ public class LoteriaBet593WithdrawPrecheckStrategy extends AbstractProviderStrat
             ServiceDefinition serviceDefinition,
             AppProperties.ProviderProperties provider) {
         validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
+        // subcategory_code no se valida: el proveedor 'loteria' maneja dos subcategorias
+        // (1120 CASH_IN, 1121 CASH_OUT) y solo puede almacenar una en IN_OMNI_PROVEEDOR_CONFIG.
+        // El routing por los 4 campos del catalogo ya garantiza la correcta asignacion.
         validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
         validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
         validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 

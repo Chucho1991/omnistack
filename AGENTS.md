@@ -115,6 +115,7 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - El control de cupos diarios CASH_OUT se gestiona de forma transparente en `TransactionOrchestrationService`. Las estrategias de proveedor NO deben implementar validaciones de cupo propias — la reserva (PRECHECK), confirmación (EXECUTE), restitución (REVERSE) y expiración por timeout se manejan centralmente.
 - Para transacciones CASH_OUT, el `MONTO_MAX` de `AD_SERVICIO_PARAMETROS` actúa como cupo máximo diario por local y como monto máximo por transacción individual. No crear lógica de validación de montos duplicada en las estrategias.
 - Para transacciones NO-CASH_OUT (todos los demás items), el control de `MONTO_MAX` y `MONTO_MIN` de `AD_SERVICIO_PARAMETROS` se aplica por transacción individual en `TransactionAmountValidationService`. La validación se ejecuta en PRECHECK y EXECUTE antes de invocar al proveedor. Las estrategias NO deben implementar validaciones de monto propias — el control es centralizado en el orquestador.
+- Para proveedores que manejan múltiples subcategorías bajo el mismo `PROVEEDOR_KEY` (ej: `loteria` usa 1120 para CASH_IN y 1121 para CASH_OUT), las estrategias NO deben validar `subcategory_code` contra `IN_OMNI_PROVEEDOR_CONFIG` — esa tabla solo almacena un valor por clave. El routing por los 4 campos del catálogo (`category_code + subcategory_code + service_provider_code + rms_item_code`) ya garantiza que la request llega a la strategy correcta.
 
 ## Flujo mínimo para cambios futuros
 1. Definir el caso de uso y sus puertos de entrada/salida.

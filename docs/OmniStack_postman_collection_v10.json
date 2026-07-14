@@ -7583,6 +7583,51 @@
           ]
         }
       ]
+    },
+    {
+      "name": "🛠️ Admin — Diagnostico",
+      "item": [
+        {
+          "name": "Item Config Diagnostic — BET593 CASH_OUT (100708848)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{OmniStack-url}}/v1/admin/item-config/100708848",
+              "host": ["{{OmniStack-url}}"],
+              "path": ["v1", "admin", "item-config", "100708848"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Item Config Diagnostic — BET593 CASH_IN (100708850)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{OmniStack-url}}/v1/admin/item-config/100708850",
+              "host": ["{{OmniStack-url}}"],
+              "path": ["v1", "admin", "item-config", "100708850"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Item Config Diagnostic — ECUABET CASH_IN (100713841)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{OmniStack-url}}/v1/admin/item-config/100713841",
+              "host": ["{{OmniStack-url}}"],
+              "path": ["v1", "admin", "item-config", "100713841"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoint administrativo para diagnosticar la parametrizacion completa de un item. Consulta AD_SERVICIO_PARAMETROS, ITEM_MASTER, ITEM_SUPPLIER, IN_OMNI_PROVEEDOR_CONFIG, IN_OMNI_PROVEEDOR_WS, IN_OMNI_PROVEEDOR_WS_DEFS e IN_OMNI_INPUT_FIELDS. El campo 'diagnostico' lista problemas detectados automaticamente (ej: falta item en WS_DEFS para una operacion)."
     }
   ],
   "variable": [

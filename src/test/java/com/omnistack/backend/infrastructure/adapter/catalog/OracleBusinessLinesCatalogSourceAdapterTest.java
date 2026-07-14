@@ -66,10 +66,10 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
                 new OracleBusinessLinesCatalogSourceAdapter.AdPaymentMethodRow(
                         "1", "100713841", 2, "TARJETA_CREDITO", true)));
 
-        // PROD (TUKUNAFUNC): capabilities por service_provider_code
+        // PROD (TUKUNAFUNC): capabilities por rms_item_code
         when(prodTemplate.query(eq("omni-cap"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
-                new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("1", "PRECHECK"),
-                new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("1", "CREATE_TICKET")));
+                new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("100713841", "PRECHECK"),
+                new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("100713841", "CREATE_TICKET")));
 
         // PROD (TUKUNAFUNC): movement_type por rms_item_code
         when(prodTemplate.query(eq("movement-types"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
