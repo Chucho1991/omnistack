@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 import com.omnistack.backend.application.port.out.TradicionalAnularVentaPort;
+import com.omnistack.backend.application.port.out.TradicionalConsultarTicketPort;
 import com.omnistack.backend.application.port.out.TradicionalFigurasQueryPort;
 import com.omnistack.backend.application.port.out.TradicionalJuegoQueryPort;
 import com.omnistack.backend.application.port.out.TradicionalNumerosQueryPort;
+import com.omnistack.backend.application.port.out.TradicionalPagoPremioPort;
 import com.omnistack.backend.application.port.out.TradicionalSorteosQueryPort;
 import com.omnistack.backend.application.port.out.TradicionalVentaBoletosPort;
 import com.omnistack.backend.application.port.out.TradicionalVerifyPort;
@@ -16,21 +18,27 @@ import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ProviderCallLog;
 import com.omnistack.backend.domain.model.TradicionalAnularVentaCommand;
+import com.omnistack.backend.domain.model.TradicionalConsultarTicketCommand;
 import com.omnistack.backend.domain.model.TradicionalFigurasQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalJuegoQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalNumerosQueryCommand;
+import com.omnistack.backend.domain.model.TradicionalPagoPremioCommand;
 import com.omnistack.backend.domain.model.TradicionalSorteosQueryCommand;
 import com.omnistack.backend.domain.model.TradicionalVentaBoletosCommand;
 import com.omnistack.backend.domain.model.TradicionalVerifyCommand;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalAnularVentaRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalAnularVentaResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalComprobanteResponse;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalConsultarTicketRequest;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalConsultarTicketResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalFigurasQueryRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalFigurasQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalJuegoQueryRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalJuegoQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalNumerosQueryRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalNumerosQueryResponse;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalPagoPremioRequest;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalPagoPremioResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalSorteosQueryRequest;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalSorteosQueryResponse;
 import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalVentaBoletosRequest;
@@ -64,7 +72,9 @@ public class TradicionalWebClientAdapter implements
         TradicionalNumerosQueryPort,
         TradicionalVentaBoletosPort,
         TradicionalAnularVentaPort,
-        TradicionalVerifyPort {
+        TradicionalVerifyPort,
+        TradicionalConsultarTicketPort,
+        TradicionalPagoPremioPort {
 
     private static final String PROVIDER_KEY = "tradicional";
     private static final String WS_KEY_PRECHECK = "PRECHECK.CASHIN";
@@ -74,6 +84,9 @@ public class TradicionalWebClientAdapter implements
     private static final String WS_KEY_EXECUTE = "EXECUTE.CASHIN";
     private static final String WS_KEY_REVERSE = "REVERSE.CASHIN";
     private static final String WS_KEY_VERIFY = "VERIFY.CASHIN";
+    private static final String WS_KEY_PRECHECK_CASHOUT = "PRECHECK.CASHOUT";
+    private static final String WS_KEY_EXECUTE_CASHOUT = "EXECUTE.CASHOUT";
+    private static final String PRODUCTO_VENDER_TRADICIONALES = "Tradicionales";
 
     private final WebClient omnistackWebClient;
     private final ProviderConfigService providerConfigService;
@@ -373,6 +386,137 @@ public class TradicionalWebClientAdapter implements
         payload.put("codError", response.getCodError());
         payload.put("msgError", response.getMsgError());
         payload.put("transaccion", response.getTransaccion());
+
+        return ExternalTransactionResponse.builder()
+                .approved(!isError)
+                .externalCode(String.valueOf(response.getCodError()))
+                .externalMessage(response.getMsgError() != null ? response.getMsgError() : "")
+                .payload(payload)
+                .build();
+    }
+
+    @Override
+    public ExternalTransactionResponse consultarTicket(TradicionalConsultarTicketCommand command, String operationPath) {
+        AppProperties.ProviderProperties provider = getProviderProperties();
+        String token = resolveToken();
+
+        TradicionalConsultarTicketRequest request = TradicionalConsultarTicketRequest.builder()
+                .token(token)
+                .productoVender(PRODUCTO_VENDER_TRADICIONALES)
+                .userId(command.getUserId())
+                .clienteId(command.getClienteId())
+                .mor(command.getMor())
+                .tipoDocumento(command.getTipoDocumento())
+                .numeroDocumento(command.getNumeroDocumento())
+                .nombreGanador(command.getNombreGanador())
+                .cl(command.getCl())
+                .cb(command.getCb())
+                .co(command.getCo())
+                .premioEspecie(command.getPremioEspecie())
+                .build();
+
+        TradicionalConsultarTicketResponse response = invokePost(
+                operationPath, provider, request, TradicionalConsultarTicketResponse.class,
+                "consultarTicket", "consulta ticket premio Tradicionales", command.getUuid(), WS_KEY_PRECHECK_CASHOUT);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalConsultarTicketRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalConsultarTicketResponse.class,
+                    "consultarTicket retry", "consulta ticket premio Tradicionales", command.getUuid(), WS_KEY_PRECHECK_CASHOUT);
+        }
+
+        return buildConsultarTicketResponse(response);
+    }
+
+    private ExternalTransactionResponse buildConsultarTicketResponse(TradicionalConsultarTicketResponse response) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("codError", response.getCodError());
+        payload.put("msgError", response.getMsgError());
+
+        TradicionalConsultarTicketResponse.Bpr boleto = firstBoleto(response);
+        boolean tieneError = !response.isSuccess()
+                || boleto == null
+                || !("0".equals(boleto.getCod()) || boleto.getCod() == null);
+
+        String externalMessage = response.getMsgError();
+        if (boleto != null && boleto.getMen() != null && !boleto.getMen().isBlank()) {
+            externalMessage = boleto.getMen();
+        }
+
+        if (!tieneError) {
+            payload.put("mpi", response.getResultado() != null && response.getResultado().getPpr() != null
+                    ? response.getResultado().getPpr().getMpi() : null);
+            payload.put("is_winner", true);
+            payload.put("ticket_status", boleto.getMen());
+            payload.put("prize_amount", boleto.getMon());
+            payload.put("authorization", boleto.getCla());
+        } else {
+            payload.put("is_winner", false);
+            payload.put("ticket_status", boleto != null ? boleto.getMen() : externalMessage);
+        }
+
+        return ExternalTransactionResponse.builder()
+                .approved(!tieneError)
+                .externalCode(String.valueOf(response.getCodError()))
+                .externalMessage(externalMessage != null ? externalMessage : "")
+                .payload(payload)
+                .build();
+    }
+
+    private TradicionalConsultarTicketResponse.Bpr firstBoleto(TradicionalConsultarTicketResponse response) {
+        if (response.getResultado() == null || response.getResultado().getPpr() == null
+                || response.getResultado().getPpr().getBpr() == null
+                || response.getResultado().getPpr().getBpr().isEmpty()) {
+            return null;
+        }
+        return response.getResultado().getPpr().getBpr().get(0);
+    }
+
+    @Override
+    public ExternalTransactionResponse pagoPremio(TradicionalPagoPremioCommand command, String operationPath) {
+        AppProperties.ProviderProperties provider = getProviderProperties();
+        String token = resolveToken();
+
+        TradicionalPagoPremioRequest request = TradicionalPagoPremioRequest.builder()
+                .token(token)
+                .productoVender(PRODUCTO_VENDER_TRADICIONALES)
+                .userId(command.getUserId())
+                .clienteId(command.getClienteId())
+                .mor(command.getMor())
+                .tipoDocumento(command.getTipoDocumento())
+                .numeroDocumento(command.getNumeroDocumento())
+                .nombreGanador(command.getNombreGanador())
+                .cl(command.getCl())
+                .cb(command.getCb())
+                .co(command.getCo())
+                .premioEspecie(command.getPremioEspecie())
+                .mpi(command.getMpi())
+                .build();
+
+        TradicionalPagoPremioResponse response = invokePost(
+                operationPath, provider, request, TradicionalPagoPremioResponse.class,
+                "pagoPremio", "pago premio Tradicionales", command.getUuid(), WS_KEY_EXECUTE_CASHOUT);
+
+        if (isInvalidTokenMessage(response.getMsgError())) {
+            String freshToken = providerTokenResolverUseCase.refreshToken(PROVIDER_KEY);
+            TradicionalPagoPremioRequest retryRequest = request.toBuilder().token(freshToken).build();
+            response = invokePost(
+                    operationPath, provider, retryRequest, TradicionalPagoPremioResponse.class,
+                    "pagoPremio retry", "pago premio Tradicionales", command.getUuid(), WS_KEY_EXECUTE_CASHOUT);
+        }
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        boolean isError = !response.isSuccess();
+        payload.put("codError", response.getCodError());
+        payload.put("msgError", response.getMsgError());
+        if (response.getResultado() != null && response.getResultado().getPpr() != null) {
+            payload.put("mpi", response.getResultado().getPpr().getMpi());
+            payload.put("pci", response.getResultado().getPpr().getPci());
+            payload.put("ref", response.getResultado().getPpr().getRef());
+            payload.put("authorization", response.getResultado().getPpr().getPci());
+        }
 
         return ExternalTransactionResponse.builder()
                 .approved(!isError)

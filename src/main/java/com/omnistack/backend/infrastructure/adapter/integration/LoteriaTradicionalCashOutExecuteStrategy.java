@@ -3,55 +3,40 @@ package com.omnistack.backend.infrastructure.adapter.integration;
 import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ErrorDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.ExecuteResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
-import com.omnistack.backend.application.port.out.Pega3PayTicketPort;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.application.port.out.TradicionalPagoPremioPort;
 import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderConfigService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsDefsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.config.properties.AppProperties;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.Capability;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
-import com.omnistack.backend.domain.model.Pega3PayTicketCommand;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ServiceDefinition;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.domain.model.TradicionalPagoPremioCommand;
 import com.omnistack.backend.shared.exception.IntegrationException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Estrategia de EXECUTE CASH_IN para Pega3. Llama a PagarTicket.
+ * Estrategia de EXECUTE CASH_OUT para Tradicionales (Loteria/Lotto/Pozo). Llama a
+ * PagoPremioTicketTradicional para pagar el premio de un boleto validado en el PRECHECK.
  */
 @Component
 @RequiredArgsConstructor
-public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implements ExecuteStrategy {
+public class LoteriaTradicionalCashOutExecuteStrategy extends AbstractProviderStrategy implements ExecuteStrategy {
 
-    private static final String PROVIDER_KEY = "pega3";
-    private static final String PROVIDER_NAME = "Loteria Pega3";
+    private static final String PROVIDER_KEY = "tradicional";
+    private static final String PROVIDER_NAME = "Loteria Tradicionales";
 
-    private final Pega3PayTicketPort pega3PayTicketPort;
+    private final TradicionalPagoPremioPort pagoPremioPort;
     private final ProviderConfigService providerConfigService;
     private final ProviderWsDefsService providerWsDefsService;
     private final ProviderWsService providerWsService;
@@ -61,7 +46,7 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
         AppProperties.ProviderProperties provider = findProviderProperties(providerConfigService, PROVIDER_KEY);
         return capability == Capability.EXECUTE
                 && provider != null
-                && serviceDefinition.getMovementType() == MovementType.CASH_IN
+                && serviceDefinition.getMovementType() == MovementType.CASH_OUT
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
                 && hasConfiguredOperation(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition);
@@ -76,15 +61,18 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
         validateBusinessContext(request, serviceDefinition, provider);
 
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
-            throw new IntegrationException("Pega3 requiere authorization (ticketNumber) para EXECUTE");
+            throw new IntegrationException("Tradicionales requiere authorization (clave del boleto electronico) para EXECUTE de CASH_OUT");
         }
-        if (request.getAmount() == null) {
-            throw new IntegrationException("Pega3 requiere amount para EXECUTE");
+        if (!(request instanceof ExecuteRequest executeRequest) || executeRequest.getMpi() == null || executeRequest.getMpi().isBlank()) {
+            throw new IntegrationException("Tradicionales requiere mpi (devuelto por el PRECHECK) para EXECUTE de CASH_OUT");
         }
 
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
+        String clienteId = provider.getClienteId() != null
+                ? String.valueOf(provider.getClienteId())
+                : (provider.getShopId() != null ? provider.getShopId() : "");
 
-        Pega3PayTicketCommand command = Pega3PayTicketCommand.builder()
+        TradicionalPagoPremioCommand command = TradicionalPagoPremioCommand.builder()
                 .uuid(request.getUuid())
                 .chain(request.getChain())
                 .store(request.getStore())
@@ -95,12 +83,18 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())
                 .rmsItemCode(request.getRmsItemCode())
-                .amount(request.getAmount())
-                .ticketNumber(request.getAuthorization())
+                .userId(provider.getAuth().getLogin().getUsername())
+                .clienteId(clienteId)
+                .mor(request.getUuid())
+                .tipoDocumento(executeRequest.getTipoDocumento())
+                .numeroDocumento(request.getDocument())
+                .nombreGanador(executeRequest.getUsername())
+                .cl(request.getAuthorization())
+                .premioEspecie(Boolean.FALSE)
+                .mpi(executeRequest.getMpi())
                 .build();
 
-        String wsKey = toWsKey(capability.name(), serviceDefinition.getMovementType());
-        ExternalTransactionResponse externalResponse = pega3PayTicketPort.payTicket(command, operationUrl, wsKey);
+        ExternalTransactionResponse externalResponse = pagoPremioPort.pagoPremio(command, operationUrl);
         return buildResponse(request, externalResponse);
     }
 
@@ -119,8 +113,11 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())
                 .rmsItemCode(request.getRmsItemCode())
+                .amount(request.getAmount())
                 .errorFlag(isError)
-                .authorization(stringValue(payload, "authorization"));
+                .authorization(stringValue(payload, "authorization"))
+                .pci(stringValue(payload, "pci"))
+                .ref(stringValue(payload, "ref"));
 
         if (isError) {
             builder.error(ErrorDetail.builder()
@@ -128,7 +125,7 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
                     .message(externalResponse.getExternalMessage())
                     .build());
         } else {
-            builder.status(new StatusDetail(StatusCodes.SUCCESS, "Pago de ticket Pega3 completado"));
+            builder.status(new StatusDetail(StatusCodes.SUCCESS, "Pago de premio Tradicionales completado"));
         }
 
         return builder.build();

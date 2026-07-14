@@ -13,7 +13,8 @@ public interface Pega3VerifyTicketPort {
      *
      * @param command request interno normalizado con numero de ticket
      * @param operationPath ruta configurada del endpoint externo
+     * @param wsKey clave WS_KEY de la operacion invocante, usada para el log de auditoria
      * @return respuesta normalizada del proveedor
      */
-    ExternalTransactionResponse verifyTicket(Pega3VerifyTicketCommand command, String operationPath);
+    ExternalTransactionResponse verifyTicket(Pega3VerifyTicketCommand command, String operationPath, String wsKey);
 }

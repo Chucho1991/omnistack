@@ -48,7 +48,7 @@ class DefaultProviderFlowResolverTest {
                 .build();
 
         IntegrationException exception = assertThrows(IntegrationException.class, () -> resolver.resolve(request, Capability.PRECHECK));
-        assertEquals("No existe configuracion de endpoint externo para el proveedor/capacidad solicitados", exception.getMessage());
+        assertEquals("El producto solicitado no esta completamente configurado", exception.getMessage());
     }
 
     @Test

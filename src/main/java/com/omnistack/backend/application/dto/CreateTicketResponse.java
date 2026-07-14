@@ -96,5 +96,11 @@ public class CreateTicketResponse extends BaseTransactionResponse {
 
         @JsonProperty("fracciones")
         private String fracciones;
+
+        @JsonProperty("precio_unitario")
+        @Schema(example = "1.00", description = "Precio por unidad/fraccion (pvp) del sorteo al que pertenece "
+                + "este numero — NO es un total, el front debe multiplicarlo por la cantidad de fracciones "
+                + "que el cajero realmente seleccione/compre.")
+        private java.math.BigDecimal precioUnitario;
     }
 }

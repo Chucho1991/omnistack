@@ -91,4 +91,12 @@ public class ExecuteResponse extends BaseTransactionResponse {
     @Schema(example = "05,06,07,11,12,15,17,21,23,24",
             description = "CSV de las fracciones especificas asignadas por el proveedor a este boleto (solo La Loteria)")
     private String fraccionesVendidas;
+
+    @JsonProperty("pci")
+    @Schema(example = "999", description = "Id del Pago de premios de canales, id interno del proveedor (solo CASH_OUT Tradicionales)")
+    private String pci;
+
+    @JsonProperty("ref")
+    @Schema(example = "473856", description = "Id de referencia interna del pago de premio (solo CASH_OUT Tradicionales)")
+    private String ref;
 }

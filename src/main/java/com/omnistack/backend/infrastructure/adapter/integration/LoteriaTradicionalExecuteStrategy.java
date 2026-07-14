@@ -98,8 +98,8 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
 
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
-        String clienteId = provider.getShopId() != null ? provider.getShopId()
-                : (provider.getClienteId() != null ? String.valueOf(provider.getClienteId()) : "");
+        String clienteId = provider.getClienteId() != null ? String.valueOf(provider.getClienteId())
+                : (provider.getShopId() != null ? provider.getShopId() : "");
 
         TradicionalVentaBoletosCommand command = TradicionalVentaBoletosCommand.builder()
                 .uuid(request.getUuid()).chain(request.getChain()).store(request.getStore())

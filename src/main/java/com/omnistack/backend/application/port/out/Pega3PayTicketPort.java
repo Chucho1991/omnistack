@@ -13,7 +13,8 @@ public interface Pega3PayTicketPort {
      *
      * @param command request interno normalizado con numero de ticket y monto
      * @param operationPath ruta configurada del endpoint externo
+     * @param wsKey clave WS_KEY de la operacion invocante, usada para el log de auditoria
      * @return respuesta normalizada del proveedor
      */
-    ExternalTransactionResponse payTicket(Pega3PayTicketCommand command, String operationPath);
+    ExternalTransactionResponse payTicket(Pega3PayTicketCommand command, String operationPath, String wsKey);
 }

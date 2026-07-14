@@ -100,17 +100,23 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                 request, provider, juegoId, drawId, combinacion, figuraId, sugerir, registros, cantidadFracciones, numerosUrl);
 
         ExternalTransactionResponse revanchaNumerosResponse = null;
+        SorteoPricing mainPricing = null;
+        SorteoPricing revanchaPricing = null;
         if (sorteosUrl != null && !sorteosUrl.isBlank()) {
             ExternalTransactionResponse sorteosResponse = querySorteos(request, provider, juegoId, sorteosUrl);
+            mainPricing = findSorteoPricing(sorteosResponse, drawId);
             RevanchaInfo revanchaInfo = findRevanchaInfo(sorteosResponse, drawId);
             if (revanchaInfo != null) {
                 revanchaNumerosResponse = queryNumeros(
                         request, provider, revanchaInfo.juegoRevanchaId(), revanchaInfo.sorteoRevanchaId(),
                         combinacion, figuraId, sugerir, registros, cantidadFracciones, numerosUrl);
+                ExternalTransactionResponse revanchaSorteosResponse = querySorteos(
+                        request, provider, revanchaInfo.juegoRevanchaId(), sorteosUrl);
+                revanchaPricing = findSorteoPricing(revanchaSorteosResponse, revanchaInfo.sorteoRevanchaId());
             }
         }
 
-        return buildResponse(request, numerosResponse, revanchaNumerosResponse);
+        return buildResponse(request, numerosResponse, revanchaNumerosResponse, mainPricing, revanchaPricing);
     }
 
     private ExternalTransactionResponse querySorteos(
@@ -151,6 +157,31 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     private record RevanchaInfo(String juegoRevanchaId, String sorteoRevanchaId) {
     }
 
+    /** pvp = precio de venta al publico por unidad/fraccion (confirmado en el spec: respuesta de
+     * VentaBoletos, "Valor: Decimal — Valor total (pvp*cantidad)", es multiplicacion directa sin
+     * dividir). cantidadFraccion = cuantas fracciones componen un entero (0/null en juegos sin
+     * fraccionamiento, ej. Pozo Millonario) — solo informativo, no participa en el precio. */
+    private record SorteoPricing(java.math.BigDecimal pvp, Integer cantidadFraccion) {
+    }
+
+    @SuppressWarnings("unchecked")
+    private SorteoPricing findSorteoPricing(ExternalTransactionResponse sorteosResponse, String sorteoId) {
+        if (sorteosResponse == null || !sorteosResponse.isApproved() || sorteosResponse.getPayload() == null) {
+            return null;
+        }
+        Object rawSorteos = sorteosResponse.getPayload().get("listaSorteos");
+        if (!(rawSorteos instanceof List<?> list)) {
+            return null;
+        }
+        return list.stream()
+                .filter(s -> s instanceof TradicionalSorteosQueryResponse.Sorteo)
+                .map(s -> (TradicionalSorteosQueryResponse.Sorteo) s)
+                .filter(sorteo -> sorteoId.equals(sorteo.getSorteoId()))
+                .findFirst()
+                .map(sorteo -> new SorteoPricing(sorteo.getPrecio(), sorteo.getCantidadFraccion()))
+                .orElse(null);
+    }
+
     @SuppressWarnings("unchecked")
     private RevanchaInfo findRevanchaInfo(ExternalTransactionResponse sorteosResponse, String drawId) {
         if (sorteosResponse == null || !sorteosResponse.isApproved() || sorteosResponse.getPayload() == null) {
@@ -172,7 +203,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     }
 
     @SuppressWarnings("unchecked")
-    private List<CreateTicketResponse.TradicionalNumber> mapNumeros(ExternalTransactionResponse numerosResp) {
+    private List<CreateTicketResponse.TradicionalNumber> mapNumeros(ExternalTransactionResponse numerosResp, SorteoPricing pricing) {
         if (numerosResp == null || !numerosResp.isApproved() || numerosResp.getPayload() == null) {
             return null;
         }
@@ -191,6 +222,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                             .sorteoId(num.getSorteoId())
                             .boleto(num.getBoleto())
                             .fracciones(num.getFracciones())
+                            .precioUnitario(pricing != null ? pricing.pvp() : null)
                             .build();
                 }).collect(Collectors.toList());
     }
@@ -198,12 +230,14 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     private CreateTicketResponse buildResponse(
             BaseTransactionRequest request,
             ExternalTransactionResponse numerosResp,
-            ExternalTransactionResponse revanchaNumerosResp) {
+            ExternalTransactionResponse revanchaNumerosResp,
+            SorteoPricing mainPricing,
+            SorteoPricing revanchaPricing) {
 
         boolean isError = numerosResp == null || !numerosResp.isApproved();
 
-        List<CreateTicketResponse.TradicionalNumber> availableNumbers = mapNumeros(numerosResp);
-        List<CreateTicketResponse.TradicionalNumber> revanchaNumbers = mapNumeros(revanchaNumerosResp);
+        List<CreateTicketResponse.TradicionalNumber> availableNumbers = mapNumeros(numerosResp, mainPricing);
+        List<CreateTicketResponse.TradicionalNumber> revanchaNumbers = mapNumeros(revanchaNumerosResp, revanchaPricing);
         if (revanchaNumbers != null && !revanchaNumbers.isEmpty()) {
             if (availableNumbers == null) {
                 availableNumbers = new java.util.ArrayList<>();

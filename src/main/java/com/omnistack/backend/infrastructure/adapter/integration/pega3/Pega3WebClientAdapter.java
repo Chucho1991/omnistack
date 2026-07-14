@@ -78,8 +78,6 @@ public class Pega3WebClientAdapter implements
     private static final String WS_KEY_PRECHECK = "PRECHECK.CASHIN";
     private static final String WS_KEY_PRECHECK_SORTEO = "PRECHECK_SORTEO.CASHIN";
     private static final String WS_KEY_CREATE_TICKET = "CREATE_TICKET.CASHIN";
-    private static final String WS_KEY_EXECUTE = "EXECUTE.CASHIN";
-    private static final String WS_KEY_VERIFY = "VERIFY.CASHIN";
     private static final String WS_KEY_VERIFY_COMPROBANTE = "VERIFY_COMPROBANTE.CASHIN";
     private static final String WS_KEY_REVERSE = "REVERSE.CASHIN";
 
@@ -220,7 +218,7 @@ public class Pega3WebClientAdapter implements
     }
 
     @Override
-    public ExternalTransactionResponse payTicket(Pega3PayTicketCommand command, String operationPath) {
+    public ExternalTransactionResponse payTicket(Pega3PayTicketCommand command, String operationPath, String wsKey) {
         AppProperties.ProviderProperties provider = getProviderProperties();
         String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
@@ -237,7 +235,7 @@ public class Pega3WebClientAdapter implements
 
         Pega3PayTicketResponse response = invokePega3(
                 operationPath, provider, request, Pega3PayTicketResponse.class,
-                "payTicket", "pago ticket Pega3", command.getUuid(), WS_KEY_EXECUTE);
+                "payTicket", "pago ticket Pega3", command.getUuid(), wsKey);
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = hasError(response.getMessage());
@@ -255,7 +253,7 @@ public class Pega3WebClientAdapter implements
     }
 
     @Override
-    public ExternalTransactionResponse verifyTicket(Pega3VerifyTicketCommand command, String operationPath) {
+    public ExternalTransactionResponse verifyTicket(Pega3VerifyTicketCommand command, String operationPath, String wsKey) {
         AppProperties.ProviderProperties provider = getProviderProperties();
         String token = resolveToken();
         String productoVender = resolveProductoVender(provider);
@@ -269,7 +267,7 @@ public class Pega3WebClientAdapter implements
 
         Pega3VerifyTicketResponse response = invokePega3(
                 operationPath, provider, request, Pega3VerifyTicketResponse.class,
-                "verifyTicket", "consulta ticket Pega3", command.getUuid(), WS_KEY_VERIFY);
+                "verifyTicket", "consulta ticket Pega3", command.getUuid(), wsKey);
 
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = hasError(response.getMessage());

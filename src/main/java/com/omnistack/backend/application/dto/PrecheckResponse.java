@@ -89,6 +89,23 @@ public class PrecheckResponse extends BaseTransactionResponse {
     @Schema(description = "Sorteo activo disponible (solo Pega3)")
     private ActiveDraw activeDraw;
 
+    @JsonProperty("ticket_status")
+    @Schema(example = "Purchased", description = "Estado del ticket consultado (solo CASH_OUT Pega3/Tradicionales)")
+    private String ticketStatus;
+
+    @JsonProperty("is_winner")
+    @Schema(example = "true", description = "Indica si el ticket/boleto tiene premio (solo CASH_OUT Pega3/Tradicionales)")
+    private Boolean winner;
+
+    @JsonProperty("prize_amount")
+    @Schema(example = "200.00", description = "Monto del premio a pagar (solo CASH_OUT Pega3/Tradicionales)")
+    private BigDecimal prizeAmount;
+
+    @JsonProperty("mpi")
+    @Schema(example = "957", description = "Id del movimiento de pago devuelto por ConsultarTicket (solo CASH_OUT Tradicionales) — "
+            + "el POS debe reenviarlo tal cual en el EXECUTE")
+    private String mpi;
+
     /**
      * Informacion del producto de juego retornada por VentaProductos (Pega3).
      */

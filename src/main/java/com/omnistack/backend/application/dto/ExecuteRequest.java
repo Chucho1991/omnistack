@@ -46,6 +46,16 @@ public class ExecuteRequest extends BaseTransactionRequest {
             + "obligatorio en Tradicionales para vender los numeros reservados")
     private String reservaId;
 
+    @JsonProperty("mpi")
+    @Schema(example = "957", description = "Id del movimiento de pago devuelto por el PRECHECK de CASH_OUT (solo Tradicionales) — "
+            + "el POS lo reenvia tal cual, no lo digita el cajero")
+    private String mpi;
+
+    @JsonProperty("tipo_documento")
+    @Schema(example = "2", description = "Tipo de documento del ganador: 1-RUC, 2-Cedula, 3-Pasaporte (solo CASH_OUT Tradicionales) — "
+            + "el POS lo reenvia del PRECHECK")
+    private Integer tipoDocumento;
+
     @Data
     @Builder
     @NoArgsConstructor

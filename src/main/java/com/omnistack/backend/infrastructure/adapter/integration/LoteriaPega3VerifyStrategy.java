@@ -106,7 +106,8 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
                 .ticketNumber(request.getAuthorization())
                 .build();
 
-        ExternalTransactionResponse externalResponse = pega3VerifyTicketPort.verifyTicket(command, operationUrl);
+        String wsKey = toWsKey(capability.name(), serviceDefinition.getMovementType());
+        ExternalTransactionResponse externalResponse = pega3VerifyTicketPort.verifyTicket(command, operationUrl, wsKey);
         String comprobanteB64 = fetchComprobanteIfAvailable(request, serviceDefinition, provider);
         return buildResponse(request, externalResponse, comprobanteB64);
     }

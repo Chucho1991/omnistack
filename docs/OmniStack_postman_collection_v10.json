@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "4d57f9fe-a2fe-47ea-bf07-5ab987921360",
     "name": "OmniStack — Mock Server v10",
-    "description": "Colección con examples de respuesta por proveedor. Importar en Postman y publicar como Mock Server para obtener una URL pública que devuelve respuestas sin necesidad del backend real.\n\nv10 (2026-07-03): corrige los examples de Lotería Nacional/Pega3 contra el spec técnico real del proveedor (docs/LOTERIA NACIONAL.docx). Ver carpeta '📌 NOTAS v10' para el detalle de cambios y preguntas abiertas que siguen pendientes de confirmar con negocio/proveedor.",
+    "description": "Colección con examples de respuesta por proveedor. Importar en Postman y publicar como Mock Server para obtener una URL pública que devuelve respuestas sin necesidad del backend real.\n\nv10 (2026-07-03): corrige los examples de Lotería Nacional/Pega3 contra el spec técnico real del proveedor (docs/LOTERIA NACIONAL.docx). Ver carpeta '📌 NOTAS v10' para el detalle de cambios y preguntas abiertas que siguen pendientes de confirmar con negocio/proveedor.\n\nActualizacion 2026-07-12: se agregaron las carpetas CASH_OUT (pago de premios) de LN PEGA3 y LN TRADICIONALES — ConsultarTicket (PRECHECK) + PagarTicket/PagoPremioTicketTradicional (EXECUTE). Sin validar contra QA real todavia; subcategory_code de los items PREMIOS es un supuesto (igual al item CASH_IN correspondiente), pendiente de confirmar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -3776,11 +3776,621 @@
       ]
     },
     {
+      "name": "🟢 LN PEGA3 (CASH_OUT — Pago de premios)",
+      "id": "9ce0620c-b312-4dac-877d-b66db361dec0",
+      "item": [
+        {
+          "name": "Pega3 — rms=100708862 · subcategory=1127",
+          "id": "b5416e61-7621-44cc-abf0-b23e931ba2a9",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar ticket ganador (ConsultarTicket)",
+              "id": "db4ee5cc-b5fc-4671-8788-f2f0bc3f529a",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0120002171594310046039\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Ticket ganador, premio disponible",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0120002171594310046039\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Ticket con premio disponible para pago\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1127\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0120002171594310046039\",\n  \"amount\": 200.0,\n  \"ticket_status\": \"Purchased\",\n  \"is_winner\": true,\n  \"prize_amount\": 200.0\n}"
+                },
+                {
+                  "name": "422 — Ticket no es ganador o ya fue pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0120002171594310046039\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": true,\n  \"status\": null,\n  \"error\": {\n    \"code\": \"01\",\n    \"message\": \"El ticket no tiene premio para cobrar: No Winning\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2. EXECUTE — Pagar premio (PagarTicket)",
+              "id": "8e96a835-5f7b-41c1-b1a9-8a0d04e41e00",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0120002171594310046039\",\n  \"amount\": 200.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Premio pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1127,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0120002171594310046039\",\n  \"amount\": 200.0\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/execute",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "execute"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Pago de premio Pega3 completado\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1127\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100708862\",\n  \"authorization\": \"TO0001001216470859276716\",\n  \"amount\": 200.0\n}"
+                }
+              ]
+            }
+          ],
+          "description": "CASH_OUT de Pega3 (pago de premio de ticket ya vendido)."
+        },
+        {
+          "name": "Pega4 — rms=100708858 · subcategory=1125",
+          "id": "45f0c0fa-8a94-4dd4-952d-acd6d7aab959",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar ticket ganador (ConsultarTicket)",
+              "id": "1fd1d0d7-71ed-4dfa-b655-215bf5737032",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0120002171594310046040\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Ticket ganador, premio disponible",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0120002171594310046040\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Ticket con premio disponible para pago\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1125\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0120002171594310046040\",\n  \"amount\": 200.0,\n  \"ticket_status\": \"Purchased\",\n  \"is_winner\": true,\n  \"prize_amount\": 200.0\n}"
+                },
+                {
+                  "name": "422 — Ticket no es ganador o ya fue pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0120002171594310046040\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": true,\n  \"status\": null,\n  \"error\": {\n    \"code\": \"01\",\n    \"message\": \"El ticket no tiene premio para cobrar: No Winning\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2. EXECUTE — Pagar premio (PagarTicket)",
+              "id": "5f711332-b9a7-4e32-b29a-d1060e92583b",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0120002171594310046040\",\n  \"amount\": 200.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Premio pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1125,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0120002171594310046040\",\n  \"amount\": 200.0\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/execute",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "execute"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Pago de premio Pega3 completado\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1125\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100708858\",\n  \"authorization\": \"TO0001001216470859276717\",\n  \"amount\": 200.0\n}"
+                }
+              ]
+            }
+          ],
+          "description": "CASH_OUT de Pega4 (pago de premio de ticket ya vendido)."
+        },
+        {
+          "name": "Pega2 — rms=100708860 · subcategory=1126",
+          "id": "226a40c6-8390-4291-a5d5-1e09f114b008",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar ticket ganador (ConsultarTicket)",
+              "id": "3d04f0af-37c4-431e-868d-72aa4f3ff25f",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0120002171594310046041\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Ticket ganador, premio disponible",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0120002171594310046041\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Ticket con premio disponible para pago\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1126\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0120002171594310046041\",\n  \"amount\": 200.0,\n  \"ticket_status\": \"Purchased\",\n  \"is_winner\": true,\n  \"prize_amount\": 200.0\n}"
+                },
+                {
+                  "name": "422 — Ticket no es ganador o ya fue pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0120002171594310046041\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": true,\n  \"status\": null,\n  \"error\": {\n    \"code\": \"01\",\n    \"message\": \"El ticket no tiene premio para cobrar: No Winning\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2. EXECUTE — Pagar premio (PagarTicket)",
+              "id": "b11be144-78dc-4a36-93b2-d9ca364bc421",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0120002171594310046041\",\n  \"amount\": 200.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Premio pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1126,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0120002171594310046041\",\n  \"amount\": 200.0\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/execute",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "execute"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Pago de premio Pega3 completado\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"983\",\n  \"subcategory_code\": \"1126\",\n  \"service_provider_code\": \"407925\",\n  \"rms_item_code\": \"100708860\",\n  \"authorization\": \"TO0001001216470859276718\",\n  \"amount\": 200.0\n}"
+                }
+              ]
+            }
+          ],
+          "description": "CASH_OUT de Pega2 (pago de premio de ticket ya vendido)."
+        }
+      ],
+      "description": "Flujo de solo 2 pasos (a diferencia de CASH_IN, que tiene PRECHECK/CREATE_TICKET/EXECUTE/VERIFY): PRECHECK llama a ConsultarTicket para validar que el ticket es ganador y aun no fue pagado; EXECUTE llama a PagarTicket para pagar el premio. No hay VERIFY ni REVERSE (el proveedor no documenta un endpoint de reverso para PagarTicket). subcategory_code asumido igual al item CASH_IN correspondiente — confirmar contra AD_SERVICIO_PARAMETROS real antes de usar en QA."
+    },
+    {
       "name": "🟠 LN TRADICIONALES (CASH_IN — Venta de boletos)",
       "id": "28c02b70-49c8-4055-9820-e6b88ded03ab",
       "item": [
         {
-          "name": "Lotería Nacional — rms=100713842 · subcategory=1122",
+          "name": "Lotería Nacional — rms=100713842 · subcategory=1128",
           "id": "87465219-ecf9-49e2-b7ce-47f14dd13b89",
           "item": [
             {
@@ -4445,7 +5055,7 @@
           "description": "Flujo: PRECHECK → EXECUTE (document+username+phone+boleto_data) → VERIFY → REVERSE. EXECUTE devuelve ventaId como authorization."
         },
         {
-          "name": "Lotto — rms=100713844 · subcategory=1123",
+          "name": "Lotto — rms=100713844 · subcategory=1129",
           "id": "8ba05e62-523f-4f56-a9de-f25a49f73b47",
           "item": [
             {
@@ -4916,7 +5526,7 @@
           "description": "Mismo flujo que Lotería Nacional."
         },
         {
-          "name": "Pozzo Millonario — rms=100713846 · subcategory=1124",
+          "name": "Pozzo Millonario — rms=100713846 · subcategory=1130",
           "id": "175ffc4c-34c6-4948-8854-66d0c1491c0e",
           "item": [
             {
@@ -5387,6 +5997,616 @@
           "description": "Mismo flujo que Lotería Nacional."
         }
       ]
+    },
+    {
+      "name": "🟠 LN TRADICIONALES (CASH_OUT — Pago de premios)",
+      "id": "9eedcd2e-99c8-4388-bd9d-01ffaebde8e7",
+      "item": [
+        {
+          "name": "Lotería Nacional — rms=100708854 · subcategory=1128",
+          "id": "1dc923e6-433c-4512-b9e1-2fdc34042441",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar boleto ganador (ConsultarTicket)",
+              "id": "f477b1e6-aa88-4eb5-afeb-69cac3097105",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1128,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"664071071637\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Boleto ganador, premio disponible",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1128,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"664071071637\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Boleto con premio disponible para pago\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"984\",\n  \"subcategory_code\": \"1128\",\n  \"service_provider_code\": \"3445\",\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"664071071637\",\n  \"amount\": 1000000.0,\n  \"ticket_status\": \"\",\n  \"is_winner\": true,\n  \"prize_amount\": 1000000.0,\n  \"mpi\": \"957\"\n}"
+                },
+                {
+                  "name": "422 — Boleto sin premio o ya pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1128,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"664071071637\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": true,\n  \"status\": null,\n  \"error\": {\n    \"code\": \"01\",\n    \"message\": \"El boleto no tiene premio para cobrar: Boleto no tiene premio.\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2. EXECUTE — Pagar premio (PagoPremioTicketTradicional)",
+              "id": "ab53ca93-87aa-4cc0-b68f-023aa355c636",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1128,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"664071071637\",\n  \"document\": \"0901111112\",\n  \"username\": \"Ariel Castillo\",\n  \"tipo_documento\": 2,\n  \"mpi\": \"957\",\n  \"amount\": 1000000.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Premio pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1128,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"664071071637\",\n  \"document\": \"0901111112\",\n  \"username\": \"Ariel Castillo\",\n  \"tipo_documento\": 2,\n  \"mpi\": \"957\",\n  \"amount\": 1000000.0\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/execute",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "execute"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Pago de premio Tradicionales completado\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"984\",\n  \"subcategory_code\": \"1128\",\n  \"service_provider_code\": \"3445\",\n  \"rms_item_code\": \"100708854\",\n  \"authorization\": \"999\",\n  \"amount\": 1000000.0,\n  \"pci\": \"999\",\n  \"ref\": \"473856\"\n}"
+                }
+              ]
+            }
+          ],
+          "description": "CASH_OUT de Lotería Nacional (pago de premio de boleto electronico ya vendido)."
+        },
+        {
+          "name": "Lotto — rms=100708855 · subcategory=1129",
+          "id": "d915a45b-f7f0-460f-aba9-b429f77d7870",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar boleto ganador (ConsultarTicket)",
+              "id": "a186395f-15e9-4045-b6b6-d69769d39de5",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1129,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"664071071638\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Boleto ganador, premio disponible",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1129,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"664071071638\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Boleto con premio disponible para pago\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"984\",\n  \"subcategory_code\": \"1129\",\n  \"service_provider_code\": \"3445\",\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"664071071638\",\n  \"amount\": 500000.0,\n  \"ticket_status\": \"\",\n  \"is_winner\": true,\n  \"prize_amount\": 500000.0,\n  \"mpi\": \"957\"\n}"
+                },
+                {
+                  "name": "422 — Boleto sin premio o ya pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1129,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"664071071638\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": true,\n  \"status\": null,\n  \"error\": {\n    \"code\": \"01\",\n    \"message\": \"El boleto no tiene premio para cobrar: Boleto no tiene premio.\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2. EXECUTE — Pagar premio (PagoPremioTicketTradicional)",
+              "id": "fe0e9fe0-29a3-4cd6-bc45-e12227efd649",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1129,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"664071071638\",\n  \"document\": \"0901111112\",\n  \"username\": \"Ariel Castillo\",\n  \"tipo_documento\": 2,\n  \"mpi\": \"957\",\n  \"amount\": 500000.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Premio pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1129,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"664071071638\",\n  \"document\": \"0901111112\",\n  \"username\": \"Ariel Castillo\",\n  \"tipo_documento\": 2,\n  \"mpi\": \"957\",\n  \"amount\": 500000.0\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/execute",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "execute"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Pago de premio Tradicionales completado\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"984\",\n  \"subcategory_code\": \"1129\",\n  \"service_provider_code\": \"3445\",\n  \"rms_item_code\": \"100708855\",\n  \"authorization\": \"999\",\n  \"amount\": 500000.0,\n  \"pci\": \"999\",\n  \"ref\": \"473856\"\n}"
+                }
+              ]
+            }
+          ],
+          "description": "CASH_OUT de Lotto (pago de premio de boleto electronico ya vendido)."
+        },
+        {
+          "name": "Pozzo Millonario — rms=100708856 · subcategory=1130",
+          "id": "da3c4b64-7c06-4e6d-a47a-6cff9cc1ed03",
+          "item": [
+            {
+              "name": "1. PRECHECK — Consultar boleto ganador (ConsultarTicket)",
+              "id": "1dff11c4-18eb-4c05-a635-bc7690c37703",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1130,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"664071071639\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/preCheck",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "preCheck"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Boleto ganador, premio disponible",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1130,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"664071071639\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Boleto con premio disponible para pago\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"984\",\n  \"subcategory_code\": \"1130\",\n  \"service_provider_code\": \"3445\",\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"664071071639\",\n  \"amount\": 250000.0,\n  \"ticket_status\": \"\",\n  \"is_winner\": true,\n  \"prize_amount\": 250000.0,\n  \"mpi\": \"957\"\n}"
+                },
+                {
+                  "name": "422 — Boleto sin premio o ya pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1130,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"664071071639\",\n  \"document\": \"0901111112\",\n  \"tipo_documento\": 2\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/preCheck",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "preCheck"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": true,\n  \"status\": null,\n  \"error\": {\n    \"code\": \"01\",\n    \"message\": \"El boleto no tiene premio para cobrar: Boleto no tiene premio.\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "2. EXECUTE — Pagar premio (PagoPremioTicketTradicional)",
+              "id": "125a35ee-45d2-43f9-8eed-99fed9b061d3",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1130,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"664071071639\",\n  \"document\": \"0901111112\",\n  \"username\": \"Ariel Castillo\",\n  \"tipo_documento\": 2,\n  \"mpi\": \"957\",\n  \"amount\": 250000.0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{OmniStack-url}}/v1/execute",
+                  "host": [
+                    "{{OmniStack-url}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "execute"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "200 OK — Premio pagado",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1130,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"664071071639\",\n  \"document\": \"0901111112\",\n  \"username\": \"Ariel Castillo\",\n  \"tipo_documento\": 2,\n  \"mpi\": \"957\",\n  \"amount\": 250000.0\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{OmniStack-url}}/v1/execute",
+                      "host": [
+                        "{{OmniStack-url}}"
+                      ],
+                      "path": [
+                        "v1",
+                        "execute"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"is_error\": false,\n  \"error\": null,\n  \"status\": {\n    \"code\": \"00\",\n    \"message\": \"Pago de premio Tradicionales completado\"\n  },\n  \"uuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"category_code\": \"984\",\n  \"subcategory_code\": \"1130\",\n  \"service_provider_code\": \"3445\",\n  \"rms_item_code\": \"100708856\",\n  \"authorization\": \"999\",\n  \"amount\": 250000.0,\n  \"pci\": \"999\",\n  \"ref\": \"473856\"\n}"
+                }
+              ]
+            }
+          ],
+          "description": "CASH_OUT de Pozzo Millonario (pago de premio de boleto electronico ya vendido)."
+        }
+      ],
+      "description": "Flujo de solo 2 pasos (a diferencia de CASH_IN, que tiene PRECHECK/CREATE_TICKET/EXECUTE/VERIFY): PRECHECK llama a ConsultarTicket para validar que el boleto es ganador y aun no fue pagado (retorna mpi, que el POS debe reenviar tal cual en el EXECUTE); EXECUTE llama a PagoPremioTicketTradicional para pagar el premio. No hay VERIFY ni REVERSE (el proveedor no documenta un endpoint de reverso). subcategory_code asumido igual al item CASH_IN correspondiente — confirmar contra AD_SERVICIO_PARAMETROS real antes de usar en QA."
     },
     {
       "name": "🔴 CLARO (CASH_IN — Recarga telefónica)",

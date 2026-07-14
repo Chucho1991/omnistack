@@ -29,4 +29,12 @@ public class PrecheckRequest extends BaseTransactionRequest {
     @JsonProperty("game_id")
     @Schema(example = "1", description = "ID de juego (solo Tradicionales). Opcional — si no se envia, se deriva del rms_item_code.")
     private String gameId;
+
+    @JsonProperty("tipo_documento")
+    @Schema(example = "2", description = "Tipo de documento del ganador: 1-RUC, 2-Cedula, 3-Pasaporte (solo CASH_OUT Tradicionales, boleto electronico)")
+    private Integer tipoDocumento;
+
+    @JsonProperty("nombre_ganador")
+    @Schema(example = "Ariel Castillo", description = "Nombre del ganador (opcional, solo CASH_OUT Tradicionales)")
+    private String nombreGanador;
 }

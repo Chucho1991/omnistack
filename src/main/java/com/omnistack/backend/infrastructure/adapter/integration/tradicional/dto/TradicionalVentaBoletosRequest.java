@@ -21,6 +21,7 @@ public class TradicionalVentaBoletosRequest {
     BigDecimal totalVenta;
     String numeroIdentificacion;
     String nombreComprador;
+    @JsonProperty("telefonoComprador")
     String numeroCelularComprador;
     String correoElectronicoComprador;
 

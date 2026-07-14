@@ -78,7 +78,8 @@ class TransactionOrchestrationServiceTest {
                     @Override public boolean revertReservation(String uuid, LocalDate operationDate) { return true; }
                     @Override public int expireStaleReservations(LocalDateTime cutoffTimestamp) { return 0; }
                     @Override public Optional<CashOutQuotaEntry> findByUuid(String uuid) { return Optional.empty(); }
-                }));
+                }),
+                new TransactionAmountValidationService());
 
         ExecuteRequest request = ExecuteRequest.builder()
                 .uuid("uuid-bet593-cashout")
