@@ -67,6 +67,15 @@ public class CashOutQuotaService {
                              BigDecimal amount, BigDecimal maxAmount) {
         LocalDate today = LocalDate.now();
 
+        // Idempotencia: si ya existe un registro con este UUID, no insertar y dejar que
+        // el flujo continue normalmente para devolver la respuesta al POS
+        var existing = cashOutQuotaPort.findByUuid(uuid);
+        if (existing.isPresent()) {
+            log.info("Reserva de cupo CASH_OUT ya existe, se omite insert (idempotencia). uuid={}, estado={}",
+                    uuid, existing.get().getStatus());
+            return;
+        }
+
         // Validacion 1: monto no excede el maximo por transaccion
         if (amount.compareTo(maxAmount) > 0) {
             throw new BusinessException(
