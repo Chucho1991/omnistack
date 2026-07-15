@@ -130,7 +130,8 @@ public class LoteriaPega3CreateTicketStrategy extends AbstractProviderStrategy i
                 .rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
                 .authorization(stringValue(payload, "authorization"))
-                .ticketNumber(stringValue(payload, "ticket_number"));
+                .ticketNumber(stringValue(payload, "ticket_number"))
+                .ticketQr(stringValue(payload, "ticket_qr"));
 
         if (isError) {
             builder.error(ErrorDetail.builder()

@@ -69,6 +69,7 @@ class TransactionOrchestrationServiceTest {
                 new RegistroTrxPort() {
                     @Override public void save(RegistroTrx entry) { }
                     @Override public Optional<String> findOriginalAuthByHomologatedCode(String code) { return Optional.empty(); }
+                    @Override public Optional<String> findCreateTicketUuidByAuthorization(String authorization) { return Optional.empty(); }
                 },
                 new HomologatedCodeService(),
                 new CashOutQuotaService(new CashOutQuotaPort() {

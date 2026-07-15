@@ -179,15 +179,82 @@ public class PrecheckResponse extends BaseTransactionResponse {
     public static class TradicionalDraw {
         @JsonProperty("draw_id")
         private String drawId;
+
+        @JsonProperty("game_id")
+        private String juegoId;
+
+        @JsonProperty("nombre_juego")
+        private String nombreJuego;
+
         private String nombre;
+
+        @JsonProperty("nombre_sala_sorteo")
+        private String nombreSalaSorteo;
+
+        @Schema(description = "Clase de sorteo: O - Ordinario / E - Extraordinario")
+        private String clase;
+
         private String fecha;
+
+        @JsonProperty("fecha_cierre_ventas")
+        private String fechaCierreVentas;
+
+        @JsonProperty("fecha_caducidad_sorteo")
+        private String fechaCaducidadSorteo;
+
         private java.math.BigDecimal precio;
+
         @JsonProperty("premio_mayor")
         private java.math.BigDecimal premioMayor;
+
+        @JsonProperty("se_acumula")
+        private Boolean seAcumula;
+
+        @JsonProperty("monto_proximo_sorteo")
+        @Schema(description = "Monto del proximo sorteo — solo trae valor cuando se_acumula=true")
+        private String montoProximoSorteo;
+
+        @JsonProperty("es_sorteo_destacado")
+        private Boolean esSorteoDestacado;
 
         @JsonProperty("cantidad_fraccion")
         @Schema(description = "Cantidad de fracciones por entero (solo La Loteria; 0 o null en juegos sin fraccion)")
         private Integer cantidadFraccion;
+
+        @JsonProperty("nombre_numero")
+        @Schema(example = "Numero de Carton (Pozo Millonario)", description = "Etiqueta del numero/carton principal")
+        private String nombreNumero;
+
+        @JsonProperty("cantidad_digitos_combinacion_principal")
+        @Schema(description = "Cantidad de digitos que debe tener el numero/combinacion principal")
+        private Integer cantidadDigitosCombinacionPrincipal;
+
+        @JsonProperty("cantidad_digitos_combinacion_secundaria")
+        private Integer cantidadDigitosCombinacionSecundaria;
+
+        @JsonProperty("nombre_segunda_combinacion")
+        @Schema(example = "Combinacion 10/25 (Pozo Millonario)", description = "Etiqueta de la segunda parte de la combinacion (solo Pozo Millonario; vacio si no aplica)")
+        private String nombreSegundaCombinacion;
+
+        @JsonProperty("nombre_tercera_combinacion")
+        @Schema(example = "Mascota 8 Pozo", description = "Etiqueta de la tercera parte de la combinacion — indica si el sorteo requiere seleccionar figura/mascota (ver PrecheckResponse.figures)")
+        private String nombreTerceraCombinacion;
+
+        @JsonProperty("nombre_cuarta_combinacion")
+        private String nombreCuartaCombinacion;
+
+        @JsonProperty("nombre_quinta_combinacion")
+        private String nombreQuintaCombinacion;
+
+        @JsonProperty("tiene_premio_instantaneo")
+        private Boolean tienePremioInstantaneo;
+
+        @JsonProperty("tipo_premio_primera_suerte")
+        @Schema(description = "DIN (dinero) / ESP (especies) — tipo del premio adicional de primera suerte")
+        private String tipoPremioPrimeraSuerte;
+
+        @JsonProperty("nombre_primera_suerte")
+        private String nombrePrimeraSuerte;
 
         @JsonProperty("tiene_revancha")
         @Schema(description = "True si el sorteo tiene un Pozo Revancha asociado (solo Pozo Millonario)")

@@ -31,6 +31,7 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
 
     private String insertSql;
     private String findAuthByHomologatedCodeSql;
+    private String findCreateTicketUuidByAuthSql;
 
     @PostConstruct
     void init() {
@@ -45,6 +46,10 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
 
         findAuthByHomologatedCodeSql = "SELECT AUTHORIZATION FROM " + schema + ".IN_OMNI_REGISTRO_TRX "
                 + "WHERE CP_VAR1 = :homologatedCode AND ROWNUM = 1 ORDER BY CODIGO DESC";
+
+        findCreateTicketUuidByAuthSql = "SELECT UUID FROM " + schema + ".IN_OMNI_REGISTRO_TRX "
+                + "WHERE AUTHORIZATION = :authorization AND CAPABILITY = 'CREATE_TICKET' "
+                + "AND ROWNUM = 1 ORDER BY CODIGO DESC";
     }
 
     @Override
@@ -91,6 +96,26 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
             return Optional.empty();
         } catch (Exception ex) {
             log.warn("Error al consultar AUTHORIZATION por codigo homologado={}: {}", homologatedCode, ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<String> findCreateTicketUuidByAuthorization(String authorization) {
+        if (authorization == null || authorization.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            String uuid = jdbcTemplate.queryForObject(
+                    findCreateTicketUuidByAuthSql,
+                    new MapSqlParameterSource("authorization", authorization),
+                    String.class);
+            return Optional.ofNullable(uuid);
+        } catch (EmptyResultDataAccessException ex) {
+            log.debug("No se encontro CREATE_TICKET para authorization={}", authorization);
+            return Optional.empty();
+        } catch (Exception ex) {
+            log.warn("Error al consultar uuid de CREATE_TICKET por authorization={}: {}", authorization, ex.getMessage());
             return Optional.empty();
         }
     }

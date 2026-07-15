@@ -64,6 +64,12 @@ public class CreateTicketResponse extends BaseTransactionResponse {
     @Schema(example = "TICKET-12345", description = "ticketNumber del proveedor Pega3")
     private String ticketNumber;
 
+    @JsonProperty("ticket_qr")
+    @Schema(example = "https://www8.loteria.com.ec/LNConsultaBoletos/GanadoresLN?cn=TO0119007180211600081357150",
+            description = "URL del codigo QR del ticket, para imprimir en el comprobante (solo Pega3) — "
+                    + "disponible de inmediato aqui, no requiere VERIFY")
+    private String ticketQr;
+
     @JsonProperty("available_numbers")
     @Schema(description = "Combinaciones encontradas/reservadas (solo Tradicionales)")
     private List<TradicionalNumber> availableNumbers;
@@ -83,6 +89,14 @@ public class CreateTicketResponse extends BaseTransactionResponse {
     @AllArgsConstructor
     public static class TradicionalNumber {
         private String numero;
+
+        @Schema(description = "Segunda parte de la combinacion cuando el juego la usa (ej. Pozo Millonario: "
+                + "digitos de la combinacion secundaria/mascota) — null si el juego no la tiene")
+        private String numero2;
+        private String numero3;
+        private String numero4;
+        private String numero5;
+
         private String figura;
 
         @JsonProperty("game_id")
@@ -96,6 +110,13 @@ public class CreateTicketResponse extends BaseTransactionResponse {
 
         @JsonProperty("fracciones")
         private String fracciones;
+
+        @Schema(description = "Cantidad de fracciones/unidades solicitadas en la busqueda")
+        private String cantidad;
+
+        @Schema(description = "Cantidad de fracciones/unidades que el proveedor realmente reservo para este "
+                + "numero — puede diferir de lo solicitado")
+        private String reserva;
 
         @JsonProperty("precio_unitario")
         @Schema(example = "1.00", description = "Precio por unidad/fraccion (pvp) del sorteo al que pertenece "

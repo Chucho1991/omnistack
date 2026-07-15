@@ -7,6 +7,7 @@ import io.netty.channel.ChannelOption;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.client.HttpClient;
@@ -18,6 +19,10 @@ import reactor.netty.http.client.HttpClient;
 public class WebClientConfig {
 
     private static final String DEFAULT_TLS_PROTOCOL = "TLSv1.2";
+
+    /** Comprobantes (PDF en base64, ej. GenerarComprobanteVenta de Tradicionales) pueden superar
+     * el default de Spring (256KB) para buffers en memoria del WebClient. */
+    private static final int MAX_IN_MEMORY_SIZE_BYTES = 16 * 1024 * 1024;
 
     /**
      * Construye el cliente HTTP reactivo usado por adapters de integracion.
@@ -35,8 +40,13 @@ public class WebClientConfig {
                 .responseTimeout(Duration.ofMillis(integrations.getDefaultReadTimeoutMs()))
                 .secure(ssl -> ssl.sslContext(sslContextSpec));
 
+        ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(MAX_IN_MEMORY_SIZE_BYTES))
+                .build();
+
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .exchangeStrategies(exchangeStrategies)
                 .build();
     }
 

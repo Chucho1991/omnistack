@@ -18,4 +18,9 @@ public class Pega3CreateTicketResponse {
     private String drawDate;
     private String status;
     private String message;
+
+    /** URL del codigo QR del ticket vendido — disponible de inmediato en CrearTicket, a
+     * diferencia de ConsultarTicket (VERIFY) que no lo trae. Es el dato imprimible principal;
+     * GenerarComprobantePega es solo para reimpresion/fallback. */
+    private String codigoQR;
 }

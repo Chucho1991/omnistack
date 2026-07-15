@@ -23,4 +23,10 @@ public class NoOpRegistroTrxAdapter implements RegistroTrxPort {
         log.debug("findOriginalAuthByHomologatedCode [no-op] homologatedCode={}", homologatedCode);
         return Optional.empty();
     }
+
+    @Override
+    public Optional<String> findCreateTicketUuidByAuthorization(String authorization) {
+        log.debug("findCreateTicketUuidByAuthorization [no-op] authorization={}", authorization);
+        return Optional.empty();
+    }
 }

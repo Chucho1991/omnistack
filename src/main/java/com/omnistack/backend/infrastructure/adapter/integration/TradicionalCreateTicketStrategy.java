@@ -217,11 +217,17 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                     TradicionalNumerosQueryResponse.Numero num = (TradicionalNumerosQueryResponse.Numero) n;
                     return CreateTicketResponse.TradicionalNumber.builder()
                             .numero(num.getNumero())
+                            .numero2(num.getNumero2())
+                            .numero3(num.getNumero3())
+                            .numero4(num.getNumero4())
+                            .numero5(num.getNumero5())
                             .figura(num.getFigura())
                             .juegoId(num.getJuegoId())
                             .sorteoId(num.getSorteoId())
                             .boleto(num.getBoleto())
                             .fracciones(num.getFracciones())
+                            .cantidad(num.getCantidad())
+                            .reserva(num.getReserva())
                             .precioUnitario(pricing != null ? pricing.pvp() : null)
                             .build();
                 }).collect(Collectors.toList());

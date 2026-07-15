@@ -3,43 +3,25 @@ package com.omnistack.backend.infrastructure.adapter.integration;
 import com.omnistack.backend.shared.constants.StatusCodes;
 import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ErrorDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ExecuteRequest;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ExecuteResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.TradicionalVentaBoletosPort;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderConfigService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsDefsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.config.properties.AppProperties;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.Capability;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ServiceDefinition;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.TradicionalVentaBoletosCommand;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalVentaBoletosResponse;
 import com.omnistack.backend.shared.exception.IntegrationException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -135,9 +117,24 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
         return buildResponse(request, externalResponse);
     }
 
+    @SuppressWarnings("unchecked")
     private ExecuteResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
         boolean isError = !externalResponse.isApproved();
+
+        List<ExecuteResponse.SoldFraction> fracciones = null;
+        Object rawFracciones = payload != null ? payload.get("fraccionesVendidasDetalle") : null;
+        if (rawFracciones instanceof List<?> list) {
+            fracciones = list.stream()
+                    .filter(f -> f instanceof TradicionalVentaBoletosResponse.NumeroFraccion)
+                    .map(f -> (TradicionalVentaBoletosResponse.NumeroFraccion) f)
+                    .map(f -> ExecuteResponse.SoldFraction.builder()
+                            .numeroFraccion(f.getNumeroFraccion())
+                            .nombreCombinacion(f.getNombreCombinacion())
+                            .valorPremio(f.getValorPremio())
+                            .build())
+                    .collect(java.util.stream.Collectors.toList());
+        }
 
         ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
                 .chain(request.getChain()).store(request.getStore()).storeName(request.getStoreName())
@@ -150,8 +147,11 @@ public class LoteriaTradicionalExecuteStrategy extends AbstractProviderStrategy 
                 .amount(request.getAmount())
                 .boletoClave(stringValue(payload, "boletoClave"))
                 .boletoQr(stringValue(payload, "boletoQr"))
+                .boletoId(stringValue(payload, "boletoId"))
+                .valorTotalVendido(decimalValue(payload, "valorTotalVendido"))
                 .fechaVenta(stringValue(payload, "fechaVenta"))
-                .fraccionesVendidas(stringValue(payload, "fraccionesVendidas"));
+                .fraccionesVendidas(stringValue(payload, "fraccionesVendidas"))
+                .fraccionesVendidasDetalle(fracciones);
 
         if (isError) {
             builder.error(ErrorDetail.builder()

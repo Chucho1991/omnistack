@@ -103,10 +103,21 @@ public class Pega3WebClientAdapter implements
                 operationPath, provider, request, Pega3ProductQueryResponse.class,
                 "queryProduct", "consulta producto Pega3", command.getUuid(), WS_KEY_PRECHECK);
 
+        // El proveedor trae 4 entryTypes (Playslip-Manual/QuickPick, Verbal-Manual/QuickPick) —
+        // "Playslip" es el canal de papeleta fisica de autoservicio, que GEOPos no tiene (confirmado
+        // contra docs/GPFEC-3477 Recaudo Loteria - Negocio.pdf, RF-07/CU-04: el cajero solo digita
+        // numeros o pide "numero aleatorio", nunca papeleta). Se filtra a solo "Verbal-*" antes de
+        // exponer al POS, para no ofrecer una opcion que no corresponde a ningun flujo real.
+        List<Pega3ProductQueryResponse.EntryType> verbalEntryTypes = response.getEntryTypes() == null
+                ? List.of()
+                : response.getEntryTypes().stream()
+                        .filter(et -> et.getCode() != null && et.getCode().startsWith("Verbal-"))
+                        .toList();
+
         Map<String, Object> payload = new LinkedHashMap<>();
         boolean isError = hasError(response.getMessage());
         payload.put("message", response.getMessage());
-        payload.put("entry_types", response.getEntryTypes() == null ? null : response.getEntryTypes().stream()
+        payload.put("entry_types", verbalEntryTypes.stream()
                 .map(Pega3ProductQueryResponse.EntryType::getCode)
                 .toList());
         payload.put("bet_amount_options", parseBetAmountOptions(response.getBetAmountOptions()));
@@ -115,10 +126,9 @@ public class Pega3WebClientAdapter implements
         payload.put("prize_liability_threshold", response.getPrizeLiabilityThreshold());
 
         // Los limites (maxWager, futureDrawsLimit, advanceDrawLimit, playTypes) vienen anidados
-        // por modalidad de entrada (entryTypes[]); se toma el primero como representativo, igual
-        // que ya se hacia con minCost a nivel plano.
-        Pega3ProductQueryResponse.EntryType firstEntryType = response.getEntryTypes() != null && !response.getEntryTypes().isEmpty()
-                ? response.getEntryTypes().get(0) : null;
+        // por modalidad de entrada (entryTypes[]); se toma el primero de los Verbal-* como
+        // representativo, igual que ya se hacia con minCost a nivel plano.
+        Pega3ProductQueryResponse.EntryType firstEntryType = verbalEntryTypes.isEmpty() ? null : verbalEntryTypes.get(0);
         if (firstEntryType != null) {
             payload.put("max_cost", firstEntryType.getMaxWager());
             payload.put("future_draws_limit", firstEntryType.getFutureDrawsLimit());
@@ -208,6 +218,7 @@ public class Pega3WebClientAdapter implements
         payload.put("draw_date", response.getDrawDate());
         payload.put("status", response.getStatus());
         payload.put("authorization", response.getGameTicketNumber());
+        payload.put("ticket_qr", response.getCodigoQR());
 
         return ExternalTransactionResponse.builder()
                 .approved(!isError)
@@ -364,6 +375,7 @@ public class Pega3WebClientAdapter implements
         if (!isError) {
             payload.put("comprobante_b64", response.getBase64());
             payload.put("file_name", response.getFileName());
+            payload.put("content_type", response.getContentType());
         }
 
         return ExternalTransactionResponse.builder()
@@ -426,9 +438,14 @@ public class Pega3WebClientAdapter implements
         String requestJson = JsonUtil.toJsonSilently(request);
         traceToConsole("Pega3 " + logOperation + " request", url, requestJson);
 
-        T response;
+        // Se captura el body crudo del proveedor ANTES de parsearlo a la clase T — igual patron
+        // que TradicionalWebClientAdapter.invokePost(). Antes se mapeaba a T dentro de la propia
+        // cadena reactiva y se logueaba la re-serializacion de T (no el JSON real del proveedor),
+        // lo que ocultaba silenciosamente cualquier campo que el proveedor mandara y no estuviera
+        // ya modelado en el DTO — imposible depurar campos no documentados de esta forma.
+        String rawBody;
         try {
-            response = providerCircuitBreaker.execute(PROVIDER_KEY, () ->
+            rawBody = providerCircuitBreaker.execute(PROVIDER_KEY, () ->
                     omnistackWebClient.post()
                             .uri(url)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -456,7 +473,6 @@ public class Pega3WebClientAdapter implements
                                         return Mono.error(new IntegrationException(errMsg));
                                     }))
                             .bodyToMono(String.class)
-                            .map(body -> parseResponse(body, responseType, errorOperation))
                             .block());
         } catch (WebClientRequestException exception) {
             traceErrorToConsole("Pega3 " + logOperation + " transport error", url, rootCauseMessage(exception));
@@ -475,23 +491,19 @@ public class Pega3WebClientAdapter implements
             throw new IntegrationException(errMsg, exception);
         }
 
-        if (response == null) {
-            throw new IntegrationException("Pega3 no retorno contenido para " + errorOperation);
-        }
-
-        String responseJson = JsonUtil.toJsonSilently(response);
-        traceToConsole("Pega3 " + logOperation + " response", url, responseJson);
+        traceToConsole("Pega3 " + logOperation + " response", url, rawBody);
         wsExtLogService.log(ProviderCallLog.builder()
                 .uuid(uuid)
                 .providerKey(PROVIDER_KEY)
                 .wsKey(wsKey)
                 .url(url)
                 .requestJson(requestJson)
-                .responseJson(responseJson)
+                .responseJson(rawBody)
                 .durationMs(System.currentTimeMillis() - startMs)
                 .isError(false)
                 .build());
-        return response;
+
+        return parseResponse(rawBody, responseType, errorOperation);
     }
 
     private Pega3CreateTicketRequest.MainGame buildMainGame(Pega3CreateTicketCommand command) {

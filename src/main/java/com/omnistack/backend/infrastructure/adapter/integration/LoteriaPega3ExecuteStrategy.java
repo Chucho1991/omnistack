@@ -1,48 +1,35 @@
 package com.omnistack.backend.infrastructure.adapter.integration;
 
 import com.omnistack.backend.shared.constants.StatusCodes;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
-import com.omnistack.backend.application.dto.ErrorDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.ExecuteResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.dto.StatusDetail;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
-import com.omnistack.backend.application.port.out.Pega3PayTicketPort;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.AbstractProviderStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.port.out.strategy.ExecuteStrategy;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderConfigService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsDefsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.application.service.ProviderWsService;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.config.properties.AppProperties;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.Capability;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.enums.MovementType;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
-import com.omnistack.backend.domain.model.ExternalTransactionResponse;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
-import com.omnistack.backend.domain.model.Pega3PayTicketCommand;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.domain.model.ServiceDefinition;
-import com.omnistack.backend.shared.util.CanonicalErrorCodeMapper;
 import com.omnistack.backend.shared.exception.IntegrationException;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Estrategia de EXECUTE CASH_IN para Pega3. Llama a PagarTicket.
+ * Estrategia de EXECUTE CASH_IN para Pega3.
+ * <p>
+ * CrearTicket (llamado en CREATE_TICKET) ya vende el ticket por completo — el proveedor
+ * documenta su respuesta con "status":"Purchased". No existe un endpoint separado de
+ * "confirmar venta" para Pega3 (a diferencia de Tradicionales, que reserva en un paso y
+ * vende en otro con VentaBoletos). Por eso EXECUTE aqui NO debe llamar a PagarTicket — ese
+ * endpoint es para COBRAR el premio de un ticket YA vendido y ganador (se usa en CASH_OUT,
+ * ver {@link LoteriaPega3CashOutExecuteStrategy}); llamarlo con un ticket recien creado
+ * produce "Invalid Barcode" porque el proveedor lo interpreta como intento de cobro de un
+ * ticket que no es ganador. EXECUTE solo confirma, usando el ticketNumber que el POS
+ * reenvia desde CREATE_TICKET.
  */
 @Component
 @RequiredArgsConstructor
@@ -51,7 +38,6 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
     private static final String PROVIDER_KEY = "pega3";
     private static final String PROVIDER_NAME = "Loteria Pega3";
 
-    private final Pega3PayTicketPort pega3PayTicketPort;
     private final ProviderConfigService providerConfigService;
     private final ProviderWsDefsService providerWsDefsService;
     private final ProviderWsService providerWsService;
@@ -76,62 +62,28 @@ public class LoteriaPega3ExecuteStrategy extends AbstractProviderStrategy implem
         validateBusinessContext(request, serviceDefinition, provider);
 
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
-            throw new IntegrationException("Pega3 requiere authorization (ticketNumber) para EXECUTE");
+            throw new IntegrationException("Pega3 requiere authorization (ticketNumber, devuelto por CREATE_TICKET) para EXECUTE");
         }
         if (request.getAmount() == null) {
             throw new IntegrationException("Pega3 requiere amount para EXECUTE");
         }
 
-        String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
-
-        Pega3PayTicketCommand command = Pega3PayTicketCommand.builder()
-                .uuid(request.getUuid())
+        return ExecuteResponse.builder()
                 .chain(request.getChain())
                 .store(request.getStore())
                 .storeName(request.getStoreName())
                 .pos(request.getPos())
                 .channelPos(request.getChannelPos().name())
+                .uuid(request.getUuid())
                 .categoryCode(request.getCategoryCode())
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())
                 .rmsItemCode(request.getRmsItemCode())
+                .errorFlag(false)
+                .authorization(request.getAuthorization())
                 .amount(request.getAmount())
-                .ticketNumber(request.getAuthorization())
+                .status(new StatusDetail(StatusCodes.SUCCESS, "Venta de ticket Pega3 confirmada"))
                 .build();
-
-        String wsKey = toWsKey(capability.name(), serviceDefinition.getMovementType());
-        ExternalTransactionResponse externalResponse = pega3PayTicketPort.payTicket(command, operationUrl, wsKey);
-        return buildResponse(request, externalResponse);
-    }
-
-    private ExecuteResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
-        Map<String, Object> payload = externalResponse.getPayload();
-        boolean isError = !externalResponse.isApproved();
-
-        ExecuteResponse.ExecuteResponseBuilder<?, ?> builder = ExecuteResponse.builder()
-                .chain(request.getChain())
-                .store(request.getStore())
-                .storeName(request.getStoreName())
-                .pos(request.getPos())
-                .channelPos(request.getChannelPos().name())
-                .uuid(request.getUuid())
-                .categoryCode(request.getCategoryCode())
-                .subcategoryCode(request.getSubcategoryCode())
-                .serviceProviderCode(request.getServiceProviderCode())
-                .rmsItemCode(request.getRmsItemCode())
-                .errorFlag(isError)
-                .authorization(stringValue(payload, "authorization"));
-
-        if (isError) {
-            builder.error(ErrorDetail.builder()
-                    .code(CanonicalErrorCodeMapper.resolve(externalResponse))
-                    .message(externalResponse.getExternalMessage())
-                    .build());
-        } else {
-            builder.status(new StatusDetail(StatusCodes.SUCCESS, "Pago de ticket Pega3 completado"));
-        }
-
-        return builder.build();
     }
 
     private void validateBusinessContext(
