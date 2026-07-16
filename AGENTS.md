@@ -87,6 +87,7 @@ Este archivo define las reglas estándar de implementación para futuras integra
 - Toda futura integración con base de datos debe entrar por puertos de salida y adapters de persistencia.
 - Evitar hardcodear configuraciones operativas dentro del código.
 - Las propiedades de aplicación deben mantenerse ordenadas y por perfil cuando corresponda.
+- Para generación de IDs en tablas Oracle, usar siempre secuencias (`SEQUENCE.NEXTVAL`). No usar `MAX(PK)+1` — es un anti-patrón con condiciones de carrera en concurrencia. Las secuencias del proyecto están documentadas en `docs/bdd/omnistack/ALL_SEQUENCES.sql`.
 
 ## Logging y observabilidad
 - Mantener logging transversal y estructurado.

@@ -123,7 +123,11 @@ There are **two independent in-memory caches**; do not confuse them:
 | `CatalogCacheService` | Routing — holds `ServiceDefinition` list used to resolve strategy per request | `CatalogRefreshScheduler` every 6 h |
 | `BusinessLinesCatalogCacheService` | Display — holds the full `/business-lines` response tree (categories → subcategories → providers → services) | same scheduler |
 
-Both `CatalogCacheService` and `BusinessLinesCatalogCacheService` source from the same adapter: `OracleBusinessLinesCatalogSourceAdapter` (implements both `CatalogSourcePort` and `BusinessLinesCatalogSourcePort`). It runs the SQL files in `src/main/resources/sql/business-lines/oracle/` — six prod queries (`category-subcategory.sql`, `service-providers.sql`, `services.sql`, `capabilities.sql`, `input-fields.sql`, `payment-methods.sql`) and six RMS join queries (`ad-services.sql`, `ad-capabilities.sql`, `ad-movement-types.sql`, `ad-payment-methods.sql`, `rms-items.sql`, `rms-suppliers.sql`). Active when `app.business-lines.source=oracle` (the default). Fallbacks: `InMemoryCatalogSourceAdapter` and `InMemoryBusinessLinesCatalogSourceAdapter` when `source=memory`.
+Both `CatalogCacheService` and `BusinessLinesCatalogCacheService` source from the same adapter: `OracleBusinessLinesCatalogSourceAdapter` (implements both `CatalogSourcePort` and `BusinessLinesCatalogSourcePort`). It runs the SQL files in `src/main/resources/sql/business-lines/oracle/` — six prod queries (`category-subcategory.sql`, `service-providers.sql`, `services.sql`, `capabilities.sql`, `input-fields.sql`, `payment-methods.sql`) and seven RMS join queries (`ad-services.sql`, `ad-capabilities.sql`, `ad-capabilities-by-provider.sql`, `ad-movement-types.sql`, `ad-payment-methods.sql`, `rms-items.sql`, `rms-suppliers.sql`). Active when `app.business-lines.source=oracle` (the default). Fallbacks: `InMemoryCatalogSourceAdapter` and `InMemoryBusinessLinesCatalogSourceAdapter` when `source=memory`.
+
+Capabilities resolution uses a two-source strategy:
+1. **Primary** (`ad-capabilities.sql`): derives capabilities per `rms_item_code` from `IN_OMNI_PROVEEDOR_WS_DEFS` rows with `DEFAULT_CLAVE = 'item'` or `'item.%'`
+2. **Fallback** (`ad-capabilities-by-provider.sql`): for items without `item.*` entries (e.g., Claro), derives capabilities per `service_provider_code` from `IN_OMNI_PROVEEDOR_CONFIG` + `IN_OMNI_PROVEEDOR_WS` enabled endpoints
 
 ### DB-driven provider configuration (three in-memory caches)
 

@@ -350,3 +350,47 @@ de EXECUTE de Pega3 CASH_IN corregido para reflejar 9.4, y `game_data.entry_type
 carpetas Pega (Pega3/Pega4/Pega2) filtrado a `["Verbal-Manual","Verbal-QuickPick"]` para reflejar
 9.6. Changelog completo también agregado a la descripción de la carpeta "📌 NOTAS v10" del propio
 JSON. Validado con `json.load` en cada edición.
+
+---
+
+## 10. Migración MAX+1 → secuencias Oracle (2026-07-16)
+
+Se eliminaron todos los patrones anti-patrón `NVL(MAX(PK),0)+1` de los scripts SQL del proyecto,
+sustituyéndolos por secuencias Oracle (`SEQUENCE.NEXTVAL`). Esto previene condiciones de carrera
+en ambientes con concurrencia y es la práctica estándar Oracle para generación de IDs.
+
+### 10.1 Archivos modificados
+
+| Archivo | Cambio |
+|---|---|
+| `docs/bdd/omnistack/03_DML_PROVEEDORES_PLSQL.sql` | 4 tipos de MAX+1 reemplazados por `.NEXTVAL FROM DUAL` |
+| `docs/bdd/local-setup/06b_GPF_OMNISTACK_DML.sql` | 4 tipos de MAX+1 reemplazados por `.NEXTVAL FROM DUAL` |
+| `docs/bdd/local-setup/03_GPF_OMNISTACK_CAMBIOS.sql` | 4 secuencias nuevas creadas (DDL) |
+| `docs/bdd/omnistack/ALL_SEQUENCES.sql` | Header actualizado documentando las 13 secuencias totales |
+
+### 10.2 Secuencias por esquema
+
+**Esquema TUKUNAFUNC** (9 secuencias, ya existían):
+1. `SEQ_IN_OMNI_PROVEEDOR_WS` → `IN_OMNI_PROVEEDOR_WS.ID_WS`
+2. `SEQ_IN_OMNI_PROVEEDOR_HEADERS` → `IN_OMNI_PROVEEDOR_HEADERS.ID_HEADER`
+3. `SEQ_IN_OMNI_PROVEEDOR_WS_DEFS` → `IN_OMNI_PROVEEDOR_WS_DEFS.ID_DEFAULT`
+4. `SEQ_IN_OMNI_PROVEEDOR_CONFIG` → `IN_OMNI_PROVEEDOR_CONFIG.ID_CONFIG`
+5. `SEQ_IN_OMNI_LOGS_APP` → `IN_OMNI_LOGS_APP.CODIGO`
+6. `SEQ_IN_OMNI_LOGS_WS_EXT` → `IN_OMNI_LOGS_WS_EXT.CODIGO`
+7. `SEQ_IN_OMNI_REGISTRO_TRX` → `IN_OMNI_REGISTRO_TRX.CODIGO`
+8. `SEQ_IN_OMNI_INPUT_FIELDS` → `IN_OMNI_INPUT_FIELDS.ID_FIELD`
+9. `SEQ_IN_OMNI_CASHOUT_CUPO` → `IN_OMNI_CASHOUT_CUPO_DIARIO.ID_CUPO`
+
+**Esquema GPF_OMNISTACK** (4 secuencias, nuevas):
+10. `SEQ_AD_SERVICIO_PARAMETROS` → `AD_SERVICIO_PARAMETROS.ID_CONFIG`
+11. `SEQ_AD_CANAL_SERVICIO` → `AD_CANAL_SERVICIO.COD_CAN_SERV`
+12. `SEQ_AD_COM_FORMPAG_SERVICIO` → `AD_COM_FORMPAG_SERVICIO.COD_COM_FORMPAG_SERV`
+13. `SEQ_AD_ITEM_SERVICIO` → `AD_ITEM_SERVICIO.COD_ITEM_SERV`
+
+### 10.3 Nota para QA/PROD
+
+En ambientes con datos existentes, las secuencias GPF_OMNISTACK deben crearse con
+`START WITH (SELECT MAX(PK)+1 FROM tabla)` para evitar colisión con registros ya insertados.
+Las secuencias TUKUNAFUNC (1-9) ya se creaban desde `01_DDL_ESTRUCTURA.sql` / `06_DDL_INPUT_FIELDS.sql` /
+`26_DDL_CASHOUT_CUPO_DIARIO.sql`, así que allá solo aplica el ajuste de `START WITH` si se
+recrean sobre un ambiente poblado.
