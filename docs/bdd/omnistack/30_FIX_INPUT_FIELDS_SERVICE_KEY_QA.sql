@@ -1,0 +1,337 @@
+-- ============================================================
+-- Ejecutar como: TUKUNAFUNC
+-- FIX: Corrige SERVICE_PROVIDER_CODE, CATEGORY_CODE y SUBCATEGORY_CODE
+-- en IN_OMNI_INPUT_FIELDS para que coincidan con los valores reales
+-- del catalogo de QA (AD_SERVICIO_PARAMETROS + RMS).
+--
+-- PROBLEMA:
+--   El Java agrupa input_fields por ServiceKey(category, subcategory,
+--   service_provider, rms_item_code). Si los valores en IN_OMNI_INPUT_FIELDS
+--   no coinciden exactamente con los del catalogo, inputFields sale vacio.
+--
+-- VALORES REALES DE QA (obtenidos del response /business-lines):
+--   ECUABET:       cat=983, subcat=1118(CI)/1119(CO), spc=11966043
+--   BET593:        cat=983, subcat=1120(CI)/1121(CO), spc=408403  (OK)
+--   TRADICIONALES: cat=984, subcat=1122(Lot)/1123(Lotto)/1124(Pozo), spc=3445
+--   PEGA3:         cat=984, subcat=1125(P4)/1126(P2)/1127(P3), spc=3445
+--   PREMIOS TRAD:  cat=984, subcat=1128(Lot)/1129(Lotto)/1130(Pozo), spc=3445
+--   PREMIOS PEGA:  NO aparecen en response (items 100708858/60/62 no visibles)
+--   CLARO:         cat=8050, subcat=7684, spc=407925  (OK, ya coincide)
+--   RECARGA MEGAS: cat=8520, subcat=1673, spc=407925
+--
+-- ITEMS CLARO LEGACY (117927,117928,117929,117930,141332,100388847,
+--   100523836,100523837,100578840,100623841,100623844) y
+-- RECARGA MEGAS (100134807,100158075):
+--   Estos NO tienen capabilities porque no tienen WS_DEFS/PROVEEDOR_WS
+--   configurados en TUKUNAFUNC. Son items legacy que solo existen en
+--   AD_SERVICIO_PARAMETROS pero no en OmniStack. No requieren input_fields
+--   hasta que se integren con un proveedor.
+-- ============================================================
+
+-- ============================================================
+-- PASO 1: Corregir ECUABET (spc 12661912 → 11966043)
+-- ============================================================
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET SERVICE_PROVIDER_CODE = '11966043',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE IN ('100713841', '100708846')
+   AND SERVICE_PROVIDER_CODE = '12661912';
+
+-- ============================================================
+-- PASO 2: Corregir TRADICIONALES CASH_IN
+--   (cat 1→984, subcat 2→1122/1123/1124, spc 407827→3445)
+-- ============================================================
+-- Loteria (100713842): subcat 2 → 1122
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1122',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100713842'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- Lotto (100713844): subcat 2 → 1123
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1123',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100713844'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- Pozo (100713846): subcat 2 → 1124
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1124',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100713846'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- ============================================================
+-- PASO 3: Corregir PEGA3 CASH_IN
+--   (cat 1→984, subcat 2→1125/1126/1127, spc 407827→3445)
+-- ============================================================
+-- Pega4 (100713848): subcat 2 → 1125
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1125',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100713848'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- Pega2 (100713850): subcat 2 → 1126
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1126',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100713850'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- Pega3 (100708852): subcat 2 → 1127
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1127',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708852'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- ============================================================
+-- PASO 4: Corregir PREMIOS TRADICIONALES CASH_OUT
+--   (cat 1→984, subcat 2→1128/1129/1130, spc 407827→3445)
+-- ============================================================
+-- Premios Loteria (100708854): subcat 2 → 1128
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1128',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708854'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- Premios Lotto (100708855): subcat 2 → 1129
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1129',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708855'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- Premios Pozo (100708856): subcat 2 → 1130
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1130',
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708856'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- ============================================================
+-- PASO 5: Corregir PREMIOS PEGA CASH_OUT (si existen en el catalogo)
+--   (cat 1→984, spc 407827→3445)
+--   NOTA: Estos items (100708858/100708860/100708862) NO aparecen
+--   en la respuesta actual de /business-lines, posiblemente no estan
+--   activos en AD_CANAL_SERVICIO. Se corrigen preventivamente.
+-- ============================================================
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1125',  -- subcategory de Pega4
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708858'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1126',  -- subcategory de Pega2
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708860'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+UPDATE TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+   SET CATEGORY_CODE = '984',
+       SUBCATEGORY_CODE = '1127',  -- subcategory de Pega3
+       SERVICE_PROVIDER_CODE = '3445',
+       USR_MODIFICACION = USER,
+       FEC_MODIFICACION = SYSDATE
+ WHERE RMS_ITEM_CODE = '100708862'
+   AND SERVICE_PROVIDER_CODE = '407827';
+
+-- ============================================================
+-- PASO 6: Insertar input_fields faltantes para ECUABET
+--   Los PRECHECK de ECUABET ya tienen campos en la tabla (con spc
+--   corregido en PASO 1), pero falta REVERSE para ambos.
+-- ============================================================
+
+-- ECUABET CASH_IN (100713841) — REVERSE: motivo
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+VALUES (SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '983', '1118', '11966043', '100713841',
+    'motivo', 'Motivo del reverso', 'STRING', 'REVERSE', 1, 'DETAIL', NULL, 1);
+
+-- ECUABET CASH_OUT (100708846) — REVERSE: motivo
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+VALUES (SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '983', '1119', '11966043', '100708846',
+    'motivo', 'Motivo del reverso', 'STRING', 'REVERSE', 1, 'DETAIL', NULL, 1);
+
+-- ============================================================
+-- PASO 7: Insertar input_fields faltantes para BET593 CASH_OUT REVERSE
+-- ============================================================
+
+-- BET593 CASH_OUT (100708848) — REVERSE: document + motivo
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+VALUES (SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '983', '1121', '408403', '100708848',
+    'document', 'Cuenta web', 'STRING', 'REVERSE', 1, 'IDENTIFICATION', NULL, 1);
+
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+VALUES (SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '983', '1121', '408403', '100708848',
+    'motivo', 'Motivo del reverso', 'STRING', 'REVERSE', 1, 'DETAIL', NULL, 2);
+
+-- ============================================================
+-- PASO 8: Insertar input_fields para items CLARO legacy que
+--   actualmente NO tienen capabilities (no estan integrados con
+--   OmniStack via IN_OMNI_PROVEEDOR_WS). Sin embargo, como el POS
+--   los muestra en el catalogo, necesitan al menos phone para PRECHECK.
+--
+--   Items de monto fijo (flg_item=FACT): solo phone
+--   Item de monto libre (291843): ya tiene phone + amount (OK)
+--   Items RECARGA MEGAS: phone + amount (monto libre)
+--
+--   NOTA: Estos items no tendran capabilities hasta que se configure
+--   IN_OMNI_PROVEEDOR_WS/WS_DEFS para ellos. El input_fields solo
+--   tendra efecto una vez se habiliten las capabilities.
+-- ============================================================
+
+-- CLARO items de monto fijo — solo phone en PRECHECK
+-- 117927 ($10), 117928 ($6), 117929 ($20), 117930 ($30), 141332 ($3)
+-- 100388847 ($6 PAQ), 100523836 ($10.50), 100523837 ($12.50)
+-- 100578840 ($5.50), 100623841 ($1.50), 100623844 ($1.50)
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+SELECT SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '8050', '7684', '407925', item_code,
+    'phone', 'Celular a recargar', 'STRING', 'PRECHECK', 1, 'PHONE', NULL, 1
+FROM (
+    SELECT '117927' AS item_code FROM DUAL UNION ALL
+    SELECT '117928' FROM DUAL UNION ALL
+    SELECT '117929' FROM DUAL UNION ALL
+    SELECT '117930' FROM DUAL UNION ALL
+    SELECT '141332' FROM DUAL UNION ALL
+    SELECT '100388847' FROM DUAL UNION ALL
+    SELECT '100523836' FROM DUAL UNION ALL
+    SELECT '100523837' FROM DUAL UNION ALL
+    SELECT '100578840' FROM DUAL UNION ALL
+    SELECT '100623841' FROM DUAL UNION ALL
+    SELECT '100623844' FROM DUAL
+) items
+WHERE NOT EXISTS (
+    SELECT 1 FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS f
+     WHERE f.RMS_ITEM_CODE = items.item_code
+       AND f.CAPABILITY = 'PRECHECK'
+       AND f.FIELD_ID = 'phone'
+);
+
+-- RECARGA MEGAS items — phone + amount en PRECHECK (monto libre)
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+SELECT SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '8520', '1673', '407925', item_code,
+    'phone', 'Celular a recargar', 'STRING', 'PRECHECK', 1, 'PHONE', NULL, 1
+FROM (
+    SELECT '100134807' AS item_code FROM DUAL UNION ALL
+    SELECT '100158075' FROM DUAL
+) items
+WHERE NOT EXISTS (
+    SELECT 1 FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS f
+     WHERE f.RMS_ITEM_CODE = items.item_code
+       AND f.CAPABILITY = 'PRECHECK'
+       AND f.FIELD_ID = 'phone'
+);
+
+INSERT INTO TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+    (ID_FIELD, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE, RMS_ITEM_CODE,
+     FIELD_ID, LABEL, FIELD_TYPE, CAPABILITY, IS_REQUIRED, FIELD_GROUP, CONDITIONAL_OPERATOR, FIELD_ORDER)
+SELECT SEQ_IN_OMNI_INPUT_FIELDS.NEXTVAL,
+    '8520', '1673', '407925', item_code,
+    'amount', 'Monto Recarga', 'DOUBLE', 'PRECHECK', 1, 'AMOUNT', NULL, 2
+FROM (
+    SELECT '100134807' AS item_code FROM DUAL UNION ALL
+    SELECT '100158075' FROM DUAL
+) items
+WHERE NOT EXISTS (
+    SELECT 1 FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS f
+     WHERE f.RMS_ITEM_CODE = items.item_code
+       AND f.CAPABILITY = 'PRECHECK'
+       AND f.FIELD_ID = 'amount'
+);
+
+COMMIT;
+
+-- ============================================================
+-- VERIFICACION
+-- ============================================================
+
+-- 1. Verificar ECUABET (esperado: 5 filas para CI, 4 para CO)
+SELECT RMS_ITEM_CODE, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE,
+       CAPABILITY, FIELD_ORDER, FIELD_ID, LABEL, IS_REQUIRED
+  FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+ WHERE RMS_ITEM_CODE IN ('100713841', '100708846')
+   AND ENABLED = 'S'
+ ORDER BY RMS_ITEM_CODE, CAPABILITY, FIELD_ORDER;
+
+-- 2. Verificar PEGA3/TRADICIONALES (correccion de cat/subcat/spc)
+SELECT RMS_ITEM_CODE, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE,
+       CAPABILITY, FIELD_ORDER, FIELD_ID
+  FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+ WHERE RMS_ITEM_CODE IN ('100708852','100713848','100713850',
+                         '100713842','100713844','100713846')
+   AND ENABLED = 'S'
+ ORDER BY RMS_ITEM_CODE, CAPABILITY, FIELD_ORDER;
+
+-- 3. Verificar PREMIOS TRAD
+SELECT RMS_ITEM_CODE, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE,
+       CAPABILITY, FIELD_ORDER, FIELD_ID
+  FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+ WHERE RMS_ITEM_CODE IN ('100708854','100708855','100708856')
+   AND ENABLED = 'S'
+ ORDER BY RMS_ITEM_CODE, CAPABILITY, FIELD_ORDER;
+
+-- 4. Verificar CLARO legacy + RECARGA MEGAS
+SELECT RMS_ITEM_CODE, CATEGORY_CODE, SUBCATEGORY_CODE, SERVICE_PROVIDER_CODE,
+       CAPABILITY, FIELD_ORDER, FIELD_ID
+  FROM TUKUNAFUNC.IN_OMNI_INPUT_FIELDS
+ WHERE RMS_ITEM_CODE IN ('117927','117928','117929','117930','141332',
+                         '100388847','100523836','100523837','100578840',
+                         '100623841','100623844','100134807','100158075')
+   AND ENABLED = 'S'
+ ORDER BY RMS_ITEM_CODE, CAPABILITY, FIELD_ORDER;

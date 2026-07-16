@@ -42,6 +42,7 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(sqlProvider.getRmsSuppliersSql()).thenReturn("rms-suppliers");
         when(sqlProvider.getAdPaymentMethodsSql()).thenReturn("ad-pm");
         when(sqlProvider.getAdCapabilitiesSql()).thenReturn("omni-cap");
+        when(sqlProvider.getAdCapabilitiesByProviderSql()).thenReturn("omni-cap-by-provider");
         when(sqlProvider.getAdMovementTypesSql()).thenReturn("movement-types");
         when(sqlProvider.getInputFieldsSql()).thenReturn("input-fields");
 
@@ -70,6 +71,11 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(prodTemplate.query(eq("omni-cap"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("100713841", "PRECHECK"),
                 new OracleBusinessLinesCatalogSourceAdapter.OmniCapabilityRow("100713841", "CREATE_TICKET")));
+
+        // PROD (TUKUNAFUNC): capabilities por service_provider_code (fallback)
+        when(prodTemplate.query(eq("omni-cap-by-provider"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
+                new OracleBusinessLinesCatalogSourceAdapter.ProviderCapabilityRow("1", "PRECHECK"),
+                new OracleBusinessLinesCatalogSourceAdapter.ProviderCapabilityRow("1", "EXECUTE")));
 
         // PROD (TUKUNAFUNC): movement_type por rms_item_code
         when(prodTemplate.query(eq("movement-types"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(

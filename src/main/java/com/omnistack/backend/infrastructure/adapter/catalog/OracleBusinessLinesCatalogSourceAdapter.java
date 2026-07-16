@@ -119,6 +119,15 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             log.warn("[BL-catalog] omniCapabilities vacío — los servicios quedarán sin capabilities y serán filtrados");
         }
 
+        // --- PROD (TUKUNAFUNC): capabilities por service_provider_code (fallback para proveedores sin item.* en WS_DEFS) ---
+        List<ProviderCapabilityRow> providerCapabilities = prodJdbcTemplate.query(
+                sqlProvider.getAdCapabilitiesByProviderSql(), new MapSqlParameterSource(), providerCapabilityRowMapper());
+        log.debug("[BL-catalog] providerCapabilities={}", providerCapabilities.size());
+        Map<String, List<String>> capsByProvider = providerCapabilities.stream()
+                .collect(Collectors.groupingBy(ProviderCapabilityRow::serviceProviderCode,
+                        LinkedHashMap::new,
+                        Collectors.mapping(ProviderCapabilityRow::capabilityCode, Collectors.toList())));
+
         // --- PROD (TUKUNAFUNC): movement_type por rms_item_code (IN_OMNI_PROVEEDOR_WS_DEFS) ---
         List<MovementTypeRow> movementTypeRows = prodJdbcTemplate.query(
                 sqlProvider.getAdMovementTypesSql(), new MapSqlParameterSource(), movementTypeRowMapper());
@@ -197,12 +206,20 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
         log.debug("[BL-catalog] serviceRows={}", serviceRows.size());
 
         // --- Construir CapabilityRow: expandir capabilities por item segun WS_DEFS ---
+        // Fallback: si un item no tiene caps en WS_DEFS, derivarlas del service_provider_code
         List<CapabilityRow> capabilityRows = serviceRows.stream()
                 .flatMap(service -> {
                     List<String> caps = capabilityCodesByItem.getOrDefault(service.rmsItemCode(), List.of());
                     if (caps.isEmpty()) {
-                        log.info("[BL-catalog][DIAG] sin caps — rmsItemCode='{}' serviceProviderCode='{}'",
-                                service.rmsItemCode(), service.serviceProviderCode());
+                        // Fallback: capabilities del proveedor por service_provider_code
+                        caps = capsByProvider.getOrDefault(service.serviceProviderCode(), List.of());
+                        if (caps.isEmpty()) {
+                            log.info("[BL-catalog][DIAG] sin caps — rmsItemCode='{}' serviceProviderCode='{}'",
+                                    service.rmsItemCode(), service.serviceProviderCode());
+                        } else {
+                            log.debug("[BL-catalog] caps fallback por provider: rmsItemCode='{}' spc='{}' caps={}",
+                                    service.rmsItemCode(), service.serviceProviderCode(), caps);
+                        }
                     }
                     return caps.stream()
                             .map(cap -> new CapabilityRow(
@@ -425,6 +442,12 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getString("capability_code"));
     }
 
+    private RowMapper<ProviderCapabilityRow> providerCapabilityRowMapper() {
+        return (rs, rowNum) -> new ProviderCapabilityRow(
+                rs.getString("service_provider_code"),
+                rs.getString("capability_code"));
+    }
+
     private RowMapper<RmsItemRow> rmsItemRowMapper() {
         return (rs, rowNum) -> new RmsItemRow(
                 rs.getString("rms_item_code"),
@@ -486,6 +509,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             boolean active) {}
 
     record OmniCapabilityRow(String rmsItemCode, String capabilityCode) {}
+
+    record ProviderCapabilityRow(String serviceProviderCode, String capabilityCode) {}
 
     record RmsItemRow(
             String rmsItemCode,
