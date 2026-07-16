@@ -52,7 +52,8 @@ public class EcuabetPrecheckStrategy extends AbstractProviderStrategy implements
             ServiceDefinition serviceDefinition,
             Capability capability) {
         AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateProviderCode(request, serviceDefinition, provider);
+        // category_code, subcategory_code y service_provider_code ya fueron validados
+        // por el catalogo RMS al resolver el ServiceDefinition en DefaultProviderFlowResolver.
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
         EcuabetUserSearchCommand command = EcuabetUserSearchCommand.builder()
@@ -115,11 +116,6 @@ public class EcuabetPrecheckStrategy extends AbstractProviderStrategy implements
         return textValue.isBlank() ? null : new BigDecimal(textValue);
     }
 
-    private void validateProviderCode(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-    }
+    // category_code, subcategory_code y service_provider_code ya fueron validados
+    // por el catalogo RMS al resolver el ServiceDefinition en DefaultProviderFlowResolver.
 }

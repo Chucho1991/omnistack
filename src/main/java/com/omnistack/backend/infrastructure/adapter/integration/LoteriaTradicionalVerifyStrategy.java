@@ -58,7 +58,6 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
             ServiceDefinition serviceDefinition,
             Capability capability) {
         AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
 
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
             throw new IntegrationException("Tradicionales requiere authorization (ventaId) para VERIFY");
@@ -108,13 +107,4 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
         return builder.build();
     }
 
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-    }
 }

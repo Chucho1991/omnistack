@@ -199,7 +199,7 @@ Two named datasources, both `@ConditionalOnProperty` on their URL:
 
 Oracle beans (`OracleAuditLogAdapter`, `OracleProviderWsAdapter`, etc.) are all annotated with `@ConditionalOnProperty(name = "app.datasource.prod.url")`. When that property is absent, NoOp adapters (`NoOpWsExtLogAdapter`, `NoOpRegistroTrxAdapter`) activate instead. `InMemoryAuditLogAdapter` is the fallback for `AuditLogPort`.
 
-Audit log inserts use `SELECT NVL(MAX(CODIGO), 0) + 1 FROM table` as a PK sequence (no IDENTITY columns). CLOB fields must use `Types.CLOB` in `MapSqlParameterSource.addValue`.
+Audit log inserts use Oracle sequences (`SCHEMA.SEQ_xxx.NEXTVAL`) for PK generation (no IDENTITY columns). CLOB fields must use `Types.CLOB` in `MapSqlParameterSource.addValue`.
 
 ### Oracle logging tables (all in TUKUNAFUNC schema)
 

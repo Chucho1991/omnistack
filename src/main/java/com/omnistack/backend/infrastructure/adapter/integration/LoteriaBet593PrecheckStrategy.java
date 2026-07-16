@@ -52,8 +52,6 @@ public class LoteriaBet593PrecheckStrategy extends AbstractProviderStrategy impl
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
         Bet593RechargeCommand command = Bet593RechargeCommand.builder()
@@ -79,13 +77,4 @@ public class LoteriaBet593PrecheckStrategy extends AbstractProviderStrategy impl
         return ResponseFactory.transactionResponse(request, externalResponse, capability);
     }
 
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-    }
 }

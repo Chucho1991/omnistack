@@ -367,6 +367,9 @@ en ambientes con concurrencia y es la práctica estándar Oracle para generació
 | `docs/bdd/local-setup/06b_GPF_OMNISTACK_DML.sql` | 4 tipos de MAX+1 reemplazados por `.NEXTVAL FROM DUAL` |
 | `docs/bdd/local-setup/03_GPF_OMNISTACK_CAMBIOS.sql` | 4 secuencias nuevas creadas (DDL) |
 | `docs/bdd/omnistack/ALL_SEQUENCES.sql` | Header actualizado documentando las 13 secuencias totales |
+| `src/.../oracle/OracleRegistroTrxAdapter.java` | `NVL(MAX(CODIGO),0)+1` → `SEQ_IN_OMNI_REGISTRO_TRX.NEXTVAL` |
+| `src/.../oracle/OracleAuditLogAdapter.java` | `NVL(MAX(CODIGO),0)+1` → `SEQ_IN_OMNI_LOGS_APP.NEXTVAL` |
+| `src/.../oracle/OracleWsExtLogAdapter.java` | `NVL(MAX(CODIGO),0)+1` → `SEQ_IN_OMNI_LOGS_WS_EXT.NEXTVAL` |
 
 ### 10.2 Secuencias por esquema
 

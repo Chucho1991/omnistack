@@ -56,9 +56,6 @@ public class LoteriaPega3CashOutExecuteStrategy extends AbstractProviderStrategy
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
-
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
             throw new IntegrationException("Pega3 requiere authorization (ticketNumber) para EXECUTE de CASH_OUT");
         }
@@ -119,13 +116,4 @@ public class LoteriaPega3CashOutExecuteStrategy extends AbstractProviderStrategy
         return builder.build();
     }
 
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-    }
 }

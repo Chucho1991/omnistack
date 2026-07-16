@@ -58,7 +58,6 @@ public class LoteriaTradicionalCashOutPrecheckStrategy extends AbstractProviderS
             ServiceDefinition serviceDefinition,
             Capability capability) {
         AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
 
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
             throw new IntegrationException("Tradicionales requiere authorization (clave del boleto electronico) para PRECHECK de CASH_OUT");
@@ -133,16 +132,6 @@ public class LoteriaTradicionalCashOutPrecheckStrategy extends AbstractProviderS
                 .mpi(stringValue(payload, "mpi"))
                 .status(new StatusDetail(StatusCodes.SUCCESS, "Boleto con premio disponible para pago"))
                 .build();
-    }
-
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     private Boolean getBooleanValue(Map<String, Object> payload, String key) {

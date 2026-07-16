@@ -76,8 +76,6 @@ public class LoteriaBet593WithdrawVerifyStrategy extends AbstractProviderStrateg
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
         validateRequiredRequestFields(request);
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
@@ -144,16 +142,6 @@ public class LoteriaBet593WithdrawVerifyStrategy extends AbstractProviderStrateg
         }
 
         return builder.build();
-    }
-
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     private void validateRequiredRequestFields(BaseTransactionRequest request) {

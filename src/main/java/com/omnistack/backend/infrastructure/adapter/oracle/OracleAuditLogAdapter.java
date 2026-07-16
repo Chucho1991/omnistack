@@ -40,7 +40,7 @@ public class OracleAuditLogAdapter implements AuditLogPort {
                 + " CADENA, FARMACIA, NOMBRE_FARMACIA, POS, URL, METODO, "
                 + " HTTP_STATUS, ES_ERROR, COD_ERROR, MSG_ERROR) "
                 + "VALUES "
-                + "((SELECT NVL(MAX(CODIGO), 0) + 1 FROM " + schema + ".IN_OMNI_LOGS_APP), :uuid, :request, :response, :usuario, :proveedor, :capability, :canal, "
+                + "(" + schema + ".SEQ_IN_OMNI_LOGS_APP.NEXTVAL, :uuid, :request, :response, :usuario, :proveedor, :capability, :canal, "
                 + " :cadena, :farmacia, :nombreFarmacia, :pos, :url, :metodo, "
                 + " :httpStatus, :esError, :codError, :msgError)";
         log.info("OracleAuditLogAdapter init — schema={}", schema);

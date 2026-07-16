@@ -89,30 +89,6 @@ public abstract class AbstractProviderStrategy implements TransactionFlowStrateg
     }
 
     /**
-     * Valida que el valor actual coincida con el valor esperado de la configuracion del proveedor.
-     *
-     * @param fieldName nombre del campo para el mensaje de error
-     * @param currentValue valor recibido en el request
-     * @param expectedValue valor esperado segun la configuracion
-     * @param providerName nombre legible del proveedor para el mensaje de error
-     * @throws IntegrationException si el valor no coincide o la configuracion esta incompleta
-     */
-    protected void validateValue(
-            String fieldName,
-            String currentValue,
-            String expectedValue,
-            String providerName) {
-        if (expectedValue == null || expectedValue.isBlank()) {
-            throw new IntegrationException(
-                    "La configuracion de " + providerName + " no define el valor requerido para " + fieldName);
-        }
-        if (!expectedValue.equalsIgnoreCase(currentValue)) {
-            throw new IntegrationException(
-                    "La solicitud no coincide con la configuracion esperada de " + providerName + " para " + fieldName);
-        }
-    }
-
-    /**
      * Resuelve un valor por rms_item_code desde IN_OMNI_PROVEEDOR_WS_DEFS cuando el request no
      * lo trae explicito. Usa el formato multi-item "{fieldPrefix}.{rmsItemCode}" (mismo patron que
      * "item.{rmsItemCode}"). Lanza excepcion si no hay valor explicito NI configurado en DB — evita

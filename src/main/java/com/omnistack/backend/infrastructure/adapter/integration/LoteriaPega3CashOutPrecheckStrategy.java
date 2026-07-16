@@ -56,9 +56,6 @@ public class LoteriaPega3CashOutPrecheckStrategy extends AbstractProviderStrateg
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
-
         if (request.getAuthorization() == null || request.getAuthorization().isBlank()) {
             throw new IntegrationException("Pega3 requiere authorization (ticketNumber) para PRECHECK de CASH_OUT");
         }
@@ -115,16 +112,6 @@ public class LoteriaPega3CashOutPrecheckStrategy extends AbstractProviderStrateg
                 .prizeAmount(prizeAmount)
                 .status(new StatusDetail(StatusCodes.SUCCESS, "Ticket con premio disponible para pago"))
                 .build();
-    }
-
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     private Boolean getBooleanValue(Map<String, Object> payload, String key) {

@@ -78,9 +78,6 @@ public class LoteriaPega3CreateTicketStrategy extends AbstractProviderStrategy i
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
-
         if (!(request instanceof CreateTicketRequest createTicketRequest)) {
             throw new IntegrationException("Pega3 CREATE_TICKET requiere un CreateTicketRequest");
         }
@@ -143,16 +140,6 @@ public class LoteriaPega3CreateTicketStrategy extends AbstractProviderStrategy i
         }
 
         return builder.build();
-    }
-
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     private List<Pega3Panel> buildDomainPanels(List<CreateTicketRequest.TicketPanel> panels) {

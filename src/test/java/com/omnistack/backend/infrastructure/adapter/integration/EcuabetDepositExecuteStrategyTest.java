@@ -130,27 +130,6 @@ class EcuabetDepositExecuteStrategyTest {
         assertEquals("00", response.getStatus().getCode());
     }
 
-    @Test
-    void shouldFailWhenCategoryDoesNotMatchConfiguration() {
-        ExecuteRequest request = ExecuteRequest.builder()
-                .uuid("uuid-1")
-                .chain("1")
-                .store("148")
-                .pos("1")
-                .channelPos(ChannelPos.POS)
-                .movementType(MovementType.CASH_IN)
-                .categoryCode("9")
-                .subcategoryCode("1")
-                .serviceProviderCode("1")
-                .rmsItemCode("100713841")
-                .userid("997561")
-                .amount(new BigDecimal("100000.00"))
-                .build();
-
-        assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100713841"), Capability.EXECUTE));
-    }
-
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {
         return ServiceDefinition.builder()
                 .categoryCode("1")

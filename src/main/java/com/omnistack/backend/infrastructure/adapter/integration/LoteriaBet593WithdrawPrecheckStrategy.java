@@ -60,8 +60,6 @@ public class LoteriaBet593WithdrawPrecheckStrategy extends AbstractProviderStrat
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
         validateRequiredRequestFields(request);
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
 
@@ -135,19 +133,6 @@ public class LoteriaBet593WithdrawPrecheckStrategy extends AbstractProviderStrat
         }
 
         return builder.build();
-    }
-
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        // subcategory_code no se valida: el proveedor 'loteria' maneja dos subcategorias
-        // (1120 CASH_IN, 1121 CASH_OUT) y solo puede almacenar una en IN_OMNI_PROVEEDOR_CONFIG.
-        // El routing por los 4 campos del catalogo ya garantiza la correcta asignacion.
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     private void validateRequiredRequestFields(BaseTransactionRequest request) {

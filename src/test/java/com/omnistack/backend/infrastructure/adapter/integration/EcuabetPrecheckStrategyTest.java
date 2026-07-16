@@ -357,35 +357,6 @@ class EcuabetPrecheckStrategyTest {
         assertEquals(new BigDecimal("10"), response.getAmount());
     }
 
-    @Test
-    void shouldFailWhenProviderCodeDoesNotMatch() {
-        PrecheckRequest request = PrecheckRequest.builder()
-                .uuid("uuid-1")
-                .chain("1")
-                .store("148")
-                .pos("1")
-                .channelPos(ChannelPos.POS)
-                .movementType(MovementType.CASH_IN)
-                .categoryCode("5")
-                .subcategoryCode("1")
-                .serviceProviderCode("9")
-                .rmsItemCode("100713841")
-                .userid("997561")
-                .build();
-
-        ServiceDefinition serviceDefinition = ServiceDefinition.builder()
-                .categoryCode("5")
-                .subcategoryCode("1")
-                .serviceProviderCode("9")
-                .rmsItemCode("100713841")
-                .description("Servicio incorrecto")
-                .movementType(MovementType.CASH_IN)
-                .capabilities(List.of(Capability.PRECHECK))
-                .build();
-
-        assertThrows(IntegrationException.class, () -> strategy.process(request, serviceDefinition, Capability.PRECHECK));
-    }
-
     private PrecheckRequest cashoutRequest(BigDecimal amount) {
         return PrecheckRequest.builder()
                 .uuid("uuid-cashout")

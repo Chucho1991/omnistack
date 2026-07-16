@@ -77,7 +77,7 @@ public class EcuabetDepositExecuteStrategy extends AbstractProviderStrategy impl
             ServiceDefinition serviceDefinition,
             Capability capability) {
         AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateRequest(request, serviceDefinition, provider);
+        validateRequest(request);
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
         Integer transactionId = generateTransactionId();
 
@@ -142,14 +142,9 @@ public class EcuabetDepositExecuteStrategy extends AbstractProviderStrategy impl
         return builder.build();
     }
 
-    private void validateRequest(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
+    private void validateRequest(BaseTransactionRequest request) {
+        // category_code, subcategory_code y service_provider_code ya fueron validados
+        // por el catalogo RMS al resolver el ServiceDefinition en DefaultProviderFlowResolver.
         if (request.getUserid() == null || request.getUserid().isBlank()) {
             throw new IntegrationException("ECUABET requiere userid para deposito");
         }

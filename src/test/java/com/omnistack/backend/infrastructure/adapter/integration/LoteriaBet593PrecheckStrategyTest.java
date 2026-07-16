@@ -121,26 +121,6 @@ class LoteriaBet593PrecheckStrategyTest {
         assertEquals("Prueba uno", ((com.omnistack.backend.application.dto.PrecheckResponse) response).getLastname());
     }
 
-    @Test
-    void shouldFailWhenCategoryDoesNotMatchConfiguration() {
-        PrecheckRequest request = PrecheckRequest.builder()
-                .uuid("uuid-bet593")
-                .chain("1")
-                .store("148")
-                .pos("1")
-                .channelPos(ChannelPos.POS)
-                .categoryCode("9")
-                .subcategoryCode("1")
-                .serviceProviderCode("2")
-                .rmsItemCode("100708850")
-                .document("0901111112")
-                .amount(new BigDecimal("9.99"))
-                .build();
-
-        assertThrows(IntegrationException.class,
-                () -> strategy.process(request, serviceDefinition(MovementType.CASH_IN, "100708850"), Capability.PRECHECK));
-    }
-
     private ServiceDefinition serviceDefinition(MovementType movementType, String rmsItemCode) {
         return ServiceDefinition.builder()
                 .categoryCode("1")

@@ -49,8 +49,6 @@ public class ClaroPrecheckStrategy extends AbstractProviderStrategy implements P
                 && serviceDefinition.getMovementType() == MovementType.CASH_IN
                 && serviceDefinition.getServiceProviderCode() != null
                 && serviceDefinition.getServiceProviderCode().equalsIgnoreCase(provider.getServiceProviderCode())
-                && serviceDefinition.getSubcategoryCode() != null
-                && serviceDefinition.getSubcategoryCode().equalsIgnoreCase(provider.getSubcategoryCode())
                 && providerWsService.hasUrl(PROVIDER_KEY, wsKey)
                 && adItemServicioService.hasTag(serviceDefinition.getRmsItemCode(), "OFFERID");
     }
@@ -61,7 +59,8 @@ public class ClaroPrecheckStrategy extends AbstractProviderStrategy implements P
             ServiceDefinition serviceDefinition,
             Capability capability) {
         AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
+        // category_code, subcategory_code y service_provider_code ya fueron validados
+        // por el catalogo RMS al resolver el ServiceDefinition en DefaultProviderFlowResolver.
 
         if (request.getPhone() == null || request.getPhone().isBlank()) {
             throw new IntegrationException("CLARO requiere el campo phone (numero de celular a recargar)");
@@ -127,15 +126,4 @@ public class ClaroPrecheckStrategy extends AbstractProviderStrategy implements P
         return amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", request.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("subcategory_code", serviceDefinition.getSubcategoryCode(), provider.getSubcategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-    }
 }

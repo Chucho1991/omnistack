@@ -19,7 +19,6 @@ import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.Pega3DrawQueryCommand;
 import com.omnistack.backend.domain.model.Pega3ProductQueryCommand;
 import com.omnistack.backend.domain.model.ServiceDefinition;
-import com.omnistack.backend.shared.exception.IntegrationException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -60,8 +59,6 @@ public class LoteriaPega3PrecheckStrategy extends AbstractProviderStrategy imple
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
             Capability capability) {
-        AppProperties.ProviderProperties provider = getProviderProperties(providerConfigService, PROVIDER_KEY, PROVIDER_NAME);
-        validateBusinessContext(request, serviceDefinition, provider);
         String operationUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
         String sorteoUrl = providerWsService.findUrl(PROVIDER_KEY, toWsKey(PRECHECK_SORTEO_KEY, serviceDefinition.getMovementType())).orElse(null);
 
@@ -144,16 +141,6 @@ public class LoteriaPega3PrecheckStrategy extends AbstractProviderStrategy imple
         }
 
         return builder.build();
-    }
-
-    private void validateBusinessContext(
-            BaseTransactionRequest request,
-            ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
-        validateValue("category_code", request.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", request.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
-        validateValue("category_code", serviceDefinition.getCategoryCode(), provider.getCategoryCode(), PROVIDER_NAME);
-        validateValue("service_provider_code", serviceDefinition.getServiceProviderCode(), provider.getServiceProviderCode(), PROVIDER_NAME);
     }
 
     @SuppressWarnings("unchecked")
