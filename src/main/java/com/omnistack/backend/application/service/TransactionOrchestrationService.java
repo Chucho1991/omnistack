@@ -89,17 +89,17 @@ public class TransactionOrchestrationService implements TransactionUseCase {
             reserveCashOutQuota(request, selection);
         }
 
-        // Para REVERSE con homologacion: resolver el authorization original del proveedor
-        if (capability == Capability.REVERSE && isHomologated && request.getAuthorization() != null) {
-            resolveOriginalAuthForReverse(request);
+        // Para cualquier capability con homologacion donde el POS envie el codigo homologado
+        // en el campo authorization: resolver el authorization original del proveedor y preservar
+        // el homologado para logging en WS ext.
+        if (isHomologated && request.getAuthorization() != null && !request.getAuthorization().isBlank()
+                && capability != Capability.PRECHECK) {
+            resolveOriginalAuthFromHomologated(request, capability);
         }
 
         try {
             Object response = selection.getStrategy().process(request, selection.getServiceDefinition(), capability);
             OffsetDateTime endTime = OffsetDateTime.now();
-
-            auditLogService.save(buildAuditLog(request, response, selection, capability, endpoint,
-                    TransactionStatus.SUCCESS, null, null, 200, startTime, endTime));
 
             // Control de cupo CASH_OUT: confirmar reserva en EXECUTE exitoso
             if (capability == Capability.EXECUTE && isCashOutQuota) {
@@ -114,6 +114,11 @@ public class TransactionOrchestrationService implements TransactionUseCase {
             // Aplicar homologacion: generar codigo, persistir con original en AUTHORIZATION
             // y homologado en CP_VAR1, luego reemplazar authorization en el response para el POS
             saveRegistroTrxIfApplicable(request, response, selection, capability, isHomologated);
+
+            // Audit log se graba despues de homologacion para que el response registrado
+            // contenga el authorization homologado (el que recibe el cliente)
+            auditLogService.save(buildAuditLog(request, response, selection, capability, endpoint,
+                    TransactionStatus.SUCCESS, null, null, 200, startTime, endTime));
 
             return response;
         } catch (IntegrationException exception) {
@@ -136,23 +141,26 @@ public class TransactionOrchestrationService implements TransactionUseCase {
     }
 
     /**
-     * Para REVERSE con homologacion: el POS envia el codigo homologado en el campo authorization.
-     * Se resuelve el authorization original del proveedor desde IN_OMNI_REGISTRO_TRX y se reemplaza
-     * en el request antes de invocar la estrategia del proveedor.
+     * Resuelve el authorization original del proveedor a partir del codigo homologado que
+     * envio el POS. Aplica a cualquier capability post-PRECHECK donde el item tenga
+     * homologacion activa. Reemplaza {@code authorization} con el valor original del
+     * proveedor para consumir el servicio externo.
      *
-     * @param request request de reverso con el codigo homologado
+     * @param request request con el codigo homologado en authorization
+     * @param capability capacidad en ejecucion (para logging)
      */
-    private void resolveOriginalAuthForReverse(BaseTransactionRequest request) {
+    private void resolveOriginalAuthFromHomologated(BaseTransactionRequest request, Capability capability) {
         String homologatedCode = request.getAuthorization();
         registroTrxPort.findOriginalAuthByHomologatedCode(homologatedCode)
                 .ifPresentOrElse(
                         originalAuth -> {
-                            log.info("Homologacion REVERSE: codigo homologado='{}' -> authorization original='{}'",
-                                    homologatedCode, originalAuth);
+                            log.info("Homologacion {}: codigo homologado='{}' -> authorization original='{}'",
+                                    capability.name(), homologatedCode, originalAuth);
                             request.setAuthorization(originalAuth);
                         },
-                        () -> log.warn("Homologacion REVERSE: no se encontro authorization original para "
-                                + "codigo homologado='{}'. Se enviara el valor recibido al proveedor.", homologatedCode)
+                        () -> log.warn("Homologacion {}: no se encontro authorization original para "
+                                + "codigo homologado='{}'. Se enviara el valor recibido al proveedor.",
+                                capability.name(), homologatedCode)
                 );
     }
 
