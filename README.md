@@ -532,8 +532,9 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
 
 Cuando un item tiene `AD_SERVICIO_PARAMETROS.ID_HOMOLOGADO = 'S'`, OmniStack no expone el codigo de autorizacion original del proveedor al POS. En su lugar:
 
-- **EXECUTE / CREATE_TICKET**: genera un codigo alfanumerico unico de 10 caracteres y lo devuelve en el campo `authorization` del response. El codigo original del proveedor queda en `IN_OMNI_REGISTRO_TRX.AUTHORIZATION` y el homologado en `CP_VAR1`.
-- **REVERSE**: el POS envia el codigo homologado en `authorization`. OmniStack resuelve el codigo original del proveedor desde BD y lo envia al endpoint externo.
+- **PRECHECK / CREATE_TICKET**: genera un codigo alfanumerico unico de 10 caracteres y lo devuelve en el campo `authorization` del response. El codigo original del proveedor queda en `IN_OMNI_REGISTRO_TRX.AUTHORIZATION` y el homologado en `CP_VAR1`.
+- **EXECUTE / VERIFY / REVERSE** (y cualquier capability post-PRECHECK): el POS envia el codigo homologado en `authorization`. OmniStack resuelve el codigo original del proveedor desde `IN_OMNI_REGISTRO_TRX` (lookup por `CP_VAR1`) y reemplaza `authorization` con el original antes de invocar la estrategia. El servicio externo recibe siempre el authorization original.
+- El audit log (`IN_OMNI_LOGS_APP`) registra el response **despues** de la homologacion, reflejando el authorization homologado que recibe el cliente.
 
 Script de migracion: `docs/bdd/omnistack/25_ALTER_AD_SERVICIO_PARAMETROS_ID_HOMOLOGADO.sql`
 
