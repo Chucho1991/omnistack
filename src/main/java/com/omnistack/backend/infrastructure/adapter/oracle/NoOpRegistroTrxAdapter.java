@@ -25,8 +25,8 @@ public class NoOpRegistroTrxAdapter implements RegistroTrxPort {
     }
 
     @Override
-    public Optional<String> findCreateTicketUuidByAuthorization(String authorization) {
-        log.debug("findCreateTicketUuidByAuthorization [no-op] authorization={}", authorization);
+    public Optional<String> findExecuteUuidByAuthorization(String authorization) {
+        log.debug("findExecuteUuidByAuthorization [no-op] authorization={}", authorization);
         return Optional.empty();
     }
 }

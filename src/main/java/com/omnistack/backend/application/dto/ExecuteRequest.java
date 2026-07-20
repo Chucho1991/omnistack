@@ -1,5 +1,6 @@
 package com.omnistack.backend.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.omnistack.backend.shared.validation.ValidTransactionRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -56,6 +57,13 @@ public class ExecuteRequest extends BaseTransactionRequest {
             + "el POS lo reenvia del PRECHECK")
     private Integer tipoDocumento;
 
+    @jakarta.validation.Valid
+    @JsonProperty("ticket_data")
+    @JsonAlias("ticketData")
+    @Schema(description = "Datos del ticket a crear y vender (solo Pega3) — CrearTicket vende el ticket "
+            + "por completo, no hay paso de CREATE_TICKET separado para este proveedor")
+    private TicketData ticketData;
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -75,5 +83,53 @@ public class ExecuteRequest extends BaseTransactionRequest {
         @JsonProperty("cantidad_boletos")
         @Schema(example = "1")
         private Integer cantidadBoletos;
+    }
+
+    /**
+     * Datos del juego para el ticket a crear (solo Pega3).
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TicketData {
+
+        @JsonProperty("draw_number")
+        @JsonAlias("drawNumber")
+        @Schema(example = "1234")
+        private Integer drawNumber;
+
+        @JsonProperty("entry_type")
+        @JsonAlias("entryType")
+        @Schema(example = "Verbal-Manual")
+        private String entryType;
+
+        @jakarta.validation.Valid
+        @jakarta.validation.constraints.NotEmpty
+        @Schema(description = "Paneles de apuesta")
+        private List<TicketPanel> panels;
+    }
+
+    /**
+     * Panel individual de apuesta dentro del ticket (solo Pega3).
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TicketPanel {
+
+        @JsonProperty("bet_amount")
+        @JsonAlias("betAmount")
+        @Schema(example = "5.00")
+        private BigDecimal betAmount;
+
+        @Schema(example = "[1, 2, 3]")
+        private List<Integer> numbers;
+
+        @JsonProperty("play_types")
+        @JsonAlias("playTypes")
+        @Schema(example = "[\"WIN\"]")
+        private List<String> playTypes;
     }
 }

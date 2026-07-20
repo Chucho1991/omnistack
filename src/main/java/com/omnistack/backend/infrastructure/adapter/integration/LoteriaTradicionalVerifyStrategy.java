@@ -20,7 +20,9 @@ import com.omnistack.backend.domain.enums.MovementType;
 import com.omnistack.backend.domain.model.ExternalTransactionResponse;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.domain.model.TradicionalVerifyCommand;
+import com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto.TradicionalComprobanteResponse;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -80,9 +82,20 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
         return buildResponse(request, externalResponse);
     }
 
+    @SuppressWarnings("unchecked")
     private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse) {
         Map<String, Object> payload = externalResponse.getPayload();
         boolean isError = !externalResponse.isApproved();
+
+        List<String> comprobanteUrls = null;
+        Object rawImagenes = payload != null ? payload.get("imagenes") : null;
+        if (rawImagenes instanceof List<?> list) {
+            comprobanteUrls = list.stream()
+                    .filter(i -> i instanceof TradicionalComprobanteResponse.Imagen)
+                    .map(i -> (TradicionalComprobanteResponse.Imagen) i)
+                    .map(img -> comprobanteUrlService.storeAndBuildUrl(img.getBase64(), img.getContentType()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
 
         VerifyResponse.VerifyResponseBuilder<?, ?> builder = VerifyResponse.builder()
                 .chain(request.getChain()).store(request.getStore()).storeName(request.getStoreName())
@@ -92,8 +105,7 @@ public class LoteriaTradicionalVerifyStrategy extends AbstractProviderStrategy i
                 .serviceProviderCode(request.getServiceProviderCode()).rmsItemCode(request.getRmsItemCode())
                 .errorFlag(isError)
                 .authorization(request.getAuthorization())
-                .comprobanteUrl(comprobanteUrlService.storeAndBuildUrl(
-                        stringValue(payload, "comprobante_b64"), stringValue(payload, "content_type")));
+                .comprobanteUrls(comprobanteUrls);
 
         if (isError) {
             builder.error(ErrorDetail.builder()

@@ -1,14 +1,14 @@
 {
   "info": {
-    "_postman_id": "4d57f9fe-a2fe-47ea-bf07-5ab987921360",
-    "name": "OmniStack — Mock Server v10",
-    "description": "Colección con examples de respuesta por proveedor. Importar en Postman y publicar como Mock Server para obtener una URL pública que devuelve respuestas sin necesidad del backend real.\n\nv10 (2026-07-03): corrige los examples de Lotería Nacional/Pega3 contra el spec técnico real del proveedor (docs/LOTERIA NACIONAL.docx). Ver carpeta '📌 NOTAS v10' para el detalle de cambios y preguntas abiertas que siguen pendientes de confirmar con negocio/proveedor.\n\nActualizacion 2026-07-12: se agregaron las carpetas CASH_OUT (pago de premios) de LN PEGA3 y LN TRADICIONALES — ConsultarTicket (PRECHECK) + PagarTicket/PagoPremioTicketTradicional (EXECUTE). Sin validar contra QA real todavia; subcategory_code de los items PREMIOS es un supuesto (igual al item CASH_IN correspondiente), pendiente de confirmar.",
+    "_postman_id": "2f44e059-2025-4a4c-a886-f38158d5d6ef",
+    "name": "OmniStack — Mock Server v11",
+    "description": "Colección con examples de respuesta por proveedor. Importar en Postman y publicar como Mock Server para obtener una URL pública que devuelve respuestas sin necesidad del backend real.\n\nv10 (2026-07-03): corrige los examples de Lotería Nacional/Pega3 contra el spec técnico real del proveedor (docs/LOTERIA NACIONAL.docx). Ver carpeta '📌 NOTAS v11' para el detalle de cambios y preguntas abiertas que siguen pendientes de confirmar con negocio/proveedor.\n\nActualizacion 2026-07-12: se agregaron las carpetas CASH_OUT (pago de premios) de LN PEGA3 y LN TRADICIONALES — ConsultarTicket (PRECHECK) + PagarTicket/PagoPremioTicketTradicional (EXECUTE). Sin validar contra QA real todavia; subcategory_code de los items PREMIOS es un supuesto (igual al item CASH_IN correspondiente), pendiente de confirmar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "📌 NOTAS v10",
-      "description": "# Notas v9 → v10 (2026-07-03)\n\nFuente única de estos cambios: documentación técnica oficial del proveedor de Lotería Nacional\n(`docs/LOTERIA NACIONAL.docx`). Cambios de código correspondientes ya implementados en\n`feature/HU-13052026`.\n\n## Cambios aplicados en esta versión\n\n1. **Personalizada/Aleatoria** — ejemplos de PRECHECK de Lotería Nacional, Lotto y Pozzo\n   Millonario actualizados con `combinacion`/`sugerir`/`registros`. Formato por juego: Lotería 5\n   dígitos, Lotto 6 dígitos, Pozo wildcard `%NN` (últimos 2 dígitos).\n2. **Fracciones** — se quitó el catálogo fabricado `ENTERO/MEDIO/CUARTO` del PRECHECK de Lotería\n   Nacional (no tiene respaldo en el proveedor real). Ahora `available_numbers[].fracciones` trae\n   el CSV real (ej. \"1,2,3,4,5,6,7,8,9,10\"), exclusivo de La Lotería.\n3. **EXECUTE** — `boleto_clave`/`boleto_qr` ya reflejan los campos reales del proveedor\n   (`clave`/`codigoQR`). Se agregó el ejemplo \"2b. EXECUTE — carrito\" usando `lista_boletos`\n   (nuevo campo aditivo, `boleto_data` singular se mantiene igual).\n4. **Pozo Millonario + Revancha** — PRECHECK corregido: `game_id` real es \"5\" (no \"1\"),\n   `figures` ahora trae el catálogo real de 8 mascotas, `draws[].tiene_revancha` /\n   `juego_revancha_id` (17) / `sorteo_revancha_id`, y `available_numbers` fusiona juegoId 5 y 17\n   asociados por el campo `boleto` compartido — usa los valores reales de ejemplo del documento\n   del proveedor.\n5. **PEGA3 PRECHECK** — `game_data.entry_types` corregido a los valores reales\n   (`Playslip-Manual`, `Playslip-QuickPick`, `Verbal-Manual`, `Verbal-QuickPick`); se agregó\n   `max_cost`, `future_draws_limit`, `advance_draw_limit`, `play_types` (antes solo existía\n   `min_cost`, sin ningún máximo).\n6. **PEGA3 VERIFY** — se agregó el campo opcional `transaccion` al request. Sin ese dato no se\n   genera el comprobante PDF (`comprobante_b64` queda `null`); con él, se genera vía\n   `GenerarComprobantePega`.\n\n## Preguntas abiertas — no resueltas en esta versión\n\n- **Fracciones 1-10 vs 1-20**: el documento técnico del proveedor muestra `fracciones` con 10\n  valores en su ejemplo capturado; si en algún sorteo/juego llega a ser distinto, el campo ya\n  viaja tal cual lo entregue el proveedor — no hay ningún límite fijo de nuestro lado.\n- **`transaccion` en GenerarComprobantePega**: es un parámetro obligatorio para el proveedor,\n  pero no aparece en ningún response de `CrearTicket` ni `ConsultarTicket` documentado. Falta\n  identificar de dónde debería obtenerse.\n- **Reverse Pega3 sin `ticketNumber`**: `CancelarTicket` exige el número de ticket sin\n  alternativa — si nunca llega respuesta de `CrearTicket`, no hay forma de anular según el propio\n  documento del proveedor. No es resoluble con cambios de código; requiere definir un proceso\n  operativo.\n- **`RecuperarFigurasPorJuego` para La Lotería**: no hay evidencia de que La Lotería use el\n  catálogo de figuras (mascota/fruta) — se dejó `figures: []` en su PRECHECK. Si el proveedor sí\n  expone algo para ese juego, falta confirmarlo.\n\n\n## Actualización 2026-07-03\n\n7. **Bug de `game_id` corregido**: `LoteriaTradicionalPrecheckStrategy` tenía un\n   `DEFAULT_JUEGO_ID=\"1\"` fijo en código — si el front no mandaba `game_id`\n   (campo opcional según `docs/bdd/omnistack/09_DML_INPUT_FIELDS_PEGA3_TRAD_CLARO_QA.sql`),\n   un PRECHECK de Lotto o Pozzo consultaba por error los datos de Lotería\n   Nacional. Corregido: el default ahora se deriva del `rms_item_code` vía\n   `IN_OMNI_PROVEEDOR_WS_DEFS` (`juego_id.{rmsItemCode}`, script `22_DML_TRADICIONAL_JUEGO_ID_POR_ITEM.sql`),\n   igual en PRECHECK como en EXECUTE (por boleto, para poder seguir enviando\n   `game_id` explícito solo en el caso de comprar la Revancha junto con Pozo\n   Millonario en la misma venta).\n8. **PRECHECK ahora tiene 2 pasos separados en los ejemplos** (\"1.\" = catálogo\n   sin `game_id`/`draw_id`, \"1b.\" = personalizada con `draw_id`+`combinacion`)\n   para reflejar el flujo real: primera llamada trae el catálogo, el cajero\n   elige un sorteo, y la segunda llamada ya no necesita `game_id` (se deriva\n   solo) — solo hace falta `draw_id` + `combinacion`/`sugerir` si aplica.\n\n\n## Actualización 2026-07-03 (b) — Split PRECHECK / CREATE_TICKET para Tradicionales\n\nEl endpoint `RecuperarNumerosDisponiblesPorCombinacion` lo documenta el\nproveedor como \"Obtener y **RESERVAR** números disponibles por combinación\"\n— tiene efecto secundario (pre-reserva boletos), por lo que se movió de\nPRECHECK a **CREATE_TICKET** (mismo patrón que Pega3, que también reserva en\nese paso antes del EXECUTE).\n\nFlujo nuevo de Tradicionales (Lotería/Lotto/Pozzo), igual estructura que Pega3:\n1. **PRECHECK** — solo catálogo sin efectos secundarios: `RecuperarJuegosPorMedio`\n   + `RecuperarSorteosDisponibles` + `RecuperarFigurasPorJuego`. Ya no acepta\n   `draw_id`/`combinacion`/`sugerir`/`registros`/`figura_id` (se quitaron de\n   `PrecheckRequest` — ahora viven en `CreateTicketRequest`). `available_numbers`\n   ya no existe en `PrecheckResponse`.\n2. **CREATE_TICKET** (`POST /v1/createTicket`) — busca y reserva combinaciones.\n   Requiere `draw_id`; `combinacion`/`sugerir`/`registros`/`figura_id` opcionales.\n   Devuelve `available_numbers`/`total_numbers` (antes vivían en el PRECHECK).\n   Incluye la fusión automática de Pozo Millonario + Revancha.\n3. **EXECUTE** — sin cambios, usa el `numero` elegido de la respuesta anterior.\n4. **VERIFY** / **REVERSE** — sin cambios.\n\n`game_id` sigue siendo opcional en ambos pasos (se deriva de `rms_item_code`\nvía `IN_OMNI_PROVEEDOR_WS_DEFS`, scripts 22 y 23).\n\n\n## Actualización 2026-07-14/15 — Pozo Millonario/Revancha completo + fixes reales de VentaBoletos y Pega3 EXECUTE\n\nEncontrados y corregidos probando contra QA real (no solo contra el spec):\n\n9. **PRECHECK — metadata de Pozo Millonario incompleta**: `draws[]` solo traía 9 de ~24 campos\n   documentados por `RecuperarSorteosDisponibles`. Se agregaron los que el front necesita para\n   armar la UI de Pozo: `nombre_segunda/tercera/cuarta/quinta_combinacion` (etiquetas de cada\n   parte de la combinación — la tercera es la mascota), `cantidad_digitos_combinacion_principal/\n   secundaria`, `nombre_numero`, `tiene_premio_instantaneo`, `tipo/nombre_primera_suerte`,\n   `se_acumula`/`monto_proximo_sorteo`, `es_sorteo_destacado`, `clase`, `nombre_sala_sorteo`,\n   `nombre_juego`, `fecha_cierre_ventas`, `fecha_caducidad_sorteo`.\n10. **CREATE_TICKET — `numero2/3/4/5` se descartaban por completo**: el proveedor real ya\n    mandaba estos campos en `RecuperarNumerosDisponiblesPorCombinacion` (para Pozo, `numero3` es\n    la combinación secundaria de 2 dígitos), pero `TradicionalCreateTicketStrategy.mapNumeros()`\n    solo copiaba `numero`. Se agregó el mapeo completo + `cantidad`/`reserva` (fracciones\n    realmente reservadas por el proveedor, puede diferir de lo pedido).\n11. **VentaBoletos response — mismatch de nombres real vs. `.docx` (bug crítico, silencioso)**:\n    el proveedor real en QA responde `listaVentaSuerte`/`listaVentaSorteos`/`listaNumerosVendidos`,\n    pero el spec documenta (y el código usaba) `listaSUE`/`listaSorteos`/`ListaR`. Como\n    `@JsonIgnoreProperties(ignoreUnknown=true)` no tira error con propiedades desconocidas, el\n    campo quedaba `null` SIEMPRE aunque la venta fuera 100% exitosa (`codError:0`) — `boleto_clave`,\n    `boleto_qr` y `fracciones_vendidas` nunca llegaban al POS. Corregido con `@JsonProperty` a los\n    nombres reales + `@JsonAlias` a los documentados como respaldo. Se agregó también `boleto_id`\n    (liga Pozo Millonario con su Revancha), `valor_total_vendido`, y `fracciones_vendidas_detalle`\n    (lista completa — antes solo se leía el primer elemento de `listaNumeroFracciones`, que para\n    Pozo descartaba el segundo registro: la mascota vendida, ej. \"Mascota 10 (Gato)\").\n12. **`fechaCierreVenta` (singular) vs `fechaCierreVentas` (plural, documentado)**: mismo patrón\n    de mismatch doc-vs-real. Corregido con alias.\n13. **Pega3 EXECUTE (CASH_IN) llamaba mal a `PagarTicket`**: ese endpoint es para COBRAR el\n    premio de un ticket YA vendido y ganador — llamarlo con el ticket recién creado por\n    `CrearTicket` producía `\"Invalid Barcode\"`. `CrearTicket` ya vende el ticket por completo\n    (su propia respuesta trae `\"status\":\"Purchased\"`) — no existe endpoint de \"confirmar venta\"\n    separado para Pega3 (a diferencia de Tradicionales, que sí reserva en un paso y vende en\n    otro). Fix: `LoteriaPega3ExecuteStrategy` ya no llama a ningún endpoint del proveedor, solo\n    confirma usando el `authorization`/`amount` que el POS reenvía desde CREATE_TICKET.\n    `Pega3PayTicketPort`/`PagarTicket` se mantiene, pero exclusivamente para\n    `LoteriaPega3CashOutExecuteStrategy` (pago de premios, CASH_OUT).\n\n## Pregunta abierta que sigue sin resolver\n\n- **`transaccion` en GenerarComprobantePega (Pega3 VERIFY)**: sigue sin aparecer en ningún\n  response documentado de `CrearTicket`/`ConsultarTicket`. Se sospecha que, igual que los puntos\n  11 y 12 de arriba, el proveedor real en QA sí lo devuelva con otro nombre no documentado —\n  pendiente confirmar con un log real de `ConsultarTicket`/`CrearTicket` contra QA.\n\nVer `docs/CONTEXTO_SESION_2026-07.md` sección 9 para el detalle completo de esta sesión.\n\n\n## Actualización 2026-07-19 — Pega3 sin CREATE_TICKET + comprobante_urls (lista)\n\n1. **Pega3 (Pega3/Pega4/Pega2) CASH_IN ya no tiene CREATE_TICKET** — CrearTicket vende el\n   ticket por completo (su propia respuesta trae \"status\":\"Purchased\"), no reserva. Se\n   fusionaron los 3 ejemplos de CREATE_TICKET (Straight/Box/QuickPick) dentro de EXECUTE\n   (ahora \"2./2b./2c. EXECUTE — Crear y vender ticket\"), que ya no necesita `authorization`\n   previo — recibe `ticket_data` directo. VERIFY y REVERSE se renumeraron a 3./4.\n2. **`comprobante_url` (string) → `comprobante_urls` (lista)** en VERIFY, tanto Pega3 como\n   Tradicionales — una venta con varios juegos (ej. Pozo Millonario + Revancha) genera un\n   comprobante por cada uno. Actualizados los ejemplos de las 3 Tradicionales (Lotería/\n   Lotto/Pozzo) y las 3 Pega (Pega3/Pega4/Pega2), que todavía tenían el campo `comprobante_b64`\n   de una versión muy anterior del contrato (nunca actualizado en ninguna sesión previa).\n3. **`ticket_qr`** agregado a la respuesta de EXECUTE de Pega — viene de `codigoQR` en\n   `CrearTicket`, disponible de inmediato (no hace falta esperar a VERIFY).\n\nVer `docs/CONTEXTO_SESION_2026-07.md` para el detalle completo de esta sesión.\n",
+      "name": "📌 NOTAS v11",
+      "description": "# Notas v9 → v10 (2026-07-03)\n\nFuente única de estos cambios: documentación técnica oficial del proveedor de Lotería Nacional\n(`docs/LOTERIA NACIONAL.docx`). Cambios de código correspondientes ya implementados en\n`feature/HU-13052026`.\n\n## Cambios aplicados en esta versión\n\n1. **Personalizada/Aleatoria** — ejemplos de PRECHECK de Lotería Nacional, Lotto y Pozzo\n   Millonario actualizados con `combinacion`/`sugerir`/`registros`. Formato por juego: Lotería 5\n   dígitos, Lotto 6 dígitos, Pozo wildcard `%NN` (últimos 2 dígitos).\n2. **Fracciones** — se quitó el catálogo fabricado `ENTERO/MEDIO/CUARTO` del PRECHECK de Lotería\n   Nacional (no tiene respaldo en el proveedor real). Ahora `available_numbers[].fracciones` trae\n   el CSV real (ej. \"1,2,3,4,5,6,7,8,9,10\"), exclusivo de La Lotería.\n3. **EXECUTE** — `boleto_clave`/`boleto_qr` ya reflejan los campos reales del proveedor\n   (`clave`/`codigoQR`). Se agregó el ejemplo \"2b. EXECUTE — carrito\" usando `lista_boletos`\n   (nuevo campo aditivo, `boleto_data` singular se mantiene igual).\n4. **Pozo Millonario + Revancha** — PRECHECK corregido: `game_id` real es \"5\" (no \"1\"),\n   `figures` ahora trae el catálogo real de 8 mascotas, `draws[].tiene_revancha` /\n   `juego_revancha_id` (17) / `sorteo_revancha_id`, y `available_numbers` fusiona juegoId 5 y 17\n   asociados por el campo `boleto` compartido — usa los valores reales de ejemplo del documento\n   del proveedor.\n5. **PEGA3 PRECHECK** — `game_data.entry_types` corregido a los valores reales\n   (`Playslip-Manual`, `Playslip-QuickPick`, `Verbal-Manual`, `Verbal-QuickPick`); se agregó\n   `max_cost`, `future_draws_limit`, `advance_draw_limit`, `play_types` (antes solo existía\n   `min_cost`, sin ningún máximo).\n6. **PEGA3 VERIFY** — se agregó el campo opcional `transaccion` al request. Sin ese dato no se\n   genera el comprobante PDF (`comprobante_b64` queda `null`); con él, se genera vía\n   `GenerarComprobantePega`.\n\n## Preguntas abiertas — no resueltas en esta versión\n\n- **Fracciones 1-10 vs 1-20**: el documento técnico del proveedor muestra `fracciones` con 10\n  valores en su ejemplo capturado; si en algún sorteo/juego llega a ser distinto, el campo ya\n  viaja tal cual lo entregue el proveedor — no hay ningún límite fijo de nuestro lado.\n- **`transaccion` en GenerarComprobantePega**: es un parámetro obligatorio para el proveedor,\n  pero no aparece en ningún response de `CrearTicket` ni `ConsultarTicket` documentado. Falta\n  identificar de dónde debería obtenerse.\n- **Reverse Pega3 sin `ticketNumber`**: `CancelarTicket` exige el número de ticket sin\n  alternativa — si nunca llega respuesta de `CrearTicket`, no hay forma de anular según el propio\n  documento del proveedor. No es resoluble con cambios de código; requiere definir un proceso\n  operativo.\n- **`RecuperarFigurasPorJuego` para La Lotería**: no hay evidencia de que La Lotería use el\n  catálogo de figuras (mascota/fruta) — se dejó `figures: []` en su PRECHECK. Si el proveedor sí\n  expone algo para ese juego, falta confirmarlo.\n\n\n## Actualización 2026-07-03\n\n7. **Bug de `game_id` corregido**: `LoteriaTradicionalPrecheckStrategy` tenía un\n   `DEFAULT_JUEGO_ID=\"1\"` fijo en código — si el front no mandaba `game_id`\n   (campo opcional según `docs/bdd/omnistack/09_DML_INPUT_FIELDS_PEGA3_TRAD_CLARO_QA.sql`),\n   un PRECHECK de Lotto o Pozzo consultaba por error los datos de Lotería\n   Nacional. Corregido: el default ahora se deriva del `rms_item_code` vía\n   `IN_OMNI_PROVEEDOR_WS_DEFS` (`juego_id.{rmsItemCode}`, script `22_DML_TRADICIONAL_JUEGO_ID_POR_ITEM.sql`),\n   igual en PRECHECK como en EXECUTE (por boleto, para poder seguir enviando\n   `game_id` explícito solo en el caso de comprar la Revancha junto con Pozo\n   Millonario en la misma venta).\n8. **PRECHECK ahora tiene 2 pasos separados en los ejemplos** (\"1.\" = catálogo\n   sin `game_id`/`draw_id`, \"1b.\" = personalizada con `draw_id`+`combinacion`)\n   para reflejar el flujo real: primera llamada trae el catálogo, el cajero\n   elige un sorteo, y la segunda llamada ya no necesita `game_id` (se deriva\n   solo) — solo hace falta `draw_id` + `combinacion`/`sugerir` si aplica.\n\n\n## Actualización 2026-07-03 (b) — Split PRECHECK / CREATE_TICKET para Tradicionales\n\nEl endpoint `RecuperarNumerosDisponiblesPorCombinacion` lo documenta el\nproveedor como \"Obtener y **RESERVAR** números disponibles por combinación\"\n— tiene efecto secundario (pre-reserva boletos), por lo que se movió de\nPRECHECK a **CREATE_TICKET** (mismo patrón que Pega3, que también reserva en\nese paso antes del EXECUTE).\n\nFlujo nuevo de Tradicionales (Lotería/Lotto/Pozzo), igual estructura que Pega3:\n1. **PRECHECK** — solo catálogo sin efectos secundarios: `RecuperarJuegosPorMedio`\n   + `RecuperarSorteosDisponibles` + `RecuperarFigurasPorJuego`. Ya no acepta\n   `draw_id`/`combinacion`/`sugerir`/`registros`/`figura_id` (se quitaron de\n   `PrecheckRequest` — ahora viven en `CreateTicketRequest`). `available_numbers`\n   ya no existe en `PrecheckResponse`.\n2. **CREATE_TICKET** (`POST /v1/createTicket`) — busca y reserva combinaciones.\n   Requiere `draw_id`; `combinacion`/`sugerir`/`registros`/`figura_id` opcionales.\n   Devuelve `available_numbers`/`total_numbers` (antes vivían en el PRECHECK).\n   Incluye la fusión automática de Pozo Millonario + Revancha.\n3. **EXECUTE** — sin cambios, usa el `numero` elegido de la respuesta anterior.\n4. **VERIFY** / **REVERSE** — sin cambios.\n\n`game_id` sigue siendo opcional en ambos pasos (se deriva de `rms_item_code`\nvía `IN_OMNI_PROVEEDOR_WS_DEFS`, scripts 22 y 23).\n\n\n## Actualización 2026-07-14/15 — Pozo Millonario/Revancha completo + fixes reales de VentaBoletos y Pega3 EXECUTE\n\nEncontrados y corregidos probando contra QA real (no solo contra el spec):\n\n9. **PRECHECK — metadata de Pozo Millonario incompleta**: `draws[]` solo traía 9 de ~24 campos\n   documentados por `RecuperarSorteosDisponibles`. Se agregaron los que el front necesita para\n   armar la UI de Pozo: `nombre_segunda/tercera/cuarta/quinta_combinacion` (etiquetas de cada\n   parte de la combinación — la tercera es la mascota), `cantidad_digitos_combinacion_principal/\n   secundaria`, `nombre_numero`, `tiene_premio_instantaneo`, `tipo/nombre_primera_suerte`,\n   `se_acumula`/`monto_proximo_sorteo`, `es_sorteo_destacado`, `clase`, `nombre_sala_sorteo`,\n   `nombre_juego`, `fecha_cierre_ventas`, `fecha_caducidad_sorteo`.\n10. **CREATE_TICKET — `numero2/3/4/5` se descartaban por completo**: el proveedor real ya\n    mandaba estos campos en `RecuperarNumerosDisponiblesPorCombinacion` (para Pozo, `numero3` es\n    la combinación secundaria de 2 dígitos), pero `TradicionalCreateTicketStrategy.mapNumeros()`\n    solo copiaba `numero`. Se agregó el mapeo completo + `cantidad`/`reserva` (fracciones\n    realmente reservadas por el proveedor, puede diferir de lo pedido).\n11. **VentaBoletos response — mismatch de nombres real vs. `.docx` (bug crítico, silencioso)**:\n    el proveedor real en QA responde `listaVentaSuerte`/`listaVentaSorteos`/`listaNumerosVendidos`,\n    pero el spec documenta (y el código usaba) `listaSUE`/`listaSorteos`/`ListaR`. Como\n    `@JsonIgnoreProperties(ignoreUnknown=true)` no tira error con propiedades desconocidas, el\n    campo quedaba `null` SIEMPRE aunque la venta fuera 100% exitosa (`codError:0`) — `boleto_clave`,\n    `boleto_qr` y `fracciones_vendidas` nunca llegaban al POS. Corregido con `@JsonProperty` a los\n    nombres reales + `@JsonAlias` a los documentados como respaldo. Se agregó también `boleto_id`\n    (liga Pozo Millonario con su Revancha), `valor_total_vendido`, y `fracciones_vendidas_detalle`\n    (lista completa — antes solo se leía el primer elemento de `listaNumeroFracciones`, que para\n    Pozo descartaba el segundo registro: la mascota vendida, ej. \"Mascota 10 (Gato)\").\n12. **`fechaCierreVenta` (singular) vs `fechaCierreVentas` (plural, documentado)**: mismo patrón\n    de mismatch doc-vs-real. Corregido con alias.\n13. **Pega3 EXECUTE (CASH_IN) llamaba mal a `PagarTicket`**: ese endpoint es para COBRAR el\n    premio de un ticket YA vendido y ganador — llamarlo con el ticket recién creado por\n    `CrearTicket` producía `\"Invalid Barcode\"`. `CrearTicket` ya vende el ticket por completo\n    (su propia respuesta trae `\"status\":\"Purchased\"`) — no existe endpoint de \"confirmar venta\"\n    separado para Pega3 (a diferencia de Tradicionales, que sí reserva en un paso y vende en\n    otro). Fix: `LoteriaPega3ExecuteStrategy` ya no llama a ningún endpoint del proveedor, solo\n    confirma usando el `authorization`/`amount` que el POS reenvía desde CREATE_TICKET.\n    `Pega3PayTicketPort`/`PagarTicket` se mantiene, pero exclusivamente para\n    `LoteriaPega3CashOutExecuteStrategy` (pago de premios, CASH_OUT).\n\n## Pregunta abierta que sigue sin resolver\n\n- **`transaccion` en GenerarComprobantePega (Pega3 VERIFY)**: sigue sin aparecer en ningún\n  response documentado de `CrearTicket`/`ConsultarTicket`. Se sospecha que, igual que los puntos\n  11 y 12 de arriba, el proveedor real en QA sí lo devuelva con otro nombre no documentado —\n  pendiente confirmar con un log real de `ConsultarTicket`/`CrearTicket` contra QA.\n\nVer `docs/CONTEXTO_SESION_2026-07.md` sección 9 para el detalle completo de esta sesión.\n\n\n## Actualización 2026-07-19 — Pega3 sin CREATE_TICKET + comprobante_urls (lista)\n\n1. **Pega3 (Pega3/Pega4/Pega2) CASH_IN ya no tiene CREATE_TICKET** — CrearTicket vende el\n   ticket por completo (su propia respuesta trae \"status\":\"Purchased\"), no reserva. Se\n   fusionaron los 3 ejemplos de CREATE_TICKET (Straight/Box/QuickPick) dentro de EXECUTE\n   (ahora \"2./2b./2c. EXECUTE — Crear y vender ticket\"), que ya no necesita `authorization`\n   previo — recibe `ticket_data` directo. VERIFY y REVERSE se renumeraron a 3./4.\n2. **`comprobante_url` (string) → `comprobante_urls` (lista)** en VERIFY, tanto Pega3 como\n   Tradicionales — una venta con varios juegos (ej. Pozo Millonario + Revancha) genera un\n   comprobante por cada uno. Actualizados los ejemplos de las 3 Tradicionales (Lotería/\n   Lotto/Pozzo) y las 3 Pega (Pega3/Pega4/Pega2), que todavía tenían el campo `comprobante_b64`\n   de una versión muy anterior del contrato (nunca actualizado en ninguna sesión previa).\n3. **`ticket_qr`** agregado a la respuesta de EXECUTE de Pega — viene de `codigoQR` en\n   `CrearTicket`, disponible de inmediato (no hace falta esperar a VERIFY).\n\nVer `docs/CONTEXTO_SESION_2026-07.md` para el detalle completo de esta sesión.\n\n\n## Actualización 2026-07-19 (v11) — sugerir=true en todos los ejemplos de Tradicionales\n\nSe cambió `\"sugerir\": false` → `\"sugerir\": true` en los ejemplos de CREATE_TICKET de\nLotería Nacional y Lotto (Pozzo Millonario ya lo tenía en `true`) — con `sugerir:true`, si el\nproveedor no encuentra la combinación exacta solicitada, devuelve combinaciones sugeridas en\nvez de fallar, que es el comportamiento que se quiere mostrar en los ejemplos de esta\ncolección.\n",
       "item": [
         {
           "name": "Leer descripción de esta carpeta para el detalle completo",
@@ -26,7 +26,7 @@
                 "reload"
               ]
             },
-            "description": "Este item es solo un marcador de navegacion. Ver la descripcion de la carpeta '📌 NOTAS v10' para el changelog completo v9 -> v10 y las preguntas abiertas."
+            "description": "Este item es solo un marcador de navegacion. Ver la descripcion de la carpeta '📌 NOTAS v11' para el changelog completo hasta v11 y las preguntas abiertas."
           },
           "response": []
         }
@@ -34,11 +34,11 @@
     },
     {
       "name": "📋 GetBusinessLines",
-      "id": "066ba08d-26ba-4111-9557-bf715f143cfa",
+      "id": "74c44b6a-2327-4d60-bc94-5f50f3028d86",
       "item": [
         {
           "name": "Todos los servicios (sin filtro)",
-          "id": "718f55b0-25ed-4aca-b7d6-4af23d5cfcce",
+          "id": "e0cc5aea-700f-4b21-ad5d-b540448dc282",
           "request": {
             "method": "POST",
             "header": [
@@ -114,7 +114,7 @@
         },
         {
           "name": "Solo CASH_IN",
-          "id": "2a0b3242-8c35-4bba-8465-e847791f3194",
+          "id": "467e1aba-1f41-40eb-a06e-45ff5e789fea",
           "request": {
             "method": "POST",
             "header": [
@@ -190,7 +190,7 @@
         },
         {
           "name": "Solo CASH_OUT",
-          "id": "6e0e27cc-4ecb-4107-9371-00ec19d50e3c",
+          "id": "cf9fe805-5ac2-42f8-8c5b-1f046573192c",
           "request": {
             "method": "POST",
             "header": [
@@ -268,15 +268,15 @@
     },
     {
       "name": "🟡 ECUABET",
-      "id": "c88d2a6a-7016-487a-9be3-d595152f3c8e",
+      "id": "dd9ddc09-f970-4fd9-b598-76c25b65be5d",
       "item": [
         {
           "name": "CASH_IN — Depósito de saldo (rms=100713841)",
-          "id": "dee065d9-d011-4307-ab9b-9c72d3291364",
+          "id": "ea1cb476-3e94-466e-8a53-3758f045cb47",
           "item": [
             {
               "name": "1. PRECHECK — Buscar usuario por documento",
-              "id": "882ed828-2de8-4da4-9f1a-21fbb2d00e41",
+              "id": "b654ad6b-333c-4d86-8758-7a4401a5e564",
               "request": {
                 "method": "POST",
                 "header": [
@@ -394,7 +394,7 @@
             },
             {
               "name": "1b. PRECHECK — Buscar usuario por teléfono",
-              "id": "f34e9463-c388-4c60-8dfd-e6f5367cb6e2",
+              "id": "fbc5f579-63a8-4671-9b3e-27fb954c2295",
               "request": {
                 "method": "POST",
                 "header": [
@@ -470,7 +470,7 @@
             },
             {
               "name": "1c. PRECHECK — Buscar usuario por userid",
-              "id": "451b5beb-13ca-4895-b56d-3b1d28554e6d",
+              "id": "981ab030-f046-4523-a8ac-ed98d57fd3c7",
               "request": {
                 "method": "POST",
                 "header": [
@@ -546,7 +546,7 @@
             },
             {
               "name": "2. EXECUTE — Deposito (acredita saldo al usuario)",
-              "id": "f2fee54b-efb8-4efe-897b-dbd3b3c180fe",
+              "id": "916bd5d1-b4ba-499e-ae4b-db34962f95ef",
               "request": {
                 "method": "POST",
                 "header": [
@@ -664,7 +664,7 @@
             },
             {
               "name": "3. REVERSE — Rollback depósito (si error post-execute)",
-              "id": "78266a56-2244-4302-b667-8eaaca060fac",
+              "id": "84fcef79-d8c6-4932-ae9c-03ff1f884e7e",
               "request": {
                 "method": "POST",
                 "header": [
@@ -743,11 +743,11 @@
         },
         {
           "name": "CASH_OUT — Pago nota de retiro (rms=100708846)",
-          "id": "21e67858-a787-427f-b010-183b9f392861",
+          "id": "ac70da39-5b12-416b-9109-5cfc131628b8",
           "item": [
             {
               "name": "1. PRECHECK — Consultar nota de crédito",
-              "id": "741c7124-b850-4925-ac79-eb8dcf4bb1d1",
+              "id": "69a1fa5d-4915-4b7d-8d98-c63bc7308cce",
               "request": {
                 "method": "POST",
                 "header": [
@@ -865,7 +865,7 @@
             },
             {
               "name": "2. EXECUTE — Nota de retiro (paga al cliente)",
-              "id": "b7dfaa93-69e3-4c4f-844f-105c6ed84adf",
+              "id": "2e0c38ab-b074-4ec0-ab05-cd4a0f1b4dfc",
               "request": {
                 "method": "POST",
                 "header": [
@@ -941,7 +941,7 @@
             },
             {
               "name": "3. REVERSE — Rollback nota de retiro",
-              "id": "d427a793-2251-496c-a7fa-7d8191f1e188",
+              "id": "55afa4c6-a650-40c5-b450-0b53559b1e23",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1022,15 +1022,15 @@
     },
     {
       "name": "🔵 BET593",
-      "id": "ff7e419e-ab3a-4d6e-9a0a-7dd48a7f7358",
+      "id": "44c0c534-38be-41db-993d-b0342872a1ad",
       "item": [
         {
           "name": "CASH_IN — Recarga de saldo (rms=100708850)",
-          "id": "d600383c-c03c-4ebc-9f43-4e94a3e34dba",
+          "id": "684f35f7-ea63-459a-bd27-b4cac9ace358",
           "item": [
             {
               "name": "1. PRECHECK — Buscar usuario y validar saldo",
-              "id": "488ac036-bde2-45a2-9fb8-f67897bb4d29",
+              "id": "c144f375-2c33-4182-ae06-ea16c29ebaf1",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1148,7 +1148,7 @@
             },
             {
               "name": "2. EXECUTE — Confirmar recarga",
-              "id": "75fae639-36dd-4151-96f6-ba6c6bd88e7a",
+              "id": "c44157fc-2d89-4f39-8d8b-ec63ad3d4bcd",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1224,7 +1224,7 @@
             },
             {
               "name": "3. VERIFY — Validar recarga (COMMIT / ROLLBACK)",
-              "id": "14201480-d730-47ab-a1ee-e164e8fa20b0",
+              "id": "edafee54-6f5b-4189-af56-ccd31f490019",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1342,7 +1342,7 @@
             },
             {
               "name": "4. REVERSE — Reversar recarga (si VERIFY devuelve ROLLBACK)",
-              "id": "37f848f8-2807-4b2e-a31a-f260759a895b",
+              "id": "9cf57cd3-8f33-4299-bb32-34183dcf4012",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1421,11 +1421,11 @@
         },
         {
           "name": "CASH_OUT — Pago de retiro (rms=100708848)",
-          "id": "2b87c687-deea-4724-aaec-3a4861cc1524",
+          "id": "a0153a9b-4426-45db-ba89-5d021426db9f",
           "item": [
             {
               "name": "1. PRECHECK — Consultar disponibilidad de retiro",
-              "id": "b15edce5-0161-4ece-bc10-f758a1109a45",
+              "id": "05c71521-4928-4cce-8d00-1e86c4fddd99",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1543,7 +1543,7 @@
             },
             {
               "name": "2. EXECUTE — Retirar BET593 (paga al cliente)",
-              "id": "989d354c-cb56-4c86-8d48-d27648baab7c",
+              "id": "7b4738a9-3940-4c50-83cc-d268d0dcde2d",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1619,7 +1619,7 @@
             },
             {
               "name": "3. VERIFY — Consultar estado retiro (COMMIT / ROLLBACK)",
-              "id": "436090a3-28fd-4701-820e-ab1ea150daba",
+              "id": "75e0bf9f-20f1-4783-91f4-6ee6a71f92a8",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1695,7 +1695,7 @@
             },
             {
               "name": "4. REVERSE — Reversar retiro (si fallo en pago)",
-              "id": "e99fde6c-1d28-4c10-94c6-61fbb1231ba4",
+              "id": "84d3aff9-5a94-40bf-9ee9-23d82a70e154",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1776,15 +1776,15 @@
     },
     {
       "name": "🟢 LN PEGA3 (CASH_IN — Venta de tickets)",
-      "id": "0d42b677-7437-4ac4-921c-5463a58828ef",
+      "id": "8390ef89-649c-42cd-b011-dd8b89ba93d4",
       "item": [
         {
           "name": "Pega3 — rms=100708852 · subcategory=1127",
-          "id": "7051957c-0a41-4b1f-b4ce-8c9d294b922d",
+          "id": "58f7be29-4252-41b2-9dd1-b93233209875",
           "item": [
             {
               "name": "1. PRECHECK — Obtener juego activo y sorteos vigentes",
-              "id": "f50ee7da-3437-4903-bf7f-bddd0efc0289",
+              "id": "74e43856-cad7-426d-a5ed-db8f187f371f",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1902,7 +1902,7 @@
             },
             {
               "name": "2. EXECUTE — Crear y vender ticket (Straight)",
-              "id": "5d1b6865-750d-43fa-9ed1-417e1ccb00cc",
+              "id": "4fa7341f-0e92-41fe-9117-c0f7d0828386",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1978,7 +1978,7 @@
             },
             {
               "name": "2b. EXECUTE — Crear y vender ticket (Box)",
-              "id": "a79b3e6e-88a8-47c9-af3e-c8a830c907b3",
+              "id": "35c75453-73ea-40bf-8237-11dab7e345d4",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2054,7 +2054,7 @@
             },
             {
               "name": "2c. EXECUTE — Crear y vender ticket (QuickPick)",
-              "id": "b2597d55-df34-4a03-b78c-8c8a3603eb60",
+              "id": "0457d735-7ba9-4984-ae44-c144b8357319",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2130,7 +2130,7 @@
             },
             {
               "name": "3. VERIFY — Consultar ticket + generar comprobante PDF",
-              "id": "161bb842-3976-4348-91ac-3b6feb3b1c94",
+              "id": "9c220c3f-b7db-4af4-a024-e4eaf8f4b9c4",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2248,7 +2248,7 @@
             },
             {
               "name": "4. REVERSE — Cancelar ticket (solo dentro de 5 min)",
-              "id": "2afc7dd3-b468-4018-8b21-f0f06e692439",
+              "id": "babc1b2f-32d6-408c-8072-82bb28ba6e0a",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2369,11 +2369,11 @@
         },
         {
           "name": "Pega4 — rms=100713848 · subcategory=1125",
-          "id": "df5e1e51-6825-409e-9630-187175f6c55f",
+          "id": "1b0c2944-dc46-49dd-93b2-a37aaa29d23b",
           "item": [
             {
               "name": "1. PRECHECK — Obtener juego activo y sorteos vigentes",
-              "id": "ecb064d5-1339-4b5c-8130-c6975fcfa9df",
+              "id": "dd19888e-fd56-416e-ab61-d7281aa2664c",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2491,7 +2491,7 @@
             },
             {
               "name": "2. EXECUTE — Crear y vender ticket (Straight)",
-              "id": "f177d548-cf76-4c28-a221-96f03a38a908",
+              "id": "f21d6d52-90e8-41b2-85dd-193ac7c1f367",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2567,7 +2567,7 @@
             },
             {
               "name": "2b. EXECUTE — Crear y vender ticket (Box)",
-              "id": "1884a1b7-2b8a-4b8d-ab3e-5bb9a1ae1c6f",
+              "id": "e7b91578-8963-495b-b1a3-98443b510cb8",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2643,7 +2643,7 @@
             },
             {
               "name": "2c. EXECUTE — Crear y vender ticket (QuickPick)",
-              "id": "45fefaac-d54d-48c6-8076-f220585fe368",
+              "id": "f65bd245-aa68-4d2e-b237-bae51ff64c6a",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2719,7 +2719,7 @@
             },
             {
               "name": "3. VERIFY — Consultar ticket + generar comprobante PDF",
-              "id": "9c677505-5362-491b-90bd-6186de4d71b0",
+              "id": "4b868e13-9eeb-4b18-bf69-623cc2558de2",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2837,7 +2837,7 @@
             },
             {
               "name": "4. REVERSE — Cancelar ticket (solo dentro de 5 min)",
-              "id": "e396f0e8-5b0a-45c8-87bf-2ae288281b7c",
+              "id": "b39b3935-647b-48ee-82d3-6a2acf47cbad",
               "request": {
                 "method": "POST",
                 "header": [
@@ -2958,11 +2958,11 @@
         },
         {
           "name": "Pega2 — rms=100713850 · subcategory=1126",
-          "id": "6b3d75e8-69ca-4f95-a28f-cffcc6219185",
+          "id": "20e614be-c6a1-4391-bf8b-56d03bf4411c",
           "item": [
             {
               "name": "1. PRECHECK — Obtener juego activo y sorteos vigentes",
-              "id": "60c6defe-e68e-4d0b-ae3c-ab468ae34c1e",
+              "id": "b7805c11-9809-47ee-94e4-e8095530cfbb",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3080,7 +3080,7 @@
             },
             {
               "name": "2. EXECUTE — Crear y vender ticket (Straight)",
-              "id": "4004596b-65d8-4a55-9588-3f12e2abc110",
+              "id": "1bf2e61e-376b-4c5e-b816-0ea23cdfc1c7",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3156,7 +3156,7 @@
             },
             {
               "name": "2b. EXECUTE — Crear y vender ticket (Box)",
-              "id": "8f421d81-efd7-4a61-91d0-1133c2051445",
+              "id": "18874b0e-757b-466f-8a21-d65294c8475c",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3232,7 +3232,7 @@
             },
             {
               "name": "2c. EXECUTE — Crear y vender ticket (QuickPick)",
-              "id": "b5355e36-bd51-4826-8c18-50681f6bf450",
+              "id": "5f8b8e3a-2982-4819-b55b-d37c0e849ce5",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3308,7 +3308,7 @@
             },
             {
               "name": "3. VERIFY — Consultar ticket + generar comprobante PDF",
-              "id": "2f11a462-627d-424c-a202-a5c3eb025a8c",
+              "id": "dc13aa87-ee3f-4d56-a269-ecf928ae6f78",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3426,7 +3426,7 @@
             },
             {
               "name": "4. REVERSE — Cancelar ticket (solo dentro de 5 min)",
-              "id": "8d302950-a0c6-4651-ae88-d1b59542140e",
+              "id": "bc78b302-a53e-4ac6-a0f2-71e92b0b597d",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3549,15 +3549,15 @@
     },
     {
       "name": "🟢 LN PEGA3 (CASH_OUT — Pago de premios)",
-      "id": "9ce0620c-b312-4dac-877d-b66db361dec0",
+      "id": "d58f6d1c-a119-4059-840e-cc7853a54d36",
       "item": [
         {
           "name": "Pega3 — rms=100708862 · subcategory=1127",
-          "id": "b5416e61-7621-44cc-abf0-b23e931ba2a9",
+          "id": "57951426-00d4-4c3b-b129-df8379d188f4",
           "item": [
             {
               "name": "1. PRECHECK — Consultar ticket ganador (ConsultarTicket)",
-              "id": "db4ee5cc-b5fc-4671-8788-f2f0bc3f529a",
+              "id": "ca7415bc-610a-4b8e-a58f-696fed6ff6e4",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3675,7 +3675,7 @@
             },
             {
               "name": "2. EXECUTE — Pagar premio (PagarTicket)",
-              "id": "8e96a835-5f7b-41c1-b1a9-8a0d04e41e00",
+              "id": "1e4b4aa5-052b-4873-a12a-3f5ae2b8c018",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3754,11 +3754,11 @@
         },
         {
           "name": "Pega4 — rms=100708858 · subcategory=1125",
-          "id": "45f0c0fa-8a94-4dd4-952d-acd6d7aab959",
+          "id": "447066ec-12b5-482c-b632-503ed84376df",
           "item": [
             {
               "name": "1. PRECHECK — Consultar ticket ganador (ConsultarTicket)",
-              "id": "1fd1d0d7-71ed-4dfa-b655-215bf5737032",
+              "id": "fc061d7d-3db7-45b0-8787-6afbc9c81de9",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3876,7 +3876,7 @@
             },
             {
               "name": "2. EXECUTE — Pagar premio (PagarTicket)",
-              "id": "5f711332-b9a7-4e32-b29a-d1060e92583b",
+              "id": "c3673e2a-7204-4308-bfaf-f915c690c047",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3955,11 +3955,11 @@
         },
         {
           "name": "Pega2 — rms=100708860 · subcategory=1126",
-          "id": "226a40c6-8390-4291-a5d5-1e09f114b008",
+          "id": "845ab7c2-4827-4a87-b35d-53e54e8a9b24",
           "item": [
             {
               "name": "1. PRECHECK — Consultar ticket ganador (ConsultarTicket)",
-              "id": "3d04f0af-37c4-431e-868d-72aa4f3ff25f",
+              "id": "ae661155-4743-43fe-9886-4893c1a52c4a",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4077,7 +4077,7 @@
             },
             {
               "name": "2. EXECUTE — Pagar premio (PagarTicket)",
-              "id": "b11be144-78dc-4a36-93b2-d9ca364bc421",
+              "id": "00446365-9887-4315-b088-b49e1f168af1",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4159,15 +4159,15 @@
     },
     {
       "name": "🟠 LN TRADICIONALES (CASH_IN — Venta de boletos)",
-      "id": "28c02b70-49c8-4055-9820-e6b88ded03ab",
+      "id": "d7579209-5d6a-48a5-86ba-7810245ac441",
       "item": [
         {
           "name": "Lotería Nacional — rms=100713842 · subcategory=1128",
-          "id": "87465219-ecf9-49e2-b7ce-47f14dd13b89",
+          "id": "08fe0079-0e74-4185-9787-08dfebb40565",
           "item": [
             {
               "name": "1. PRECHECK — Catalogo de juegos y sorteos (sin game_id, sin efectos)",
-              "id": "9b4aec81-d90e-46bd-b764-93f55a89cf84",
+              "id": "efac7ac7-c060-4c71-a930-b34f58eb658f",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4243,7 +4243,7 @@
             },
             {
               "name": "2. CREATE_TICKET — Buscar combinaciones disponibles (sin fraccion aun)",
-              "id": "9b4aec81-d90e-46bd-b764-93f55a89cf84",
+              "id": "b8e780d5-08f2-47fd-9106-9d2925576998",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4254,7 +4254,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"draw_id\": \"7151\",\n  \"combinacion\": \"\",\n  \"sugerir\": false,\n  \"registros\": 4\n}",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"draw_id\": \"7151\",\n  \"combinacion\": \"\",\n  \"sugerir\": true,\n  \"registros\": 4\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4285,7 +4285,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"draw_id\": \"7151\",\n  \"combinacion\": \"\",\n  \"sugerir\": false,\n  \"registros\": 4\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1122,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713842\",\n  \"draw_id\": \"7151\",\n  \"combinacion\": \"\",\n  \"sugerir\": true,\n  \"registros\": 4\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4319,7 +4319,7 @@
             },
             {
               "name": "2b. CREATE_TICKET — Reservar combinacion elegida + cantidad de fracciones",
-              "id": "9b4aec81-d90e-46bd-b764-93f55a89cf85",
+              "id": "e8e6d088-57b6-4a98-9148-c3aa3202c7c0",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4395,7 +4395,7 @@
             },
             {
               "name": "3. EXECUTE — Venta de boleto (cajero ingresa cédula, nombre, teléfono)",
-              "id": "a95521cc-40c1-46c5-a28a-0916dd809606",
+              "id": "a4e5baff-42af-43c3-87cd-c7f8a54a6783",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4513,7 +4513,7 @@
             },
             {
               "name": "3b. EXECUTE — Venta de boleto (carrito, múltiples jugadas)",
-              "id": "a95521cc-40c1-46c5-a28a-0916dd809606",
+              "id": "06f2e919-e3c7-426a-924d-998fb18a8652",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4631,7 +4631,7 @@
             },
             {
               "name": "4. VERIFY — Generar comprobante de venta (PDF del boleto)",
-              "id": "65e4e4fd-be4e-4ebc-af6b-736ad26ed144",
+              "id": "d73402d2-72a7-4ea0-80de-92470bbab242",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4707,7 +4707,7 @@
             },
             {
               "name": "5. REVERSE — Anular venta de boleto",
-              "id": "56d46267-ec85-44f3-bc30-f911a0a3873b",
+              "id": "212708a5-eee5-4da4-88e6-74b1e172b415",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4828,11 +4828,11 @@
         },
         {
           "name": "Lotto — rms=100713844 · subcategory=1129",
-          "id": "8ba05e62-523f-4f56-a9de-f25a49f73b47",
+          "id": "b32ddb9a-7df1-425d-8dc7-066fa84d70aa",
           "item": [
             {
               "name": "1. PRECHECK — Catalogo de juegos y sorteos (sin game_id, sin efectos)",
-              "id": "7df9b563-9537-44e5-b914-06f83431af97",
+              "id": "2d1a0922-0366-4b76-818c-4ec1767c2bda",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4908,7 +4908,7 @@
             },
             {
               "name": "2. CREATE_TICKET — Buscar y reservar combinaciones",
-              "id": "7df9b563-9537-44e5-b914-06f83431af97",
+              "id": "f21af782-6a0b-4eec-84a3-0f24f0f97a93",
               "request": {
                 "method": "POST",
                 "header": [
@@ -4919,7 +4919,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"draw_id\": \"3201\",\n  \"combinacion\": \"\",\n  \"sugerir\": false,\n  \"registros\": 4\n}",
+                  "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"draw_id\": \"3201\",\n  \"combinacion\": \"\",\n  \"sugerir\": true,\n  \"registros\": 4\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4950,7 +4950,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"draw_id\": \"3201\",\n  \"combinacion\": \"\",\n  \"sugerir\": false,\n  \"registros\": 4\n}",
+                      "raw": "{\n  \"chain\": \"1\",\n  \"store\": \"148\",\n  \"store_name\": \"FYBECA AMAZONAS\",\n  \"pos\": \"1\",\n  \"channel_POS\": \"POS\",\n  \"uuid\": \"{{$guid}}\",\n  \"category_code\": 984,\n  \"subcategory_code\": 1123,\n  \"service_provider_code\": 3445,\n  \"rms_item_code\": \"100713844\",\n  \"draw_id\": \"3201\",\n  \"combinacion\": \"\",\n  \"sugerir\": true,\n  \"registros\": 4\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4984,7 +4984,7 @@
             },
             {
               "name": "3. EXECUTE — Venta de boleto (cajero ingresa cédula, nombre, teléfono)",
-              "id": "2062d667-9f94-45a6-8740-92365b9b94c1",
+              "id": "adb11a2b-a7b7-4107-9561-5e62f05e1387",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5102,7 +5102,7 @@
             },
             {
               "name": "4. VERIFY — Generar comprobante de venta (PDF del boleto)",
-              "id": "d0bf92d3-0784-44a1-b4a3-e652a6868f49",
+              "id": "0355b319-d3a0-4c78-ad56-8de55b90b980",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5178,7 +5178,7 @@
             },
             {
               "name": "5. REVERSE — Anular venta de boleto",
-              "id": "7449690c-6e14-4cf0-accf-c57ef17b1963",
+              "id": "aa4da734-75f5-4aa7-baec-08d107a2c259",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5299,11 +5299,11 @@
         },
         {
           "name": "Pozzo Millonario — rms=100713846 · subcategory=1130",
-          "id": "175ffc4c-34c6-4948-8854-66d0c1491c0e",
+          "id": "7c4fee60-167a-4bc1-84b0-10effc77d820",
           "item": [
             {
               "name": "1. PRECHECK — Catalogo de juegos y sorteos (sin game_id, sin efectos)",
-              "id": "b27682f3-cecd-4174-8750-ddc7cf5f73f0",
+              "id": "6ec5c31c-d337-40e0-8406-0a52aea8ba20",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5379,7 +5379,7 @@
             },
             {
               "name": "2. CREATE_TICKET — Buscar y reservar combinaciones",
-              "id": "b27682f3-cecd-4174-8750-ddc7cf5f73f0",
+              "id": "5a7dbb5f-84aa-43e6-bdea-2fac172afb5e",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5455,7 +5455,7 @@
             },
             {
               "name": "3. EXECUTE — Venta de boleto (cajero ingresa cédula, nombre, teléfono)",
-              "id": "2a2191bb-74b7-4e45-84d3-4280230a1cc0",
+              "id": "dfaccffc-0ab5-41f9-9fb1-d316aa041d1b",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5573,7 +5573,7 @@
             },
             {
               "name": "4. VERIFY — Generar comprobante de venta (PDF del boleto)",
-              "id": "0078b6dc-6bf0-4a4d-afa4-0014d4836006",
+              "id": "e62ab3aa-9d48-416e-a6c5-ae3b1b34d6ed",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5649,7 +5649,7 @@
             },
             {
               "name": "5. REVERSE — Anular venta de boleto",
-              "id": "0ed58e26-efe4-48de-9d9b-ab23b79dc51e",
+              "id": "55f9d6b2-67a9-4955-9de8-9ea5aea2dfc5",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5772,15 +5772,15 @@
     },
     {
       "name": "🟠 LN TRADICIONALES (CASH_OUT — Pago de premios)",
-      "id": "9eedcd2e-99c8-4388-bd9d-01ffaebde8e7",
+      "id": "28cbe4e5-dd12-4263-b812-c881d0814fb0",
       "item": [
         {
           "name": "Lotería Nacional — rms=100708854 · subcategory=1128",
-          "id": "1dc923e6-433c-4512-b9e1-2fdc34042441",
+          "id": "95353607-2788-4ec2-a8b1-1491b2b5b71c",
           "item": [
             {
               "name": "1. PRECHECK — Consultar boleto ganador (ConsultarTicket)",
-              "id": "f477b1e6-aa88-4eb5-afeb-69cac3097105",
+              "id": "48b681a7-8096-4104-8d9b-64300b8958f8",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5898,7 +5898,7 @@
             },
             {
               "name": "2. EXECUTE — Pagar premio (PagoPremioTicketTradicional)",
-              "id": "ab53ca93-87aa-4cc0-b68f-023aa355c636",
+              "id": "82b4e14a-c639-44a3-aa68-85a5ccb991f7",
               "request": {
                 "method": "POST",
                 "header": [
@@ -5977,11 +5977,11 @@
         },
         {
           "name": "Lotto — rms=100708855 · subcategory=1129",
-          "id": "d915a45b-f7f0-460f-aba9-b429f77d7870",
+          "id": "eab46dad-206f-4dc6-b2a3-fd5344ffb597",
           "item": [
             {
               "name": "1. PRECHECK — Consultar boleto ganador (ConsultarTicket)",
-              "id": "a186395f-15e9-4045-b6b6-d69769d39de5",
+              "id": "aafbf492-8bf6-4bb9-aa31-2b3aa1b53c97",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6099,7 +6099,7 @@
             },
             {
               "name": "2. EXECUTE — Pagar premio (PagoPremioTicketTradicional)",
-              "id": "fe0e9fe0-29a3-4cd6-bc45-e12227efd649",
+              "id": "e96ea9e7-936d-489f-a563-c52c5627a21d",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6178,11 +6178,11 @@
         },
         {
           "name": "Pozzo Millonario — rms=100708856 · subcategory=1130",
-          "id": "da3c4b64-7c06-4e6d-a47a-6cff9cc1ed03",
+          "id": "69ff72d0-55de-473e-8273-7b70259343f6",
           "item": [
             {
               "name": "1. PRECHECK — Consultar boleto ganador (ConsultarTicket)",
-              "id": "1dff11c4-18eb-4c05-a635-bc7690c37703",
+              "id": "7b72f43f-eea4-484b-b5a4-92269bd1def7",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6300,7 +6300,7 @@
             },
             {
               "name": "2. EXECUTE — Pagar premio (PagoPremioTicketTradicional)",
-              "id": "125a35ee-45d2-43f9-8eed-99fed9b061d3",
+              "id": "e2d1cfee-3e88-4bae-97ae-841aee577137",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6382,15 +6382,15 @@
     },
     {
       "name": "🔴 CLARO (CASH_IN — Recarga telefónica)",
-      "id": "4871b7a8-cf2f-4bea-8a33-ef63e29059c1",
+      "id": "e03a0324-d4d8-4d81-95b3-ad24dd79b1dd",
       "item": [
         {
           "name": "Recarga monto libre — rms=291843 (offerId=132)",
-          "id": "b10ec5d9-2c7e-42f9-951d-0c6a4eb3efba",
+          "id": "cdb4f30f-2f50-4ce8-a485-3cba0690cb72",
           "item": [
             {
               "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
-              "id": "af2d9a3b-8167-473d-bca6-5394e237fe41",
+              "id": "5e893a2b-77f6-4fb7-b10c-147442ccc898",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6508,7 +6508,7 @@
             },
             {
               "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
-              "id": "d222e731-4a00-4615-978f-652b4c927e2a",
+              "id": "a854085e-a56c-43e6-831e-ce99fa46fe7d",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6629,11 +6629,11 @@
         },
         {
           "name": "Paquete datos $1.50 — 2GB 1DÍA — rms=100733842 (offerId=150)",
-          "id": "e6badeb3-b57e-448a-9886-8fdee1538d1c",
+          "id": "6d301161-9912-4866-afa6-75942aebb57c",
           "item": [
             {
               "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
-              "id": "88d89413-bdc0-4cdf-b594-e3bb10903e77",
+              "id": "86841fec-7f51-45af-9f20-8e7727e787d7",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6751,7 +6751,7 @@
             },
             {
               "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
-              "id": "60b89088-ec5c-4a65-8bf3-3291b00d9a4d",
+              "id": "e3739039-201e-40b1-8a8d-a63325ceb444",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6872,11 +6872,11 @@
         },
         {
           "name": "Paquete datos $4.00 — 10GB 10DÍAS — rms=100733843 (offerId=150)",
-          "id": "5a1174fc-6045-49de-9818-835e66464699",
+          "id": "2dc1fffb-19d7-4fc2-a3ac-6b7deb86737e",
           "item": [
             {
               "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
-              "id": "cbfcf6d7-bfa9-41ff-8813-ad7ad07e9598",
+              "id": "a53023d9-3a10-4f79-a0c3-1e7f14180331",
               "request": {
                 "method": "POST",
                 "header": [
@@ -6994,7 +6994,7 @@
             },
             {
               "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
-              "id": "cb22355d-ce7f-483c-be76-cd89bec4fcc6",
+              "id": "ce9f1282-9069-4b6d-90bb-84c8126064ad",
               "request": {
                 "method": "POST",
                 "header": [
@@ -7114,11 +7114,11 @@
         },
         {
           "name": "Paquete datos $1.05 — ILIM 1DÍA — rms=100733844 (offerId=150)",
-          "id": "7edc59ee-b8b2-49b3-be21-762f26d90cfc",
+          "id": "96ab47c8-cda3-4de4-bfb9-8ddb5f1647db",
           "item": [
             {
               "name": "1. PRECHECK — validateRechargeRetail (valida número → AUTHORIZATIONNUMBER)",
-              "id": "86d0c653-395d-4a76-8113-3868ee2dcf0b",
+              "id": "f2241ef2-46c3-436e-bcc8-08d9d66a9c76",
               "request": {
                 "method": "POST",
                 "header": [
@@ -7236,7 +7236,7 @@
             },
             {
               "name": "2. EXECUTE — processRechargeRetail (ejecuta la recarga / paquete)",
-              "id": "4454efbc-95d1-42ee-9c4b-699ce5a15df7",
+              "id": "b79a6fe5-0955-4e3b-9c04-13a810ee0c16",
               "request": {
                 "method": "POST",
                 "header": [

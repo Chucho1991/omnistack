@@ -2,6 +2,7 @@ package com.omnistack.backend.shared.validation;
 
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
 import com.omnistack.backend.application.dto.CreateTicketRequest;
+import com.omnistack.backend.application.dto.ExecuteRequest;
 import com.omnistack.backend.application.dto.PrecheckRequest;
 import com.omnistack.backend.domain.enums.MovementType;
 
@@ -17,12 +18,21 @@ import com.omnistack.backend.domain.enums.MovementType;
  * exigir un identificador de forma universal (ej. Tradicionales no identifica
  * al comprador hasta el EXECUTE; ECUABET/BET593 si lo necesitan, pero eso lo
  * validan sus propias strategies de PRECHECK).
+ * <p>
+ * Tampoco aplica a un ExecuteRequest con "ticket_data" (Pega3): desde que
+ * CrearTicket se llama directo en EXECUTE (ya no hay CREATE_TICKET separado
+ * para este proveedor, ver LoteriaPega3ExecuteStrategy), este EXECUTE cumple
+ * el mismo rol que antes tenia CREATE_TICKET — vende el ticket sin identificar
+ * previamente al comprador, no corresponde exigirle phone/document/authorization.
  */
 public class IdentifierRequiredRule implements TransactionValidationRule {
 
     @Override
     public boolean isSatisfiedBy(BaseTransactionRequest request) {
         if (request instanceof PrecheckRequest || request instanceof CreateTicketRequest) {
+            return true;
+        }
+        if (request instanceof ExecuteRequest executeRequest && executeRequest.getTicketData() != null) {
             return true;
         }
 

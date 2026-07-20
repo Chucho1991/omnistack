@@ -31,7 +31,7 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
 
     private String insertSql;
     private String findAuthByHomologatedCodeSql;
-    private String findCreateTicketUuidByAuthSql;
+    private String findExecuteUuidByAuthSql;
 
     @PostConstruct
     void init() {
@@ -47,8 +47,8 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
         findAuthByHomologatedCodeSql = "SELECT AUTHORIZATION FROM " + schema + ".IN_OMNI_REGISTRO_TRX "
                 + "WHERE CP_VAR1 = :homologatedCode AND ROWNUM = 1 ORDER BY CODIGO DESC";
 
-        findCreateTicketUuidByAuthSql = "SELECT UUID FROM " + schema + ".IN_OMNI_REGISTRO_TRX "
-                + "WHERE AUTHORIZATION = :authorization AND CAPABILITY = 'CREATE_TICKET' "
+        findExecuteUuidByAuthSql = "SELECT UUID FROM " + schema + ".IN_OMNI_REGISTRO_TRX "
+                + "WHERE AUTHORIZATION = :authorization AND CAPABILITY = 'EXECUTE' "
                 + "AND ROWNUM = 1 ORDER BY CODIGO DESC";
     }
 
@@ -101,21 +101,21 @@ public class OracleRegistroTrxAdapter implements RegistroTrxPort {
     }
 
     @Override
-    public Optional<String> findCreateTicketUuidByAuthorization(String authorization) {
+    public Optional<String> findExecuteUuidByAuthorization(String authorization) {
         if (authorization == null || authorization.isBlank()) {
             return Optional.empty();
         }
         try {
             String uuid = jdbcTemplate.queryForObject(
-                    findCreateTicketUuidByAuthSql,
+                    findExecuteUuidByAuthSql,
                     new MapSqlParameterSource("authorization", authorization),
                     String.class);
             return Optional.ofNullable(uuid);
         } catch (EmptyResultDataAccessException ex) {
-            log.debug("No se encontro CREATE_TICKET para authorization={}", authorization);
+            log.debug("No se encontro EXECUTE para authorization={}", authorization);
             return Optional.empty();
         } catch (Exception ex) {
-            log.warn("Error al consultar uuid de CREATE_TICKET por authorization={}: {}", authorization, ex.getMessage());
+            log.warn("Error al consultar uuid de EXECUTE por authorization={}: {}", authorization, ex.getMessage());
             return Optional.empty();
         }
     }

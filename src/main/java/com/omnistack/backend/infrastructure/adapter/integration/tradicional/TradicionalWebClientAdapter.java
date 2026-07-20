@@ -87,6 +87,8 @@ public class TradicionalWebClientAdapter implements
     private static final String WS_KEY_PRECHECK_CASHOUT = "PRECHECK.CASHOUT";
     private static final String WS_KEY_EXECUTE_CASHOUT = "EXECUTE.CASHOUT";
     private static final String PRODUCTO_VENDER_TRADICIONALES = "Tradicionales";
+    /** formato query param de GenerarComprobanteVenta: 0=PDF, 1=PNG, 2=JPG (spec v0005). */
+    private static final String FORMATO_PNG = "1";
 
     private final WebClient omnistackWebClient;
     private final ProviderConfigService providerConfigService;
@@ -535,14 +537,15 @@ public class TradicionalWebClientAdapter implements
         String url = operationPath;
         String fullUrl = url + "?ventaId=" + command.getVentaId()
                 + "&idUsuario=" + encodeParam(command.getIdUsuario())
-                + "&puntoDeVenta=" + encodeParam(command.getPuntoDeVenta());
+                + "&puntoDeVenta=" + encodeParam(command.getPuntoDeVenta())
+                + "&formato=" + FORMATO_PNG;
 
         log.info("Tradicionales generateComprobante GET url={}", fullUrl);
         long startMs = System.currentTimeMillis();
 
-        TradicionalComprobanteResponse response;
+        String rawBody;
         try {
-            response = omnistackWebClient.get()
+            rawBody = omnistackWebClient.get()
                     .uri(fullUrl)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
@@ -563,7 +566,7 @@ public class TradicionalWebClientAdapter implements
                                         .build());
                                 return Mono.error(new IntegrationException(errMsg));
                             }))
-                    .bodyToMono(TradicionalComprobanteResponse.class)
+                    .bodyToMono(String.class)
                     .block();
         } catch (WebClientRequestException exception) {
             String errMsg = "Error de conexion al invocar GenerarComprobanteVenta: " + rootCauseMessage(exception);
@@ -581,23 +584,31 @@ public class TradicionalWebClientAdapter implements
             throw new IntegrationException(errMsg, exception);
         }
 
+        TradicionalComprobanteResponse response;
+        try {
+            response = rawBody != null ? objectMapper.readValue(rawBody, TradicionalComprobanteResponse.class) : null;
+        } catch (JsonProcessingException e) {
+            throw new IntegrationException("GenerarComprobanteVenta retorno un body no parseable");
+        }
+        log.info("Tradicionales generateComprobante response url={} summary={}", fullUrl, redactBase64(response));
+
+        List<TradicionalComprobanteResponse.Imagen> imagenes = allImagenes(response);
+
         Map<String, Object> payload = new LinkedHashMap<>();
-        boolean isError = response == null || response.getBase64() == null || response.getBase64().isBlank();
+        boolean isError = imagenes.isEmpty();
         wsExtLogService.log(ProviderCallLog.builder()
                 .uuid(command.getUuid())
                 .providerKey(PROVIDER_KEY)
                 .wsKey(WS_KEY_VERIFY)
                 .url(fullUrl)
                 .requestJson(null)
-                .responseJson(isError ? null : "[pdf " + response.getFileName() + "]")
+                .responseJson(isError ? null : "[" + imagenes.size() + " comprobante(s)]")
                 .durationMs(System.currentTimeMillis() - startMs)
                 .isError(isError)
                 .errorMessage(isError ? "GenerarComprobanteVenta no retorno contenido" : null)
                 .build());
         if (!isError) {
-            payload.put("comprobante_b64", response.getBase64());
-            payload.put("file_name", response.getFileName());
-            payload.put("content_type", response.getContentType());
+            payload.put("imagenes", imagenes);
         }
         payload.put("ventaId", command.getVentaId());
 
@@ -749,6 +760,44 @@ public class TradicionalWebClientAdapter implements
 
     private String encodeParam(String value) {
         return value != null ? java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8) : "";
+    }
+
+    /** Normaliza las 2 formas posibles de GenerarComprobanteVenta a una sola lista — con
+     * formato=1/2 el proveedor responde una lista (imagenes[], una por cada boleto/juego
+     * vendido en la venta, ej. Pozo Millonario + Revancha = 2); con formato=0 (PDF, fallback
+     * si el proveedor ignora el parametro) responde un solo archivo plano. */
+    private List<TradicionalComprobanteResponse.Imagen> allImagenes(TradicionalComprobanteResponse response) {
+        if (response == null) {
+            return List.of();
+        }
+        if (response.getImagenes() != null && !response.getImagenes().isEmpty()) {
+            return response.getImagenes();
+        }
+        if (response.getBase64() != null && !response.getBase64().isBlank()) {
+            TradicionalComprobanteResponse.Imagen imagen = new TradicionalComprobanteResponse.Imagen();
+            imagen.setFileName(response.getFileName());
+            imagen.setContentType(response.getContentType());
+            imagen.setBase64(response.getBase64());
+            return List.of(imagen);
+        }
+        return List.of();
+    }
+
+    /** Resumen legible de GenerarComprobanteVenta para logs — sin el base64 completo,
+     * solo su tamaño, para poder ver cuantas imagenes vinieron sin inundar la consola. */
+    private String redactBase64(TradicionalComprobanteResponse response) {
+        if (response == null) {
+            return "null";
+        }
+        if (response.getImagenes() != null && !response.getImagenes().isEmpty()) {
+            String imagenes = response.getImagenes().stream()
+                    .map(img -> "{fileName=" + img.getFileName() + ", contentType=" + img.getContentType()
+                            + ", base64Length=" + (img.getBase64() != null ? img.getBase64().length() : 0) + "}")
+                    .collect(java.util.stream.Collectors.joining(", "));
+            return "{total=" + response.getTotal() + ", formato=" + response.getFormato() + ", imagenes=[" + imagenes + "]}";
+        }
+        return "{fileName=" + response.getFileName() + ", contentType=" + response.getContentType()
+                + ", base64Length=" + (response.getBase64() != null ? response.getBase64().length() : 0) + "}";
     }
 
     private String rootCauseMessage(Throwable exception) {

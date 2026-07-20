@@ -115,11 +115,13 @@ GET  /v1/admin/item-config/{rmsItemCode}  → Diagnostico de parametrizacion (to
 - **Protocolo:** REST JSON
 - **URL DEV:** `https://www8.loteria.com.ec/APIVentasLoteria/`
 - **Auth:** LOGIN interno → `token` + `deviceId`
-- **Flujo CASH_IN:** `LOGIN` → `PRECHECK(VentaProductos + ObtieneSorteosActivo)` → `CREATE_TICKET(CrearTicket)` → `EXECUTE(confirmar cobro)` → `VERIFY(GenerarComprobantePega)` → `[REVERSE(CancelarTicket)]`
+- **Flujo CASH_IN:** `LOGIN` → `PRECHECK(VentaProductos + ObtieneSorteosActivo)` → `EXECUTE(CrearTicket)` → `VERIFY(ConsultarTicket + GenerarComprobantePega)` → `[REVERSE(CancelarTicket)]`
+- **Sin CREATE_TICKET separado** (a diferencia de Tradicionales): `CrearTicket` vende el ticket por completo en un solo llamado (su propia respuesta trae `"status":"Purchased"`), no reserva como sí hace `RecuperarNumerosDisponiblesPorCombinacion` de Tradicionales. Por eso `CrearTicket` se invoca directo en EXECUTE — no existe endpoint de "confirmar venta" separado para este proveedor.
 - **CASH_IN PRECHECK hace 2 llamadas al proveedor:**
   1. `POST /api/Ventas/VentaProductos` → config del juego (montos, jugadas, tipos de entrada)
   2. `POST /api/Ventas/ObtieneSorteosActivo` → sorteo activo (drawNumber, drawDate)
-- **CRÍTICO:** `gameTicketNumber` del CREATE_TICKET response debe persistirse para EXECUTE/VERIFY/REVERSE
+- **CRÍTICO:** `gameTicketNumber` del EXECUTE response debe persistirse para VERIFY/REVERSE
+- **`ventaId` de `GenerarComprobantePega` ≠ `gameTicketNumber` de `CrearTicket`:** `ConsultarTicket` (VERIFY) devuelve un `gameTicketNumber` truncado (3 caracteres menos que el original de `CrearTicket`) — es ESE valor truncado el que `GenerarComprobantePega` acepta como `ventaId`, confirmado contra QA real (2026-07-19).
 - **REVERSO tiene ventana de 5 minutos** post-venta. Pasado ese tiempo, falla.
 - **VERIFY llama a:** `GET /api/Ventas/GenerarComprobantePega?ventaId=&idUsuario=&transaccion=&puntoDeVenta=`
 - **Productos Pega:** `code=1001 (Pega3) | 1002 (Pega4) | 1004 (Pega2)` — determinar por rms_item_code
@@ -168,8 +170,8 @@ OmniStack debe guardar en contexto de transacción (por `uuid`) los campos que e
 | BET593 CI | `recargaid` | PRECHECK response | EXECUTE / VERIFY / REVERSE |
 | BET593 CI | `serialnumber` | PRECHECK response | EXECUTE / VERIFY / REVERSE |
 | BET593 CO | `ordenPagoId` | EXECUTE response | VERIFY / REVERSE |
-| PEGA3 | `gameTicketNumber` | CREATE_TICKET response | EXECUTE / VERIFY / REVERSE |
-| PEGA3 | `drawNumber` | PRECHECK response | CREATE_TICKET request |
+| PEGA3 | `gameTicketNumber` | EXECUTE response (`CrearTicket`) | VERIFY / REVERSE |
+| PEGA3 | `drawNumber` | PRECHECK response | EXECUTE request (`ticket_data`) |
 | TRADICIONALES | `ventaId` | EXECUTE response | VERIFY / REVERSE |
 | CLARO | `AUTHORIZATIONNUMBER` | PRECHECK response | EXECUTE request |
 
@@ -260,8 +262,8 @@ POS | WEB | APP | CCT
 ```
 ECUABET:        PRECHECK, EXECUTE, REVERSE
 LN BET593:      PRECHECK, EXECUTE, VERIFY, REVERSE
-LN PEGA3:       PRECHECK, CREATE_TICKET, EXECUTE, VERIFY, REVERSE
-LN TRAD:        PRECHECK, EXECUTE, VERIFY, REVERSE
+LN PEGA3:       PRECHECK, EXECUTE, VERIFY, REVERSE   (sin CREATE_TICKET — CrearTicket vende completo, se llama en EXECUTE)
+LN TRAD:        PRECHECK, CREATE_TICKET, EXECUTE, VERIFY, REVERSE   (CREATE_TICKET si reserva de verdad, RecuperarNumerosDisponiblesPorCombinacion)
 CLARO:          PRECHECK, EXECUTE
 ```
 
@@ -353,7 +355,7 @@ service_provider_code = 2  → LOTERÍA NACIONAL
 service_provider_code = 7  → CLARO
 ```
 
-**Para determinar el proveedor exacto de LN** (BET593 vs Pega3 vs Tradicionales), consultar el catálogo de `capabilities` en el response de `/business-lines`. La capability `CREATE_TICKET` solo aparece en LN Pega3.
+**Para determinar el proveedor exacto de LN** (BET593 vs Pega3 vs Tradicionales), consultar el catálogo de `capabilities` en el response de `/business-lines`. La capability `CREATE_TICKET` solo aparece en LN Tradicionales (desde 2026-07-19; antes aparecía en Pega3, pero se removió al confirmar que `CrearTicket` no reserva, vende completo — ver sección 4.3).
 
 ---
 
@@ -431,13 +433,14 @@ const expectedRes = require('./docs/BET593_01_Response-PRECHECK-RecargarBet593-C
 ### PEGA3 — Traducción de campos clave
 | OmniStack | LN Pega3 | En qué fase |
 |---|---|---|
-| active_draw.draw_number | drawNumber | PRECHECK res ★ → CREATE_TICKET |
-| ticket_data.draw_number | noOfDraws | CREATE_TICKET req |
-| ticket_data.entry_type | entryType | CREATE_TICKET req |
-| ticket_data.panels[].numbers | value[] | CREATE_TICKET req |
-| ticket_data.panels[].play_types | playTypes[] | CREATE_TICKET req |
-| authorization | gameTicketNumber | CREATE_TICKET res ★ guardar |
-| comprobante_b64 | base64 | VERIFY res |
+| active_draw.draw_number | drawNumber | PRECHECK res ★ → EXECUTE |
+| ticket_data.draw_number | noOfDraws | EXECUTE req |
+| ticket_data.entry_type | entryType | EXECUTE req |
+| ticket_data.panels[].numbers | value[] | EXECUTE req |
+| ticket_data.panels[].play_types | playTypes[] | EXECUTE req |
+| authorization | gameTicketNumber | EXECUTE res ★ guardar |
+| ticket_qr | codigoQR | EXECUTE res |
+| comprobante_urls[] | imagenes[].base64 (o base64 plano) | VERIFY res |
 
 ---
 

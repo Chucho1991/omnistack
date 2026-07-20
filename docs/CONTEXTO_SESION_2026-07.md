@@ -397,3 +397,103 @@ En ambientes con datos existentes, las secuencias GPF_OMNISTACK deben crearse co
 Las secuencias TUKUNAFUNC (1-9) ya se creaban desde `01_DDL_ESTRUCTURA.sql` / `06_DDL_INPUT_FIELDS.sql` /
 `26_DDL_CASHOUT_CUPO_DIARIO.sql`, así que allá solo aplica el ajuste de `START WITH` si se
 recrean sobre un ambiente poblado.
+
+---
+
+## 11. Pozo Revancha 1-sola-llamada, PNG directo, comprobante multi-imagen, y Pega3 sin CREATE_TICKET (2026-07-18/19)
+
+Sesión de pruebas en vivo contra QA (Pega3 y Tradicionales), varios hallazgos confirmados
+con logs reales del proveedor.
+
+### 11.1 Pozo Millonario + Revancha — una sola llamada de reserva, no dos
+
+Confirmado con el proveedor en reunión directa: `RecuperarNumerosDisponiblesPorCombinacion`
+con `juegoId=5` (Pozo Millonario) **ya devuelve anidada la Revancha** (`juegoId=17`) en el
+mismo `listaDetalle`, emparejada por el campo `boleto` — nunca hay que llamar de nuevo con
+`juegoId=17`. `TradicionalCreateTicketStrategy` hacía exactamente esa segunda llamada
+redundante, generando una **reserva descartada** (un `numeroReserva` distinto que nunca se
+reenviaba a `VentaBoletos`) — bug real, no solo ineficiencia. ✅ Corregido: una sola llamada
+a `queryNumeros` con el `juegoId` principal; `querySorteos` sigue llamándose para ambos
+juegos, pero solo para precio (`RecuperarSorteosDisponibles` no tiene efecto secundario).
+`mapNumeros()` ahora elige el `precio_unitario` por entrada según su propio `juegoId`, no un
+precio único para toda la lista.
+
+### 11.2 `formato` nuevo en GenerarComprobantePega/Venta — PNG directo del proveedor
+
+El spec v0005 (13-May-2026, más reciente que el v0004 usado hasta ahora) agrega el parámetro
+`formato` (0=PDF, 1=PNG, 2=JPG) a ambos endpoints de comprobante. Con `formato=1/2` el
+proveedor responde una **lista** (`{total, formato, imagenes:[{fileName,contentType,base64}]}`)
+en vez del objeto plano de un solo archivo. Se agregó `formato=1` a ambos adapters
+(Tradicionales y Pega3) — ya no hace falta nuestra conversión PDFBox salvo que el proveedor
+ignore el parámetro y siga mandando PDF (fallback automático, `ComprobanteUrlService` ya
+detectaba el content-type real).
+
+### 11.3 `comprobante_url` (string) → `comprobante_urls` (lista) — breaking change
+
+Una venta con varios juegos (Pozo Millonario + Revancha) genera **una imagen de comprobante
+por cada juego vendido** (confirmado con QA real: `total=2`, un PNG por `ticket-<ventaId>-N.png`).
+El campo singular `comprobante_url` solo alcanzaba para guardar la primera y descartaba el
+resto. Se reemplazó por `comprobante_urls` (lista) en `VerifyResponse`, tanto para
+Tradicionales como para Pega3 — decisión explícita del usuario de romper el contrato en vez
+de mantener compatibilidad. El front (GEOPos) necesita actualizarse.
+
+### 11.4 Pega3 — bug de logging (no se veía la respuesta cruda) + `ventaId` truncado
+
+`Pega3WebClientAdapter` no logueaba el body de respuesta exitosa de `GenerarComprobantePega`
+(solo el request y los casos de error) — mismo tipo de bug ya corregido para Tradicionales en
+la sección 9. Corregido con captura de raw body + log de resumen redactado (sin el base64
+completo, solo tamaños). Con el log real a la vista, se confirmó el bug real: `ventaId` debe
+ser el `gameTicketNumber` que devuelve `ConsultarTicket` (truncado, 3 caracteres menos que el
+`ticketNumber` original de `CrearTicket`) — usar el original completo da 404 "No existe una
+venta con el ID proporcionado". No documentado en ningún lado del spec — hallazgo empírico.
+
+### 11.5 Refactor grande — Pega3 ya no tiene CREATE_TICKET
+
+Confirmado con el usuario: a diferencia de Tradicionales (que sí reserva con
+`RecuperarNumerosDisponiblesPorCombinacion` antes de vender con `VentaBoletos`), Pega3 no
+tiene ningún paso de reserva — `CrearTicket` vende el ticket completo en una sola llamada
+(`"status":"Purchased"`). El diseño original (`PRECHECK → CREATE_TICKET → EXECUTE → VERIFY →
+REVERSE`, igual a Tradicionales) asumía un modelo de 2 fases que no existe para este
+proveedor — EXECUTE nunca llamaba a nada útil (después del fix de la sesión pasada que quitó
+el uso indebido de `PagarTicket`, quedaba solo haciendo eco).
+
+**Cambio de contrato con el POS**: Pega3 ya no expone `CREATE_TICKET`. El flujo pasa a ser
+`PRECHECK → EXECUTE (CrearTicket) → VERIFY → [REVERSE]`. El POS ya no debe llamar
+`/v1/createTicket` para Pega3 — todo (`ticket_data`, panels, entry_type, amount) va directo
+en el body de `/v1/execute`.
+
+**Archivos**:
+- `LoteriaPega3CreateTicketStrategy.java` — **eliminada**.
+- `LoteriaPega3ExecuteStrategy.java` — ahora llama `CrearTicket` directo (recibe `ticket_data`
+  vía `ExecuteRequest`, nuevo campo agregado con su propio `TicketData`/`TicketPanel` anidado).
+- `ExecuteResponse` — agregado `ticket_number`/`ticket_qr` (antes solo en `CreateTicketResponse`).
+- `RegistroTrxPort.findCreateTicketUuidByAuthorization` → renombrado
+  `findExecuteUuidByAuthorization`, SQL cambiado de `CAPABILITY='CREATE_TICKET'` a
+  `CAPABILITY='EXECUTE'` — la hipótesis de `transaccion` (sección 9.5) ahora busca el `uuid`
+  en el registro de EXECUTE, que es donde Pega3 registra la venta.
+- **`IdentifierRequiredRule`** — bug encontrado al probar el nuevo flujo: exigía
+  `phone`/`document`/`userid`/`authorization` en todo EXECUTE de CASH_IN, lo cual tenía sentido
+  cuando EXECUTE solo *confirmaba* un ticket ya identificado por CREATE_TICKET — pero ahora
+  Pega3 vende un ticket recién creado sin comprador identificado (mismo caso ya exento para
+  `CreateTicketRequest`). ✅ Corregido: se exime cuando `ExecuteRequest.ticket_data != null`.
+- **`IN_OMNI_PROVEEDOR_WS`** (script `32_UPDATE_PEGA3_EXECUTE_CREARTICKET.sql`): `EXECUTE.CASHIN`
+  de pega3 reapuntado de `PagarTicket` (endpoint equivocado, usado antes de este cambio) a
+  `CrearTicket`. `CREATE_TICKET.CASHIN` se **deshabilita** (`ENABLED='N'`, no se borra) — no
+  alcanza con dejar de usarla en código: las capabilities de `/business-lines` se derivan
+  directo de `IN_OMNI_PROVEEDOR_WS` (`ad-capabilities.sql`/`capabilities.sql`, filtran
+  `ENABLED='S'`), así que si se deja habilitada el front seguiría viendo `CREATE_TICKET` como
+  opción disponible para Pega3 aunque el código ya no la soporte.
+- `docs/CLAUDE.md` — corregidas las referencias desactualizadas (flujo Pega3, tabla de
+  persistencia entre fases, lista de capabilities por proveedor — que además tenía a
+  Tradicionales sin `CREATE_TICKET`, cuando sí lo tiene desde el refactor de 2026-07-03).
+- Tradicionales **no se toca** — sigue con `CREATE_TICKET` real porque sí reserva.
+
+Verificación: `mvn compile` + `mvn test` en verde (123/123) después de cada cambio.
+
+### 11.6 Postman v10
+
+Actualizado: Pega3/Pega4/Pega2 CASH_IN reestructurado (CREATE_TICKET fusionado dentro de
+EXECUTE, renumerado 1→2/2b/2c→3→4), y `comprobante_urls` (lista) reemplazando el campo
+`comprobante_b64` — que seguía ahí desde una versión muy anterior del contrato, nunca
+actualizado en ninguna sesión previa, en las 3 Tradicionales y las 3 Pega. Changelog agregado
+a la descripción de "📌 NOTAS v10" del propio JSON.

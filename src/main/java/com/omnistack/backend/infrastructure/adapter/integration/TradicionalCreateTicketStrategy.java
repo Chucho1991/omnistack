@@ -35,9 +35,15 @@ import org.springframework.stereotype.Component;
  * CREATE_TICKET (que ya tiene semantica de reserva, como en Pega3) y no en
  * PRECHECK (que es prevalidacion sin efectos secundarios).
  * <p>
- * Cuando el sorteo consultado tiene Pozo Revancha asociado, tambien consulta
- * y fusiona los numeros del juego de Revancha (asociados por el campo
- * "boleto" compartido).
+ * Pozo Millonario + Revancha: se llama SIEMPRE con el juegoId principal (5)
+ * solamente — el proveedor confirmo (spec + reunion directa) que una unica
+ * llamada con juegoId=5 ya devuelve ambos juegos anidados en el mismo
+ * listaDetalle (entradas juegoId=5 y juegoId=17 asociadas por "boleto").
+ * NO se debe volver a llamar queryNumeros con juegoId=17: como este endpoint
+ * reserva (efecto secundario), una segunda llamada generaria una reserva
+ * separada y descartada (numeroReserva distinto que nunca se reenvia a
+ * VentaBoletos). querySorteos si se llama para ambos juegos, pero solo para
+ * obtener el pvp de cada uno (RecuperarSorteosDisponibles es de solo lectura).
  */
 @Component
 @RequiredArgsConstructor
@@ -95,27 +101,30 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
         Integer cantidadFracciones = createTicketRequest.getCantidadFracciones() != null
                 ? createTicketRequest.getCantidadFracciones() : 0;
 
+        // Unica llamada de reserva — con juegoId=5, el proveedor ya anida las
+        // entradas de Revancha (juegoId=17) en el mismo listaDetalle si el
+        // sorteo la tiene. NO se vuelve a llamar queryNumeros con juegoId=17.
         ExternalTransactionResponse numerosResponse = queryNumeros(
                 request, provider, juegoId, drawId, combinacion, figuraId, sugerir, registros, cantidadFracciones, numerosUrl);
 
-        ExternalTransactionResponse revanchaNumerosResponse = null;
         SorteoPricing mainPricing = null;
+        String revanchaJuegoId = null;
         SorteoPricing revanchaPricing = null;
         if (sorteosUrl != null && !sorteosUrl.isBlank()) {
             ExternalTransactionResponse sorteosResponse = querySorteos(request, provider, juegoId, sorteosUrl);
             mainPricing = findSorteoPricing(sorteosResponse, drawId);
             RevanchaInfo revanchaInfo = findRevanchaInfo(sorteosResponse, drawId);
             if (revanchaInfo != null) {
-                revanchaNumerosResponse = queryNumeros(
-                        request, provider, revanchaInfo.juegoRevanchaId(), revanchaInfo.sorteoRevanchaId(),
-                        combinacion, figuraId, sugerir, registros, cantidadFracciones, numerosUrl);
+                revanchaJuegoId = revanchaInfo.juegoRevanchaId();
+                // Solo lectura (RecuperarSorteosDisponibles) — se llama para obtener el pvp
+                // propio de la Revancha, que puede ser distinto al de Pozo Millonario.
                 ExternalTransactionResponse revanchaSorteosResponse = querySorteos(
                         request, provider, revanchaInfo.juegoRevanchaId(), sorteosUrl);
                 revanchaPricing = findSorteoPricing(revanchaSorteosResponse, revanchaInfo.sorteoRevanchaId());
             }
         }
 
-        return buildResponse(request, numerosResponse, revanchaNumerosResponse, mainPricing, revanchaPricing);
+        return buildResponse(request, numerosResponse, mainPricing, revanchaJuegoId, revanchaPricing);
     }
 
     private ExternalTransactionResponse querySorteos(
@@ -202,7 +211,11 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     }
 
     @SuppressWarnings("unchecked")
-    private List<CreateTicketResponse.TradicionalNumber> mapNumeros(ExternalTransactionResponse numerosResp, SorteoPricing pricing) {
+    private List<CreateTicketResponse.TradicionalNumber> mapNumeros(
+            ExternalTransactionResponse numerosResp,
+            SorteoPricing mainPricing,
+            String revanchaJuegoId,
+            SorteoPricing revanchaPricing) {
         if (numerosResp == null || !numerosResp.isApproved() || numerosResp.getPayload() == null) {
             return null;
         }
@@ -214,6 +227,11 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                 .filter(n -> n instanceof TradicionalNumerosQueryResponse.Numero)
                 .map(n -> {
                     TradicionalNumerosQueryResponse.Numero num = (TradicionalNumerosQueryResponse.Numero) n;
+                    // Cada entrada del listaDetalle ya trae su propio juegoId (5 o 17, cuando
+                    // aplica Revancha) — el precio unitario se elige por entrada, no por lista.
+                    SorteoPricing pricing = revanchaJuegoId != null && revanchaJuegoId.equals(num.getJuegoId())
+                            ? revanchaPricing
+                            : mainPricing;
                     return CreateTicketResponse.TradicionalNumber.builder()
                             .numero(num.getNumero())
                             .numero2(num.getNumero2())
@@ -235,22 +253,13 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     private CreateTicketResponse buildResponse(
             BaseTransactionRequest request,
             ExternalTransactionResponse numerosResp,
-            ExternalTransactionResponse revanchaNumerosResp,
             SorteoPricing mainPricing,
+            String revanchaJuegoId,
             SorteoPricing revanchaPricing) {
 
         boolean isError = numerosResp == null || !numerosResp.isApproved();
 
-        List<CreateTicketResponse.TradicionalNumber> availableNumbers = mapNumeros(numerosResp, mainPricing);
-        List<CreateTicketResponse.TradicionalNumber> revanchaNumbers = mapNumeros(revanchaNumerosResp, revanchaPricing);
-        if (revanchaNumbers != null && !revanchaNumbers.isEmpty()) {
-            if (availableNumbers == null) {
-                availableNumbers = new java.util.ArrayList<>();
-            } else {
-                availableNumbers = new java.util.ArrayList<>(availableNumbers);
-            }
-            availableNumbers.addAll(revanchaNumbers);
-        }
+        List<CreateTicketResponse.TradicionalNumber> availableNumbers = mapNumeros(numerosResp, mainPricing, revanchaJuegoId, revanchaPricing);
         Integer totalNumbers = numerosResp != null && numerosResp.getPayload() != null
                 && numerosResp.getPayload().get("totalResults") instanceof Integer intTotal
                 ? intTotal : null;

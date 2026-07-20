@@ -80,6 +80,8 @@ public class Pega3WebClientAdapter implements
     private static final String WS_KEY_CREATE_TICKET = "CREATE_TICKET.CASHIN";
     private static final String WS_KEY_VERIFY_COMPROBANTE = "VERIFY_COMPROBANTE.CASHIN";
     private static final String WS_KEY_REVERSE = "REVERSE.CASHIN";
+    /** formato query param de GenerarComprobantePega: 0=PDF, 1=PNG, 2=JPG (spec v0005). */
+    private static final String FORMATO_PNG = "1";
 
     private final WebClient omnistackWebClient;
     private final ProviderConfigService providerConfigService;
@@ -305,7 +307,8 @@ public class Pega3WebClientAdapter implements
         StringBuilder url = new StringBuilder(operationPath)
                 .append("?ventaId=").append(encodeParam(ventaId))
                 .append("&idUsuario=").append(encodeParam(idUsuario))
-                .append("&transaccion=").append(encodeParam(transaccion));
+                .append("&transaccion=").append(encodeParam(transaccion))
+                .append("&formato=").append(FORMATO_PNG);
         if (command.getPuntoDeVenta() != null && !command.getPuntoDeVenta().isBlank()) {
             url.append("&puntoDeVenta=").append(encodeParam(command.getPuntoDeVenta()));
         }
@@ -314,9 +317,9 @@ public class Pega3WebClientAdapter implements
         log.info("Pega3 generarComprobante GET url={}", fullUrl);
         long startMs = System.currentTimeMillis();
 
-        Pega3ComprobanteResponse response;
+        String rawBody;
         try {
-            response = providerCircuitBreaker.execute(PROVIDER_KEY, () ->
+            rawBody = providerCircuitBreaker.execute(PROVIDER_KEY, () ->
                     omnistackWebClient.get()
                             .uri(fullUrl)
                             .retrieve()
@@ -341,7 +344,7 @@ public class Pega3WebClientAdapter implements
                                                 .build());
                                         return Mono.error(new IntegrationException(errMsg));
                                     }))
-                            .bodyToMono(Pega3ComprobanteResponse.class)
+                            .bodyToMono(String.class)
                             .block());
         } catch (WebClientRequestException exception) {
             String errMsg = "Error de conexion al invocar GenerarComprobantePega: " + rootCauseMessage(exception);
@@ -359,23 +362,31 @@ public class Pega3WebClientAdapter implements
             throw new IntegrationException(errMsg, exception);
         }
 
+        Pega3ComprobanteResponse response;
+        try {
+            response = rawBody != null ? objectMapper.readValue(rawBody, Pega3ComprobanteResponse.class) : null;
+        } catch (JsonProcessingException e) {
+            throw new IntegrationException("GenerarComprobantePega retorno un body no parseable");
+        }
+        log.info("Pega3 generarComprobante response url={} summary={}", fullUrl, redactBase64(response));
+
+        List<Pega3ComprobanteResponse.Imagen> imagenes = allImagenes(response);
+
         Map<String, Object> payload = new LinkedHashMap<>();
-        boolean isError = response == null || response.getBase64() == null || response.getBase64().isBlank();
+        boolean isError = imagenes.isEmpty();
         wsExtLogService.log(ProviderCallLog.builder()
                 .uuid(command.getUuid())
                 .providerKey(PROVIDER_KEY)
                 .wsKey(WS_KEY_VERIFY_COMPROBANTE)
                 .url(fullUrl)
                 .requestJson(null)
-                .responseJson(isError ? null : "[pdf " + response.getFileName() + "]")
+                .responseJson(isError ? null : "[" + imagenes.size() + " comprobante(s)]")
                 .durationMs(System.currentTimeMillis() - startMs)
                 .isError(isError)
                 .errorMessage(isError ? "GenerarComprobantePega no retorno contenido" : null)
                 .build());
         if (!isError) {
-            payload.put("comprobante_b64", response.getBase64());
-            payload.put("file_name", response.getFileName());
-            payload.put("content_type", response.getContentType());
+            payload.put("imagenes", imagenes);
         }
 
         return ExternalTransactionResponse.builder()
@@ -388,6 +399,43 @@ public class Pega3WebClientAdapter implements
 
     private String encodeParam(String value) {
         return value != null ? java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8) : "";
+    }
+
+    /** Normaliza las 2 formas posibles de GenerarComprobantePega a una sola lista — con
+     * formato=1/2 el proveedor responde una lista (imagenes[]); con formato=0 (PDF, fallback
+     * si el proveedor ignora el parametro) responde un solo archivo plano. */
+    private List<Pega3ComprobanteResponse.Imagen> allImagenes(Pega3ComprobanteResponse response) {
+        if (response == null) {
+            return List.of();
+        }
+        if (response.getImagenes() != null && !response.getImagenes().isEmpty()) {
+            return response.getImagenes();
+        }
+        if (response.getBase64() != null && !response.getBase64().isBlank()) {
+            Pega3ComprobanteResponse.Imagen imagen = new Pega3ComprobanteResponse.Imagen();
+            imagen.setFileName(response.getFileName());
+            imagen.setContentType(response.getContentType());
+            imagen.setBase64(response.getBase64());
+            return List.of(imagen);
+        }
+        return List.of();
+    }
+
+    /** Resumen legible de GenerarComprobantePega para logs — sin el base64 completo, solo su
+     * tamano, para poder ver cuantas imagenes vinieron sin inundar la consola. */
+    private String redactBase64(Pega3ComprobanteResponse response) {
+        if (response == null) {
+            return "null";
+        }
+        if (response.getImagenes() != null && !response.getImagenes().isEmpty()) {
+            String imagenes = response.getImagenes().stream()
+                    .map(img -> "{fileName=" + img.getFileName() + ", contentType=" + img.getContentType()
+                            + ", base64Length=" + (img.getBase64() != null ? img.getBase64().length() : 0) + "}")
+                    .collect(java.util.stream.Collectors.joining(", "));
+            return "{total=" + response.getTotal() + ", formato=" + response.getFormato() + ", imagenes=[" + imagenes + "]}";
+        }
+        return "{fileName=" + response.getFileName() + ", contentType=" + response.getContentType()
+                + ", base64Length=" + (response.getBase64() != null ? response.getBase64().length() : 0) + "}";
     }
 
     @Override

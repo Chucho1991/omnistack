@@ -101,6 +101,15 @@ public class ExecuteResponse extends BaseTransactionResponse {
     @Schema(example = "508085", description = "Id de boleto — liga Pozo Millonario con su Revancha cuando comparten valor (solo Tradicionales)")
     private String boletoId;
 
+    @JsonProperty("ticket_number")
+    @Schema(example = "TICKET-12345", description = "ticketNumber del proveedor (solo Pega3)")
+    private String ticketNumber;
+
+    @JsonProperty("ticket_qr")
+    @Schema(example = "https://www8.loteria.com.ec/LNConsultaBoletos/GanadoresLN?cn=TO0119007180211600081357150",
+            description = "URL del codigo QR del ticket, para imprimir en el comprobante (solo Pega3)")
+    private String ticketQr;
+
     @JsonProperty("valor_total_vendido")
     @Schema(example = "1.00", description = "Valor total vendido para este boleto segun el proveedor (solo Tradicionales)")
     private BigDecimal valorTotalVendido;

@@ -25,12 +25,13 @@ public interface RegistroTrxPort {
     Optional<String> findOriginalAuthByHomologatedCode(String homologatedCode);
 
     /**
-     * Busca el uuid que se uso en el CREATE_TICKET original a partir del ticketNumber
-     * (AUTHORIZATION) devuelto por el proveedor — solo Pega3, para reusarlo como
-     * "transaccion" en GenerarComprobantePega (VERIFY) sin depender de que el POS lo reenvie.
+     * Busca el uuid que se uso en el EXECUTE original (donde Pega3 crea y vende el ticket
+     * via CrearTicket) a partir del ticketNumber (AUTHORIZATION) devuelto por el proveedor —
+     * solo Pega3, para reusarlo como "transaccion" en GenerarComprobantePega (VERIFY) sin
+     * depender de que el POS lo reenvie.
      *
-     * @param authorization ticketNumber (gameTicketNumber) del ticket ya creado
-     * @return el uuid usado en el CREATE_TICKET original, o vacio si no se encuentra
+     * @param authorization ticketNumber (gameTicketNumber) del ticket ya vendido
+     * @return el uuid usado en el EXECUTE original, o vacio si no se encuentra
      */
-    Optional<String> findCreateTicketUuidByAuthorization(String authorization);
+    Optional<String> findExecuteUuidByAuthorization(String authorization);
 }

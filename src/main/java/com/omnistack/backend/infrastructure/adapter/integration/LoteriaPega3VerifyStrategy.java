@@ -25,13 +25,16 @@ import com.omnistack.backend.domain.model.Pega3ComprobanteQueryCommand;
 import com.omnistack.backend.domain.model.Pega3VerifyTicketCommand;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.shared.exception.IntegrationException;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * Estrategia de VERIFY CASH_IN para Pega3. Llama a ConsultarTicket.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy implements VerifyStrategy {
@@ -88,8 +91,8 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
 
         String wsKey = toWsKey(capability.name(), serviceDefinition.getMovementType());
         ExternalTransactionResponse externalResponse = pega3VerifyTicketPort.verifyTicket(command, operationUrl, wsKey);
-        ComprobanteData comprobante = fetchComprobanteIfAvailable(request, serviceDefinition, provider);
-        return buildResponse(request, externalResponse, comprobante);
+        List<ComprobanteData> comprobantes = fetchComprobanteIfAvailable(request, serviceDefinition, provider, externalResponse);
+        return buildResponse(request, externalResponse, comprobantes);
     }
 
     private record ComprobanteData(String base64, String contentType) {
@@ -99,28 +102,48 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
      * Genera el comprobante PDF (GenerarComprobantePega) solo si la operacion esta configurada
      * y hay un valor disponible para "transaccion". La respuesta de ConsultarTicket/CrearTicket
      * de Pega3 no incluye ese dato (confirmado contra QA real, 2026-07-15) — se usa el mismo
-     * valor de uuid que se envio como customerSessionId al crear el ticket (persistido en
-     * IN_OMNI_REGISTRO_TRX por CREATE_TICKET, recuperado aqui por ticketNumber/authorization)
-     * como candidato, ya que "transaccion" se documenta como "codigo de la transaccion asociada
+     * valor de uuid que se envio como customerSessionId al vender el ticket (persistido en
+     * IN_OMNI_REGISTRO_TRX por EXECUTE — ahi es donde Pega3 llama CrearTicket, ya no en
+     * CREATE_TICKET; recuperado aqui por ticketNumber/authorization) como candidato, ya que
+     * "transaccion" se documenta como "codigo de la transaccion asociada
      * a la venta" — es una hipotesis pendiente de confirmar en QA, no un dato oficial del
-     * proveedor. El POS puede seguir enviando "transaccion" explicito en el request, que tiene
+     * proveedor. El POS puede seguir enviendo "transaccion" explicito en el request, que tiene
      * prioridad sobre este fallback.
+     * <p>
+     * ventaId: el proveedor rechaza con 404 "No existe una venta con el ID proporcionado" si se
+     * usa el ticketNumber completo (el que se genero en CrearTicket, ej.
+     * "TO0119001180246130060911133"). ConsultarTicket devuelve un gameTicketNumber TRUNCADO
+     * (3 caracteres menos, ej. "TO0119001180246130060911") — confirmado contra QA real
+     * (2026-07-19) que es ESE valor truncado el que GenerarComprobantePega espera como ventaId,
+     * no el ticketNumber original que el POS reenvia como authorization.
      */
-    private ComprobanteData fetchComprobanteIfAvailable(
+    @SuppressWarnings("unchecked")
+    private List<ComprobanteData> fetchComprobanteIfAvailable(
             BaseTransactionRequest request,
             ServiceDefinition serviceDefinition,
-            AppProperties.ProviderProperties provider) {
+            AppProperties.ProviderProperties provider,
+            ExternalTransactionResponse verifyTicketResponse) {
+        String ventaId = stringValue(verifyTicketResponse.getPayload(), "authorization");
+        if (ventaId == null || ventaId.isBlank()) {
+            ventaId = request.getAuthorization();
+        }
         String transaccion = request instanceof VerifyRequest verifyRequest ? verifyRequest.getTransaccion() : null;
-        if (transaccion == null || transaccion.isBlank()) {
-            transaccion = registroTrxPort.findCreateTicketUuidByAuthorization(request.getAuthorization()).orElse(null);
+        boolean transaccionExplicita = transaccion != null && !transaccion.isBlank();
+        if (!transaccionExplicita) {
+            transaccion = registroTrxPort.findExecuteUuidByAuthorization(request.getAuthorization()).orElse(null);
         }
         if (transaccion == null || transaccion.isBlank()) {
+            log.warn("Pega3 VERIFY sin comprobante: no se encontro 'transaccion' (ni explicito en el request, "
+                    + "ni via IN_OMNI_REGISTRO_TRX por authorization={})", request.getAuthorization());
             return null;
         }
+        log.info("Pega3 VERIFY: transaccion resuelta={} (fuente={})", transaccion, transaccionExplicita ? "request" : "IN_OMNI_REGISTRO_TRX");
         String comprobanteUrl = providerWsService
                 .findUrl(PROVIDER_KEY, toWsKey(VERIFY_COMPROBANTE_KEY, serviceDefinition.getMovementType()))
                 .orElse(null);
         if (comprobanteUrl == null || comprobanteUrl.isBlank()) {
+            log.warn("Pega3 VERIFY sin comprobante: no hay URL configurada para wsKey={}",
+                    toWsKey(VERIFY_COMPROBANTE_KEY, serviceDefinition.getMovementType()));
             return null;
         }
 
@@ -135,7 +158,7 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
                 .subcategoryCode(request.getSubcategoryCode())
                 .serviceProviderCode(request.getServiceProviderCode())
                 .rmsItemCode(request.getRmsItemCode())
-                .ventaId(request.getAuthorization())
+                .ventaId(ventaId)
                 .idUsuario(provider.getAuth().getLogin().getUsername())
                 .transaccion(transaccion)
                 .puntoDeVenta(request.getStoreName())
@@ -145,14 +168,26 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
         if (!comprobanteResponse.isApproved()) {
             return null;
         }
-        return new ComprobanteData(
-                stringValue(comprobanteResponse.getPayload(), "comprobante_b64"),
-                stringValue(comprobanteResponse.getPayload(), "content_type"));
+        Object rawImagenes = comprobanteResponse.getPayload() != null ? comprobanteResponse.getPayload().get("imagenes") : null;
+        if (!(rawImagenes instanceof List<?> list)) {
+            return null;
+        }
+        return list.stream()
+                .filter(i -> i instanceof com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3ComprobanteResponse.Imagen)
+                .map(i -> (com.omnistack.backend.infrastructure.adapter.integration.pega3.dto.Pega3ComprobanteResponse.Imagen) i)
+                .map(img -> new ComprobanteData(img.getBase64(), img.getContentType()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
-    private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse, ComprobanteData comprobante) {
+    private VerifyResponse buildResponse(BaseTransactionRequest request, ExternalTransactionResponse externalResponse, List<ComprobanteData> comprobantes) {
         Map<String, Object> payload = externalResponse.getPayload();
         boolean isError = !externalResponse.isApproved();
+
+        List<String> comprobanteUrls = comprobantes != null
+                ? comprobantes.stream()
+                        .map(c -> comprobanteUrlService.storeAndBuildUrl(c.base64(), c.contentType()))
+                        .collect(java.util.stream.Collectors.toList())
+                : null;
 
         VerifyResponse.VerifyResponseBuilder<?, ?> builder = VerifyResponse.builder()
                 .chain(request.getChain())
@@ -171,9 +206,7 @@ public class LoteriaPega3VerifyStrategy extends AbstractProviderStrategy impleme
                 .ticketStatus(stringValue(payload, "ticket_status"))
                 .winner(getBooleanValue(payload, "is_winner"))
                 .prizeAmount(decimalValue(payload, "prize_amount"))
-                .comprobanteUrl(comprobante != null
-                        ? comprobanteUrlService.storeAndBuildUrl(comprobante.base64(), comprobante.contentType())
-                        : null);
+                .comprobanteUrls(comprobanteUrls);
 
         if (isError) {
             builder.error(ErrorDetail.builder()

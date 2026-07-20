@@ -1,5 +1,6 @@
 package com.omnistack.backend.infrastructure.adapter.integration.tradicional.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -58,9 +59,13 @@ public class TradicionalConsultarTicketResponse {
         private String jno;
         @JsonProperty("SID")
         private String sid;
+        /** El ejemplo JSON del spec usa "PRE"/"MON", pero la tabla de campos del mismo
+         * documento (v0005) los llama "PRE1"/"MON1" — se aceptan ambos por seguridad. */
         @JsonProperty("PRE")
+        @JsonAlias("PRE1")
         private String pre;
         @JsonProperty("MON")
+        @JsonAlias("MON1")
         private String mon;
         @JsonProperty("VDE")
         private String vde;
