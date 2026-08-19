@@ -542,7 +542,7 @@ No hay logica por proveedor en los controllers. Las integraciones externas queda
 
 La integracion inicial de ECUABET para `PRECHECK` usa el endpoint externo `POST /user/search` con:
 
-- headers: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- headers: `chain`, `store`, `pos`, `channel_POS`; `store_name` pertenece al contrato canonico y no se reenvia como header a ECUABET
 - body: `shop`, `token`, `userid`, `country`, `phone`, `document`
 - identidad del proveedor: `service_provider_code`
 - `category_code` y `subcategory_code` siguen viajando en el contrato, pero no definen el proveedor; un mismo `service_provider_code` puede existir en varias subcategorias
@@ -561,7 +561,7 @@ ECUABET queda configurado con `auth.mode=STATIC`, por lo que el token se resuelv
 Este bloque complementa la descripcion anterior con el flujo de Nota de Retiro para `service_provider_code=12661912` y `rms_item_code=100708846`.
 
 - endpoint externo: `POST /user/searchwithdraw`
-- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- headers comunes: `chain`, `store`, `pos`, `channel_POS`; `store_name` no se reenvia como header a ECUABET
 - body externo: `shop`, `token`, `withdrawId`, `country`, `password`
 - mapeo de response: `is_error <- error != 0 o code distinto de 0/00`, `error.code <- codigo canonico derivado de code/message/error`, `error.message <- message/error`, `username <- name`, `currency <- currency`, `amount <- amount`, `userid <- userId|userid`
 - validacion transversal de monto: si cualquier integracion retorna `amount` y este es mayor o menor que el `amount` del request interno, OMNISTACK responde `is_error=true`, `error.code=01` y `error.message` describe si el monto solicitado es mayor o menor que el monto retornado por el proveedor externo
@@ -617,7 +617,7 @@ El adapter HTTP real invoca `https://apidev.virtualsoft.tech/operatorapi-new/use
 La recarga de saldos ECUABET usa `service_provider_code=12661912` y `rms_item_code=100713841` para ejecutar el deposito externo.
 
 - endpoint externo: `POST /user/deposit`
-- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- headers comunes: `chain`, `store`, `pos`, `channel_POS`; `store_name` no se reenvia como header a ECUABET
 - body externo: `shop`, `token`, `userid`, `country`, `amount`, `transactionId`, `shop_info`, `shop_ip`
 - `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - `shop_info`: se mapea desde `store_name`
@@ -645,7 +645,7 @@ Request externo generado:
 El reverso de recarga ECUABET usa `service_provider_code=12661912` y `rms_item_code=100713841` para invocar el rollback externo de deposito.
 
 - endpoint externo: `POST /rollback/deposit`
-- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- headers comunes: `chain`, `store`, `pos`, `channel_POS`; `store_name` no se reenvia como header a ECUABET
 - body externo: `shop`, `token`, `country`, `amount`, `transactionId`
 - `transactionId`: se mapea desde `authorization` del request interno y debe ser numerico
 - `authorization`: en la respuesta interna se conserva el `transactionId` enviado al request externo; el `transactionId` retornado por ECUABET se registra como dato de proveedor y no reemplaza la autorizacion del flujo
@@ -690,7 +690,7 @@ Request externo generado:
 La ejecucion de nota de retiro ECUABET usa `service_provider_code=12661912` y el `rms_item_code` CASH_OUT expuesto por business-lines (`100708846` en el catalogo actual).
 
 - endpoint externo: `POST /user/withdraw`
-- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- headers comunes: `chain`, `store`, `pos`, `channel_POS`; `store_name` no se reenvia como header a ECUABET
 - body externo: `shop`, `token`, `withdrawId`, `country`, `password`, `transactionId`, `shop_info`, `shop_ip`
 - `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - `shop_info`: se mapea desde `store_name`
@@ -739,7 +739,7 @@ Request externo generado:
 El reverso de nota de retiro ECUABET usa `service_provider_code=12661912` y el `rms_item_code` CASH_OUT expuesto por business-lines (`100708846` en el catalogo actual).
 
 - endpoint externo: `POST /rollback/withdraw`
-- headers comunes: `chain`, `store`, `store_name`, `pos`, `channel_POS`
+- headers comunes: `chain`, `store`, `pos`, `channel_POS`; `store_name` no se reenvia como header a ECUABET
 - body externo: `shop`, `token`, `country`, `withdrawId`, `password`, `transactionId`
 - `transactionId`: OMNISTACK genera un entero para enviarlo a ECUABET; si ECUABET retorna `transactionId`, se devuelve al consumidor como `authorization`
 - mapeo response: `is_error <- error`, `error.code <- codigo canonico derivado de code/error/message`, `error.message <- error/message`, `status.code <- 00`, `status.message <- "Transaccion correcta"`, `authorization <- transactionId externo`, `document <- document`, `amount <- amount`

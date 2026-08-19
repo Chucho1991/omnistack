@@ -1,6 +1,7 @@
 package com.omnistack.backend.infrastructure.adapter.integration.ecuabet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,7 +80,7 @@ class EcuabetWithdrawWebClientAdapterTest {
         assertEquals("/user/withdraw", capturedPath.get());
         assertEquals("1", capturedChain.get());
         assertEquals("148", capturedStore.get());
-        assertEquals("FYBECA EL BATAN", capturedStoreName.get());
+        assertNull(capturedStoreName.get());
         assertEquals("1", capturedPos.get());
         assertEquals("POS", capturedChannelPos.get());
         assertTrue(capturedBody.get().contains("\"shop\":\"998739\""));
