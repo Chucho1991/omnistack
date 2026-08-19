@@ -4,6 +4,7 @@ import com.omnistack.backend.application.port.in.ProviderTokenResolverUseCase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,7 +89,7 @@ class EcuabetUserSearchWebClientAdapterTest {
         assertEquals("/user/searchwithdraw", capturedPath.get());
         assertEquals("1", capturedChain.get());
         assertEquals("148", capturedStore.get());
-        assertEquals("FYBECA AMAZONAS", capturedStoreName.get());
+        assertNull(capturedStoreName.get());
         assertEquals("1", capturedPos.get());
         assertEquals("POS", capturedChannelPos.get());
         assertTrue(capturedBody.get().contains("\"withdrawId\":\"7667\""));
@@ -135,6 +136,47 @@ class EcuabetUserSearchWebClientAdapterTest {
         assertFalse(response.isApproved());
         assertEquals("02", response.getExternalCode());
         assertEquals("Usuario invalido", response.getExternalMessage());
+    }
+
+    @Test
+    void shouldNotForwardCanonicalStoreNameHeaderToEcuabet() throws Exception {
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/user/search", exchange -> respondJson(exchange,
+                """
+                {
+                  "code": "101",
+                  "message": "Usuario no encontrado"
+                }
+                """));
+        server.start();
+
+        EcuabetUserSearchWebClientAdapter adapter = new EcuabetUserSearchWebClientAdapter(
+                WebClient.builder().build(),
+                providerConfigService(),
+                new ObjectMapper(),
+                new ProviderTokenResolverUseCase() {
+                    public String getToken(String categoryCode, String subcategoryCode, String serviceProviderCode) {
+                        return "token-test";
+                    }
+
+                    public String getToken(String providerKey) {
+                        return "token-test";
+                    }
+                }, Mockito.mock(WsExtLogService.class));
+
+        adapter.searchUser(EcuabetUserSearchCommand.builder()
+                .chain("60")
+                .store("72168")
+                .storeName("72168 - FYBECA UMIÑA")
+                .pos("90")
+                .channelPos(ChannelPos.POS)
+                .movementType(MovementType.CASH_IN)
+                .categoryCode("983")
+                .subcategoryCode("1118")
+                .document("1351180730")
+                .build(), "http://localhost:" + server.getAddress().getPort() + "/user/search");
+
+        assertNull(capturedStoreName.get());
     }
 
     @Test

@@ -123,9 +123,6 @@ public class EcuabetDepositReverseWebClientAdapter implements EcuabetDepositReve
     private void addHeaders(HttpHeaders headers, EcuabetDepositCommand command) {
         headers.add("chain", command.getChain());
         headers.add("store", command.getStore());
-        if (command.getStoreName() != null) {
-            headers.add("store_name", command.getStoreName());
-        }
         headers.add("pos", command.getPos());
         headers.add("channel_POS", command.getChannelPos().name());
     }
