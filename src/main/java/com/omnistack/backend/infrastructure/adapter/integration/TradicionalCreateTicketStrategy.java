@@ -88,15 +88,19 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
         String numerosUrl = getRequiredOperationUrl(providerWsService, providerWsDefsService, PROVIDER_KEY, capability, serviceDefinition, PROVIDER_NAME);
         String sorteosUrl = providerWsService.findUrl(PROVIDER_KEY, toWsKey(PRECHECK_SORTEOS_KEY, serviceDefinition.getMovementType())).orElse(null);
 
+        String wsKey = toWsKey(capability.name(), serviceDefinition.getMovementType());
         String juegoId = resolveItemDefault(
                 null, providerWsDefsService, PROVIDER_KEY,
-                toWsKey(capability.name(), serviceDefinition.getMovementType()),
-                JUEGO_ID_FIELD_PREFIX, request.getRmsItemCode(), PROVIDER_NAME);
+                wsKey, JUEGO_ID_FIELD_PREFIX, request.getRmsItemCode(), PROVIDER_NAME);
 
         String drawId = createTicketRequest.getDrawId();
         String combinacion = createTicketRequest.getCombinacion();
-        Boolean sugerir = createTicketRequest.getSugerir();
-        Integer registros = createTicketRequest.getRegistros();
+        // sugerir/registros son parametros internos del proveedor (no dependen del cajero
+        // ni del cliente) — se resuelven desde IN_OMNI_PROVEEDOR_WS_DEFS, no del request.
+        String sugerirConfig = providerWsDefsService.getString(PROVIDER_KEY, wsKey, "sugerir");
+        boolean sugerir = sugerirConfig == null || Boolean.parseBoolean(sugerirConfig);
+        Integer registrosConfig = providerWsDefsService.getInteger(PROVIDER_KEY, wsKey, "registros");
+        int registros = registrosConfig != null ? registrosConfig : 10;
         String figuraId = createTicketRequest.getFiguraId();
         Integer cantidadFracciones = createTicketRequest.getCantidadFracciones() != null
                 ? createTicketRequest.getCantidadFracciones() : 0;
@@ -144,7 +148,7 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
     private ExternalTransactionResponse queryNumeros(
             BaseTransactionRequest request, AppProperties.ProviderProperties provider,
             String juegoId, String sorteoId, String combinacion, String figuraId,
-            Boolean sugerir, Integer registros, Integer cantidadFracciones, String numerosUrl) {
+            boolean sugerir, int registros, Integer cantidadFracciones, String numerosUrl) {
         TradicionalNumerosQueryCommand numerosCmd = TradicionalNumerosQueryCommand.builder()
                 .uuid(request.getUuid()).chain(request.getChain()).store(request.getStore())
                 .storeName(request.getStoreName()).pos(request.getPos())
@@ -155,9 +159,9 @@ public class TradicionalCreateTicketStrategy extends AbstractProviderStrategy im
                 .juegoId(juegoId).sorteoId(sorteoId)
                 .combinacion(combinacion != null ? combinacion : "")
                 .combinacionFigura(figuraId != null ? figuraId : "")
-                .sugerir(sugerir != null ? sugerir : false)
+                .sugerir(sugerir)
                 .cantidad(cantidadFracciones)
-                .registros(registros != null ? registros : 10)
+                .registros(registros)
                 .build();
         return numerosQueryPort.queryNumeros(numerosCmd, numerosUrl);
     }

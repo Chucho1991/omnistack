@@ -47,12 +47,6 @@ public class CreateTicketRequest extends BaseTransactionRequest {
     @Schema(example = "", description = "Combinacion de numeros a buscar/reservar, vacio = sin filtro (solo Tradicionales)")
     private String combinacion;
 
-    @Schema(example = "false", description = "Sugerir combinaciones alternativas si no hay match exacto (solo Tradicionales)")
-    private Boolean sugerir;
-
-    @Schema(example = "10", description = "Cantidad de registros a retornar (solo Tradicionales)")
-    private Integer registros;
-
     @JsonProperty("figura_id")
     @Schema(example = "01", description = "Codigo de mascota/fruta (solo Tradicionales)")
     private String figuraId;
