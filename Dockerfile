@@ -1,29 +1,22 @@
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 
-WORKDIR /workspace
-COPY mvnw pom.xml ./
-COPY .mvn .mvn
+WORKDIR /app
 
-RUN chmod +x mvnw
-RUN ./mvnw -q -DskipTests dependency:go-offline
+COPY pom.xml ./
+COPY src ./src
 
-COPY src src
-RUN ./mvnw -q -DskipTests package
+RUN mvn -B -DskipTests clean package
 
 FROM eclipse-temurin:17-jre
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates ca-certificates-java \
-    && update-ca-certificates -f \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/omnistack
 
-ENV JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djdk.tls.client.protocols=TLSv1.2 -Dhttps.protocols=TLSv1.2"
+ENV TZ=America/Guayaquil
+ENV SPRING_PROFILES_ACTIVE=dev
+ENV SERVER_PORT=8086
 
-ENV SERVER_PORT=8787
-WORKDIR /app
+COPY --from=build /app/target/omnistack-backend-1.0.0-SNAPSHOT.jar app.jar
 
-COPY .env /app/.env
-COPY --from=build /workspace/target/*.jar /app/app.jar
+EXPOSE 8085
 
-EXPOSE 8787
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/opt/omnistack/app.jar"]
