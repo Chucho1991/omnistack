@@ -232,6 +232,10 @@ El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedic
 - Longitud maxima por linea de `consent_text` configurable en `app.business-lines.consent-text-max-line-length` (`APP_BUSINESS_LINES_CONSENT_TEXT_MAX_LINE_LENGTH`, por defecto 56)
 - El placeholder `{{provider_name}}` en `consent_text` se resuelve con el `provider_name` del proveedor antes de responder.
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
+- Los campos de presentacion `flag_item`, `only`, `allow_other_billable_services`, `allow_same_service`, `unique`, `service_type`, `rec_telepeaje_active` y `print_confirmation_voucher` se leen desde `GPF_OMNISTACK.AD_SERVICIO_PARAMETROS`, asociados directamente a `CODIGO_ITEM_RMS`; `flag_item` reutiliza la columna existente `FLG_ITEM`.
+- La migracion Oracle [48_ALTER_AD_SERVICIO_PARAMETROS_BUSINESS_LINES_FIELDS.sql](docs/bdd/omnistack/48_ALTER_AD_SERVICIO_PARAMETROS_BUSINESS_LINES_FIELDS.sql) crea las columnas, constraints, defaults y parametriza los perfiles `P` (BET593/ECUABET), `B` (LOTERIA/LOTTO/POZO/PEGA) y `R` (resto de recargas/facturas).
+- `flg_item` se conserva por compatibilidad; `flag_item` expone el nuevo nombre solicitado por el POS.
+- Seguridad: este cambio no agrega un endpoint ni modifica su mecanismo actual; la autorizacion por rol de `POST /business-lines` permanece como pendiente tecnico mientras el proyecto no disponga de un modulo de seguridad.
 - La respuesta expone solo servicios cuyo `rms_item_code` este configurado como `item` en `app.integration.providers.*.services.*.(cashin|cashout).item`; si no existen items configurados, no se aplica este filtro.
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
 - Catalogos simulados desde `dual`: category/subcategory, service providers, services, capabilities, input fields y payment methods
@@ -329,6 +333,14 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
               "movement_type": "CASH_IN",
               "is_mixed_payment": true,
               "flg_item": "RECA",
+              "flag_item": "RECA",
+              "only": true,
+              "allow_other_billable_services": true,
+              "allow_same_service": false,
+              "unique": false,
+              "service_type": "P",
+              "rec_telepeaje_active": true,
+              "print_confirmation_voucher": false,
               "is_refund": true,
               "min_amount": "1",
               "max_amount": "200",

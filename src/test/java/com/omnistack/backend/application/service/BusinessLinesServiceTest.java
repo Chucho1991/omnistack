@@ -136,6 +136,13 @@ class BusinessLinesServiceTest {
         assertEquals("10000", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
         assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
         assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getNumTickets());
+        assertEquals("RECA", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getFlagItem());
+        assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isOnly());
+        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isAllowOtherBillableServices());
+        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isAllowSameService());
+        assertEquals("R", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getServiceType());
+        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRecTelepeajeActive());
+        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isPrintConfirmationVoucher());
         assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRequiresConsent());
         assertEquals("Texto sin formato requerido", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText());
         assertEquals("phone", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getInputFields().get(0).getId());
@@ -349,4 +356,5 @@ class BusinessLinesServiceTest {
                 .requiresConsent(false)
                 .build();
     }
+
 }

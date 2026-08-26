@@ -34,6 +34,25 @@ public class ServiceDefinition {
     boolean mixedPayment;
     @JsonProperty("flg_item")
     FlgItem flgItem;
+    @JsonProperty("only")
+    boolean only;
+    @Builder.Default
+    @JsonProperty("allow_other_billable_services")
+    boolean allowOtherBillableServices = true;
+    @Builder.Default
+    @JsonProperty("allow_same_service")
+    boolean allowSameService = true;
+    @JsonProperty("unique")
+    boolean unique;
+    @Builder.Default
+    @JsonProperty("service_type")
+    String serviceType = "R";
+    @Builder.Default
+    @JsonProperty("rec_telepeaje_active")
+    boolean recTelepeajeActive = true;
+    @Builder.Default
+    @JsonProperty("print_confirmation_voucher")
+    boolean printConfirmationVoucher = true;
     @JsonProperty("is_refund")
     boolean refund;
     @JsonProperty("min_amount")

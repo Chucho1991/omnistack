@@ -55,7 +55,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["business-lines"]
             },
-            "description": "Consulta la oferta comercial parametrizada por punto de venta. Filtro opcional por movement_type_filter (CASH_IN | CASH_OUT).",
+            "description": "Consulta la oferta comercial parametrizada por punto de venta. Filtro opcional por movement_type_filter (CASH_IN | CASH_OUT). Cada servicio incluye flag_item, only, allow_other_billable_services, allow_same_service, unique, service_type, rec_telepeaje_active y print_confirmation_voucher, leidos de AD_SERVICIO_PARAMETROS por rms_item_code.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"chain\": \"{{chain}}\",\n  \"store\": \"{{store}}\",\n  \"store_name\": \"{{storeName}}\",\n  \"pos\": \"{{pos}}\",\n  \"channel_POS\": \"{{channelPos}}\",\n  \"movement_type_filter\": \"{{movementTypeFilter}}\"\n}"

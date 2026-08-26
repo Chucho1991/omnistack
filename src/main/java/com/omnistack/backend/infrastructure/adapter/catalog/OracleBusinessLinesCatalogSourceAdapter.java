@@ -197,7 +197,10 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                             rms.description(), r.active(),
                             null,
                             movementType,
-                            r.mixedPayment(), r.flgItem(), r.refund(),
+                            r.mixedPayment(), r.flgItem(),
+                            r.only(), r.allowOtherBillableServices(), r.allowSameService(),
+                            r.unique(), r.serviceType(), r.recTelepeajeActive(), r.printConfirmationVoucher(),
+                            r.refund(),
                             r.minAmount(), r.maxAmount(),
                             r.timeoutWsMax(), r.retriesWsMax(), r.numTickets(),
                             r.requiresConsent(), r.consentText(), r.homologatedAuth());
@@ -355,6 +358,13 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .movementType(MovementType.valueOf(row.movementType().replace(' ', '_').toUpperCase(Locale.ROOT)))
                 .mixedPayment(row.mixedPayment())
                 .flgItem(FlgItem.valueOf(row.flgItem()))
+                .only(row.only())
+                .allowOtherBillableServices(row.allowOtherBillableServices())
+                .allowSameService(row.allowSameService())
+                .unique(row.unique())
+                .serviceType(row.serviceType())
+                .recTelepeajeActive(row.recTelepeajeActive())
+                .printConfirmationVoucher(row.printConfirmationVoucher())
                 .refund(row.refund())
                 .minAmount(new BigDecimal(row.minAmount()))
                 .maxAmount(new BigDecimal(row.maxAmount()))
@@ -413,6 +423,13 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getInt("is_active") == 1,
                 rs.getInt("is_mixed_payment") == 1,
                 rs.getString("flg_item"),
+                rs.getInt("is_only") == 1,
+                rs.getInt("allow_other_billable_services") == 1,
+                rs.getInt("allow_same_service") == 1,
+                rs.getInt("is_unique") == 1,
+                rs.getString("service_type"),
+                rs.getInt("rec_telepeaje_active") == 1,
+                rs.getInt("print_confirmation_voucher") == 1,
                 rs.getInt("is_refund") == 1,
                 bigDecimalToString(rs.getBigDecimal("min_amount")),
                 bigDecimalToString(rs.getBigDecimal("max_amount")),
@@ -495,6 +512,13 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             boolean active,
             boolean mixedPayment,
             String flgItem,
+            boolean only,
+            boolean allowOtherBillableServices,
+            boolean allowSameService,
+            boolean unique,
+            String serviceType,
+            boolean recTelepeajeActive,
+            boolean printConfirmationVoucher,
             boolean refund,
             String minAmount,
             String maxAmount,
@@ -578,6 +602,13 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             String movementType,
             boolean mixedPayment,
             String flgItem,
+            boolean only,
+            boolean allowOtherBillableServices,
+            boolean allowSameService,
+            boolean unique,
+            String serviceType,
+            boolean recTelepeajeActive,
+            boolean printConfirmationVoucher,
             boolean refund,
             String minAmount,
             String maxAmount,

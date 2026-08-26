@@ -49,7 +49,8 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         // AD: parametros de servicio (via gpf_omnistack. — rmsTemplate)
         when(rmsTemplate.query(eq("ad-services"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.AdServiceRow(
-                        "1", "100713841", true, false, "RECA", false,
+                        "1", "100713841", true, false, "RECA",
+                        true, true, false, false, "P", true, false, false,
                         "1", "200", "10000", "3", "3", true, "<html>consent</html>", false)));
 
         // RMS: metadata del item (CLASS/SUBCLASS, desc)
@@ -96,6 +97,9 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         assertEquals("10000", snapshot.getServices().get(0).getTimeoutWsMax());
         assertEquals("3", snapshot.getServices().get(0).getRetriesWsMax());
         assertEquals("3", snapshot.getServices().get(0).getNumTickets());
+        assertTrue(snapshot.getServices().get(0).isOnly());
+        assertTrue(snapshot.getServices().get(0).isAllowOtherBillableServices());
+        assertEquals("P", snapshot.getServices().get(0).getServiceType());
         assertTrue(snapshot.getServices().get(0).getInputFields().isEmpty());
         assertEquals("TARJETA_CREDITO", snapshot.getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode().name());
         assertTrue(snapshot.getServices().get(0).isRequiresConsent());

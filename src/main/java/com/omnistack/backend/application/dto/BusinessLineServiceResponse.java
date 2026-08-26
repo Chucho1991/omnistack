@@ -28,6 +28,20 @@ public class BusinessLineServiceResponse {
     boolean mixedPayment;
     @JsonProperty("flg_item")
     String flgItem;
+    @JsonProperty("flag_item")
+    String flagItem;
+    boolean only;
+    @JsonProperty("allow_other_billable_services")
+    boolean allowOtherBillableServices;
+    @JsonProperty("allow_same_service")
+    boolean allowSameService;
+    boolean unique;
+    @JsonProperty("service_type")
+    String serviceType;
+    @JsonProperty("rec_telepeaje_active")
+    boolean recTelepeajeActive;
+    @JsonProperty("print_confirmation_voucher")
+    boolean printConfirmationVoucher;
     @JsonProperty("is_refund")
     boolean refund;
     @JsonProperty("min_amount")
