@@ -28,8 +28,6 @@ public class BusinessLineServiceResponse {
     boolean mixedPayment;
     @JsonProperty("flg_item")
     String flgItem;
-    @JsonProperty("flag_item")
-    String flagItem;
     boolean only;
     @JsonProperty("allow_other_billable_services")
     boolean allowOtherBillableServices;

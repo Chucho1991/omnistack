@@ -1,6 +1,5 @@
 package com.omnistack.backend.application.service;
 
-import com.omnistack.backend.application.dto.BusinessLineCategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLineCollectionSubcategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLineInputFieldResponse;
 import com.omnistack.backend.application.dto.BusinessLinePaymentMethodResponse;
@@ -12,14 +11,15 @@ import com.omnistack.backend.application.mapper.ResponseFactory;
 import com.omnistack.backend.application.port.in.BusinessLinesUseCase;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.CollectionSubcategory;
-import com.omnistack.backend.domain.model.Category;
 import com.omnistack.backend.domain.model.InputField;
 import com.omnistack.backend.domain.model.PaymentMethod;
 import com.omnistack.backend.domain.model.ServiceDefinition;
 import com.omnistack.backend.domain.model.ServiceProvider;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,52 +39,110 @@ public class BusinessLinesService implements BusinessLinesUseCase {
 
     @Override
     public BusinessLinesResponse getBusinessLines(BusinessLinesRequest request) {
-        List<BusinessLineCategoryResponse> categories = businessLinesCatalogCacheService.getCatalogSnapshot(request)
+        Map<SubcategoryResponseKey, BusinessLineCollectionSubcategoryResponse> groupedSubcategories =
+                businessLinesCatalogCacheService.getCatalogSnapshot(request)
                 .getCategories().stream()
-                .map(category -> toCategoryResponse(category, request))
-                .filter(category -> !category.getSubcategories().isEmpty())
-                .collect(Collectors.toList());
+                .flatMap(category -> category.getSubcategories().stream()
+                        .map(subcategory -> toCollectionSubcategoryResponse(
+                                category.getCategoryCode(),
+                                category.getCategoryName(),
+                                subcategory,
+                                request)))
+                .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
+                .collect(Collectors.toMap(
+                        response -> new SubcategoryResponseKey(
+                                response.getCategoryCode(), response.getSubcategoryCode()),
+                        response -> response,
+                        this::mergeSubcategoryResponses,
+                        LinkedHashMap::new));
 
-        return ResponseFactory.businessLines(request, categories);
-    }
-
-    private BusinessLineCategoryResponse toCategoryResponse(Category category, BusinessLinesRequest request) {
-        return BusinessLineCategoryResponse.builder()
-                .categoryCode(category.getCategoryCode())
-                .categoryName(category.getCategoryName())
-                .subcategories(category.getSubcategories().stream()
-                        .map(subcategory -> toCollectionSubcategoryResponse(subcategory, request))
-                        .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
-                        .collect(Collectors.toList()))
-                .build();
+        return ResponseFactory.businessLines(request, List.copyOf(groupedSubcategories.values()));
     }
 
     private BusinessLineCollectionSubcategoryResponse toCollectionSubcategoryResponse(
+            String categoryCode,
+            String categoryName,
             CollectionSubcategory subcategory,
             BusinessLinesRequest request) {
         return BusinessLineCollectionSubcategoryResponse.builder()
+                .categoryCode(categoryCode)
+                .categoryName(categoryName)
                 .subcategoryCode(subcategory.getSubcategoryCode())
                 .subcategoryName(subcategory.getSubcategoryName())
                 .active(subcategory.isActive())
-                .serviceProviders(subcategory.getProviders().stream()
-                        .map(provider -> toProviderResponse(provider, request))
-                        .filter(provider -> !provider.getServices().isEmpty())
-                        .collect(Collectors.toList()))
+                .serviceProviders(toProviderResponses(subcategory, request))
+                .build();
+    }
+
+    private List<BusinessLineProviderResponse> toProviderResponses(
+            CollectionSubcategory subcategory,
+            BusinessLinesRequest request) {
+        Map<String, BusinessLineProviderResponse> providersByCode = subcategory.getProviders().stream()
+                .map(provider -> toProviderResponse(provider, request))
+                .filter(provider -> !provider.getServices().isEmpty())
+                .collect(Collectors.toMap(
+                        BusinessLineProviderResponse::getServiceProviderCode,
+                        provider -> provider,
+                        this::mergeProviderResponses,
+                        LinkedHashMap::new));
+        return List.copyOf(providersByCode.values());
+    }
+
+    private BusinessLineCollectionSubcategoryResponse mergeSubcategoryResponses(
+            BusinessLineCollectionSubcategoryResponse first,
+            BusinessLineCollectionSubcategoryResponse second) {
+        return BusinessLineCollectionSubcategoryResponse.builder()
+                .categoryCode(first.getCategoryCode())
+                .categoryName(first.getCategoryName())
+                .subcategoryCode(first.getSubcategoryCode())
+                .subcategoryName(first.getSubcategoryName())
+                .active(first.isActive() || second.isActive())
+                .serviceProviders(mergeProviders(first.getServiceProviders(), second.getServiceProviders()))
+                .build();
+    }
+
+    private List<BusinessLineProviderResponse> mergeProviders(
+            List<BusinessLineProviderResponse> first,
+            List<BusinessLineProviderResponse> second) {
+        Map<String, BusinessLineProviderResponse> providersByCode = new LinkedHashMap<>();
+        first.forEach(provider -> providersByCode.put(provider.getServiceProviderCode(), provider));
+        second.forEach(provider -> providersByCode.merge(
+                provider.getServiceProviderCode(), provider, this::mergeProviderResponses));
+        return List.copyOf(providersByCode.values());
+    }
+
+    private BusinessLineProviderResponse mergeProviderResponses(
+            BusinessLineProviderResponse first,
+            BusinessLineProviderResponse second) {
+        Map<String, BusinessLineServiceResponse> servicesByItem = new LinkedHashMap<>();
+        first.getServices().forEach(service -> servicesByItem.put(service.getRmsItemCode(), service));
+        second.getServices().forEach(service -> servicesByItem.putIfAbsent(service.getRmsItemCode(), service));
+        return BusinessLineProviderResponse.builder()
+                .serviceProviderCode(first.getServiceProviderCode())
+                .rucProvider(first.getRucProvider())
+                .providerName(first.getProviderName())
+                .active(first.isActive() || second.isActive())
+                .services(List.copyOf(servicesByItem.values()))
                 .build();
     }
 
     private BusinessLineProviderResponse toProviderResponse(
             ServiceProvider provider,
             BusinessLinesRequest request) {
+        Map<String, BusinessLineServiceResponse> servicesByItem = provider.getServices().stream()
+                .filter(service -> isVisibleService(service, request))
+                .map(service -> toServiceResponse(service, provider.getProviderName()))
+                .collect(Collectors.toMap(
+                        BusinessLineServiceResponse::getRmsItemCode,
+                        service -> service,
+                        (first, duplicate) -> first,
+                        LinkedHashMap::new));
         return BusinessLineProviderResponse.builder()
                 .serviceProviderCode(provider.getServiceProviderCode())
                 .rucProvider(provider.getRucProvider())
                 .providerName(provider.getProviderName())
                 .active(provider.isActive())
-                .services(provider.getServices().stream()
-                        .filter(service -> isVisibleService(service, request))
-                        .map(service -> toServiceResponse(service, provider.getProviderName()))
-                        .collect(Collectors.toList()))
+                .services(List.copyOf(servicesByItem.values()))
                 .build();
     }
 
@@ -102,7 +160,6 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .movementType(service.getMovementType().name())
                 .mixedPayment(service.isMixedPayment())
                 .flgItem(service.getFlgItem().name())
-                .flagItem(service.getFlgItem().name())
                 .only(service.isOnly())
                 .allowOtherBillableServices(service.isAllowOtherBillableServices())
                 .allowSameService(service.isAllowSameService())
@@ -193,5 +250,8 @@ public class BusinessLinesService implements BusinessLinesUseCase {
                 .paymentMethodCode(paymentMethod.getPaymentMethodCode().name().toUpperCase(Locale.ROOT).replace('_', ' '))
                 .active(paymentMethod.isActive())
                 .build();
+    }
+
+    private record SubcategoryResponseKey(String categoryCode, String subcategoryCode) {
     }
 }

@@ -1,6 +1,6 @@
 SELECT
     TRIM(c.RMS_ITEM_CODE) AS rms_item_code,
-    c.FLAG_ITEM AS flag_item,
+    c.FLAG_ITEM AS flg_item,
     CASE WHEN c.FLG_ONLY = 'S' THEN 1 ELSE 0 END AS is_only,
     CASE WHEN c.ALLOW_OTHER_BILLABLE_SERVICES = 'S' THEN 1 ELSE 0 END AS allow_other_billable_services,
     CASE WHEN c.ALLOW_SAME_SERVICE = 'S' THEN 1 ELSE 0 END AS allow_same_service,

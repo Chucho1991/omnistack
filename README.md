@@ -225,16 +225,15 @@ mvn clean test
 
 ## Catalogo business-lines
 
-El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedicado y cachea el resultado por llave de request durante 6 horas. Adicionalmente, el catálogo base del backend se refresca cada 6 horas desde el mismo adapter usando un request por defecto configurable. La respuesta conserva la jerarquía `categories -> subcategories -> service_providers -> services`, evitando repetir una categoría por cada subcategoría.
+El endpoint `POST /business-lines` consulta Oracle por medio de un adapter dedicado y cachea el resultado por llave de request durante 6 horas. Adicionalmente, el catálogo base del backend se refresca cada 6 horas desde el mismo adapter usando un request por defecto configurable. En `collection_subcategory`, cada elemento representa una combinación única `category_code + subcategory_code`; dentro se agrupan los `service_providers` y, dentro de cada proveedor, sus `services`.
 
 - Conexion Oracle configurada en `app.business-lines.oracle.datasource1.*`
 - Cache de 6 horas configurable en `app.business-lines.cache.ttl-hours`
 - Longitud maxima por linea de `consent_text` configurable en `app.business-lines.consent-text-max-line-length` (`APP_BUSINESS_LINES_CONSENT_TEXT_MAX_LINE_LENGTH`, por defecto 56)
 - El placeholder `{{provider_name}}` en `consent_text` se resuelve con el `provider_name` del proveedor antes de responder.
 - Request por defecto del refresco global configurable en `app.business-lines.default-request.*`
-- Los campos de presentacion `flag_item`, `only`, `allow_other_billable_services`, `allow_same_service`, `unique`, `service_type`, `rec_telepeaje_active` y `print_confirmation_voucher` se leen desde `TRX3.IN_OMNI_BUSINESS_LINE_ITEM`, asociados directamente a `RMS_ITEM_CODE`.
-- La migracion Oracle [48_CREATE_IN_OMNI_BUSINESS_LINE_ITEM.sql](docs/bdd/omnistack/48_CREATE_IN_OMNI_BUSINESS_LINE_ITEM.sql) crea la tabla, secuencia, constraints y parametriza los perfiles `P` (BET593/ECUABET) y `B` (LOTERIA/LOTTO/POZO/PEGA). Para items sin fila activa, el backend conserva `flag_item` desde RMS y aplica el perfil general `R`.
-- `flg_item` se conserva por compatibilidad; `flag_item` expone el valor configurable de TRX3 solicitado por el POS.
+- Los campos de presentacion `flg_item`, `only`, `allow_other_billable_services`, `allow_same_service`, `unique`, `service_type`, `rec_telepeaje_active` y `print_confirmation_voucher` se leen desde `TRX3.IN_OMNI_BUSINESS_LINE_ITEM`, asociados directamente a `RMS_ITEM_CODE`.
+- La migracion Oracle [48_CREATE_IN_OMNI_BUSINESS_LINE_ITEM.sql](docs/bdd/omnistack/48_CREATE_IN_OMNI_BUSINESS_LINE_ITEM.sql) crea la tabla, secuencia, constraints y parametriza los perfiles `P` (BET593/ECUABET) y `B` (LOTERIA/LOTTO/POZO/PEGA). Para items sin fila activa, el backend conserva `flg_item` desde RMS y aplica el perfil general `R`.
 - Seguridad: este cambio no agrega un endpoint ni modifica su mecanismo actual; la autorizacion por rol de `POST /business-lines` permanece como pendiente tecnico mientras el proyecto no disponga de un modulo de seguridad.
 - La respuesta expone solo servicios cuyo `rms_item_code` este configurado como `item` en `app.integration.providers.*.services.*.(cashin|cashout).item`; si no existen items configurados, no se aplica este filtro.
 - Fuente SQL mock inicial en [src/main/resources/sql/business-lines/oracle/category-subcategory.sql](/d:/Documentos/06%20-%20Recaudos/00.Fuente/omnistack/src/main/resources/sql/business-lines/oracle/category-subcategory.sql)
@@ -311,17 +310,15 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
   "store_name": "FYBECA AMAZONAS",
   "pos": "1",
   "channel_POS": "POS",
-  "categories": [
+  "collection_subcategory": [
     {
       "category_code": "1",
       "category_name": "ENTRETENIMIENTO",
-      "subcategories": [
+      "subcategory_code": "1",
+      "subcategory_name": "APUESTAS",
+      "is_active": true,
+      "service_providers": [
         {
-          "subcategory_code": "1",
-          "subcategory_name": "APUESTAS",
-          "is_active": true,
-          "service_providers": [
-            {
           "service_provider_code": "1",
           "ruc_provider": "9999999999001",
           "provider_name": "ECUABET",
@@ -335,7 +332,6 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
               "movement_type": "CASH_IN",
               "is_mixed_payment": true,
               "flg_item": "RECA",
-              "flag_item": "RECA",
               "only": true,
               "allow_other_billable_services": true,
               "allow_same_service": false,
@@ -388,8 +384,6 @@ El environment local centraliza las variables comunes de ejecucion (`baseUrl`, `
               ],
               "requires_consent": true,
               "consent_text": "Autorizo de forma expresa la creación de mi registro y el uso de mis datos personales para acceder a los servicios digitales de ECUABET, incluyendo la validación de mi identidad, la gestión de apuestas y el procesamiento de pagos. Declaro que acepto los términos y condiciones del servicio y la política de tratamiento de datos personales, reconociendo mi responsabilidad en el uso de este servicio."
-            }
-          ]
             }
           ]
         }

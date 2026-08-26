@@ -213,7 +213,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                             rms.description(), r.active(),
                             null,
                             movementType,
-                            r.mixedPayment(), itemConfiguration.flagItem(),
+                            r.mixedPayment(), itemConfiguration.flgItem(),
                             itemConfiguration.only(), itemConfiguration.allowOtherBillableServices(),
                             itemConfiguration.allowSameService(), itemConfiguration.unique(),
                             itemConfiguration.serviceType(), itemConfiguration.recTelepeajeActive(),
@@ -455,7 +455,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
     private RowMapper<BusinessLineItemConfigRow> businessLineItemConfigRowMapper() {
         return (rs, rowNum) -> new BusinessLineItemConfigRow(
                 rs.getString("rms_item_code"),
-                rs.getString("flag_item"),
+                rs.getString("flg_item"),
                 rs.getInt("is_only") == 1,
                 rs.getInt("allow_other_billable_services") == 1,
                 rs.getInt("allow_same_service") == 1,
@@ -465,8 +465,8 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getInt("print_confirmation_voucher") == 1);
     }
 
-    private BusinessLineItemConfigRow defaultBusinessLineItemConfig(String rmsItemCode, String flagItem) {
-        return new BusinessLineItemConfigRow(rmsItemCode, flagItem, false, true, true,
+    private BusinessLineItemConfigRow defaultBusinessLineItemConfig(String rmsItemCode, String flgItem) {
+        return new BusinessLineItemConfigRow(rmsItemCode, flgItem, false, true, true,
                 false, "R", true, true);
     }
 
@@ -553,7 +553,7 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
 
     record BusinessLineItemConfigRow(
             String rmsItemCode,
-            String flagItem,
+            String flgItem,
             boolean only,
             boolean allowOtherBillableServices,
             boolean allowSameService,

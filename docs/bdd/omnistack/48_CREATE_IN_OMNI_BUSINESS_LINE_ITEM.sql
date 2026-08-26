@@ -63,7 +63,7 @@ END;
 
 COMMENT ON TABLE IN_OMNI_BUSINESS_LINE_ITEM IS 'Configuracion POS de business-lines asociada a un codigo de item RMS';
 COMMENT ON COLUMN IN_OMNI_BUSINESS_LINE_ITEM.RMS_ITEM_CODE IS 'Codigo de item del catalogo RMS';
-COMMENT ON COLUMN IN_OMNI_BUSINESS_LINE_ITEM.FLAG_ITEM IS 'Bandera de item expuesta al POS: RECA o FACT';
+COMMENT ON COLUMN IN_OMNI_BUSINESS_LINE_ITEM.FLAG_ITEM IS 'Bandera de item expuesta al POS como flg_item: RECA o FACT';
 COMMENT ON COLUMN IN_OMNI_BUSINESS_LINE_ITEM.FLG_ONLY IS 'S si el item debe mostrarse como unica opcion del flujo';
 COMMENT ON COLUMN IN_OMNI_BUSINESS_LINE_ITEM.ALLOW_OTHER_BILLABLE_SERVICES IS 'S si permite agregar otros servicios facturables';
 COMMENT ON COLUMN IN_OMNI_BUSINESS_LINE_ITEM.ALLOW_SAME_SERVICE IS 'S si permite repetir el mismo servicio';

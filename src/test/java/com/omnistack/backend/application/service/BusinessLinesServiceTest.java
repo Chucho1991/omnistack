@@ -126,10 +126,9 @@ class BusinessLinesServiceTest {
         assertEquals("0001", response.getStore());
         assertEquals("Tienda Centro", response.getStoreName());
         assertEquals("POS", response.getChannelPos());
-        assertEquals(1, response.getCategories().size());
-        assertEquals("REC", response.getCategories().get(0).getCategoryCode());
-        assertEquals(1, response.getCategories().get(0).getSubcategories().size());
-        var subcategory = response.getCategories().get(0).getSubcategories().get(0);
+        assertEquals(1, response.getCollectionSubcategory().size());
+        var subcategory = response.getCollectionSubcategory().get(0);
+        assertEquals("REC", subcategory.getCategoryCode());
         assertTrue(subcategory.isActive());
         assertEquals(1, subcategory.getServiceProviders().size());
         assertEquals("9999999999001", subcategory.getServiceProviders().get(0).getRucProvider());
@@ -138,7 +137,7 @@ class BusinessLinesServiceTest {
         assertEquals("10000", subcategory.getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
         assertEquals("3", subcategory.getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
         assertEquals("3", subcategory.getServiceProviders().get(0).getServices().get(0).getNumTickets());
-        assertEquals("RECA", subcategory.getServiceProviders().get(0).getServices().get(0).getFlagItem());
+        assertEquals("RECA", subcategory.getServiceProviders().get(0).getServices().get(0).getFlgItem());
         assertFalse(subcategory.getServiceProviders().get(0).getServices().get(0).isOnly());
         assertTrue(subcategory.getServiceProviders().get(0).getServices().get(0).isAllowOtherBillableServices());
         assertTrue(subcategory.getServiceProviders().get(0).getServices().get(0).isAllowSameService());
@@ -152,7 +151,7 @@ class BusinessLinesServiceTest {
     }
 
     @Test
-    void shouldKeepSubcategoriesGroupedUnderTheirCategory() {
+    void shouldGroupIsolatedEntriesByCategorySubcategoryAndProvider() {
         BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
         BusinessLinesService service = new BusinessLinesService(cacheService, new AppProperties());
         BusinessLinesRequest request = BusinessLinesRequest.builder()
@@ -164,27 +163,31 @@ class BusinessLinesServiceTest {
                 .build();
         ServiceDefinition firstService = serviceDefinition("900001", MovementType.CASH_IN);
         ServiceDefinition secondService = serviceDefinition("900002", MovementType.CASH_OUT);
+        ServiceDefinition thirdService = serviceDefinition("900003", MovementType.CASH_IN);
 
         when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
-                .categories(List.of(Category.builder()
-                        .categoryCode("ENT")
-                        .categoryName("Entretenimiento")
-                        .subcategories(List.of(
-                                subcategory("BET", "Apuestas", firstService),
-                                subcategory("LOT", "Loterias", secondService)))
-                        .build()))
-                .services(List.of(firstService, secondService))
+                .categories(List.of(
+                        category("ENT", "Entretenimiento",
+                                subcategory("BET", "Apuestas", "LOTERIA", firstService)),
+                        category("ENT", "Entretenimiento",
+                                subcategory("BET", "Apuestas", "LOTERIA", secondService)),
+                        category("ENT", "Entretenimiento",
+                                subcategory("BET", "Apuestas", "ECUABET", thirdService))))
+                .services(List.of(firstService, secondService, thirdService))
                 .loadedAt(OffsetDateTime.now())
                 .version("v1")
                 .build());
 
         var response = service.getBusinessLines(request);
 
-        assertEquals(1, response.getCategories().size());
-        assertEquals("ENT", response.getCategories().get(0).getCategoryCode());
-        assertEquals(List.of("BET", "LOT"), response.getCategories().get(0).getSubcategories().stream()
-                .map(subcategoryResponse -> subcategoryResponse.getSubcategoryCode())
-                .toList());
+        assertEquals(1, response.getCollectionSubcategory().size());
+        var groupedSubcategory = response.getCollectionSubcategory().get(0);
+        assertEquals("ENT", groupedSubcategory.getCategoryCode());
+        assertEquals("BET", groupedSubcategory.getSubcategoryCode());
+        assertEquals(2, groupedSubcategory.getServiceProviders().size());
+        assertEquals("LOTERIA", groupedSubcategory.getServiceProviders().get(0).getServiceProviderCode());
+        assertEquals(List.of("900001", "900002"), groupedSubcategory.getServiceProviders().get(0)
+                .getServices().stream().map(serviceResponse -> serviceResponse.getRmsItemCode()).toList());
     }
 
     @Test
@@ -248,7 +251,7 @@ class BusinessLinesServiceTest {
 
         var response = service.getBusinessLines(request);
 
-        String consentText = response.getCategories().get(0).getSubcategories().get(0)
+        String consentText = response.getCollectionSubcategory().get(0)
                 .getServiceProviders().get(0).getServices().get(0).getConsentText();
         assertEquals("Autorizo de forma\nexpresa la creacion\nde mi registro", consentText);
         assertTrue(consentText.lines().allMatch(line -> line.length() <= 20));
@@ -315,7 +318,7 @@ class BusinessLinesServiceTest {
 
         var response = service.getBusinessLines(request);
 
-        String consentText = response.getCategories().get(0).getSubcategories().get(0)
+        String consentText = response.getCollectionSubcategory().get(0)
                 .getServiceProviders().get(0).getServices().get(0).getConsentText();
         assertEquals("Autorizo servicios digitales de ECUABET", consentText);
     }
@@ -364,7 +367,7 @@ class BusinessLinesServiceTest {
 
         var response = service.getBusinessLines(request);
 
-        List<String> returnedItems = response.getCategories().get(0).getSubcategories().get(0)
+        List<String> returnedItems = response.getCollectionSubcategory().get(0)
                 .getServiceProviders().get(0)
                 .getServices().stream()
                 .map(serviceResponse -> serviceResponse.getRmsItemCode())
@@ -375,17 +378,26 @@ class BusinessLinesServiceTest {
     private static CollectionSubcategory subcategory(
             String code,
             String name,
+            String providerCode,
             ServiceDefinition service) {
         return CollectionSubcategory.builder()
                 .subcategoryCode(code)
                 .subcategoryName(name)
                 .active(true)
                 .providers(List.of(ServiceProvider.builder()
-                        .serviceProviderCode("PROVIDER-" + code)
-                        .providerName("Proveedor " + code)
+                        .serviceProviderCode(providerCode)
+                        .providerName("Proveedor " + providerCode)
                         .active(true)
                         .services(List.of(service))
                         .build()))
+                .build();
+    }
+
+    private static Category category(String code, String name, CollectionSubcategory subcategory) {
+        return Category.builder()
+                .categoryCode(code)
+                .categoryName(name)
+                .subcategories(List.of(subcategory))
                 .build();
     }
 

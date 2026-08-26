@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.omnistack.backend.application.dto.BusinessLineCategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLineCollectionSubcategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLineInputFieldResponse;
 import com.omnistack.backend.application.dto.BusinessLinePaymentMethodResponse;
@@ -42,14 +41,13 @@ class BusinessLinesControllerTest {
                 .storeName("FYBECA AMAZONAS")
                 .pos("1")
                 .channelPos("POS")
-                .categories(List.of(BusinessLineCategoryResponse.builder()
+                .collectionSubcategory(List.of(BusinessLineCollectionSubcategoryResponse.builder()
                         .categoryCode("REC")
                         .categoryName("Recargas")
-                        .subcategories(List.of(BusinessLineCollectionSubcategoryResponse.builder()
-                                .subcategoryCode("CEL")
-                                .subcategoryName("Recargas celulares")
-                                .active(true)
-                                .serviceProviders(List.of(BusinessLineProviderResponse.builder()
+                        .subcategoryCode("CEL")
+                        .subcategoryName("Recargas celulares")
+                        .active(true)
+                        .serviceProviders(List.of(BusinessLineProviderResponse.builder()
                                 .serviceProviderCode("CLARO")
                                 .rucProvider("9999999999001")
                                 .providerName("Claro")
@@ -62,7 +60,6 @@ class BusinessLinesControllerTest {
                                         .movementType("CASH_IN")
                                         .mixedPayment(false)
                                         .flgItem("RECA")
-                                        .flagItem("FACT")
                                         .only(false)
                                         .allowOtherBillableServices(true)
                                         .allowSameService(true)
@@ -92,7 +89,6 @@ class BusinessLinesControllerTest {
                                                 .build()))
                                         .requiresConsent(false)
                                         .build()))
-                                        .build()))
                                 .build()))
                         .build()))
                 .build());
@@ -112,22 +108,23 @@ class BusinessLinesControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.store_name").value("FYBECA AMAZONAS"))
                 .andExpect(jsonPath("$.channel_POS").value("POS"))
-                .andExpect(jsonPath("$.categories[0].category_code").value("REC"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].is_active").value(true))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].ruc_provider").value("9999999999001"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].timeout_ws_max").value("10000"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].retries_ws_max").value("3"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].num_tickets").value("3"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].flag_item").value("FACT"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].only").value(false))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].allow_other_billable_services").value(true))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].allow_same_service").value(true))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].unique").value(false))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].service_type").value("R"))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].rec_telepeaje_active").value(true))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].print_confirmation_voucher").value(true))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].payment_methods[0].service_payment_method_id").value(1))
-                .andExpect(jsonPath("$.categories[0].subcategories[0].service_providers[0].services[0].input_fields[0].capability").value("PRECHECK"));
+                .andExpect(jsonPath("$.collection_subcategory[0].category_code").value("REC"))
+                .andExpect(jsonPath("$.collection_subcategory[0].is_active").value(true))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].ruc_provider").value("9999999999001"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].timeout_ws_max").value("10000"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].retries_ws_max").value("3"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].num_tickets").value("3"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].flg_item").value("RECA"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].flag_item").doesNotExist())
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].only").value(false))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].allow_other_billable_services").value(true))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].allow_same_service").value(true))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].unique").value(false))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].service_type").value("R"))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].rec_telepeaje_active").value(true))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].print_confirmation_voucher").value(true))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].payment_methods[0].service_payment_method_id").value(1))
+                .andExpect(jsonPath("$.collection_subcategory[0].service_providers[0].services[0].input_fields[0].capability").value("PRECHECK"));
     }
 
     @Test
