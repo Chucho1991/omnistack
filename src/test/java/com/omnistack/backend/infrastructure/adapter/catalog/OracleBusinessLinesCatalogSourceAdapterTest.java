@@ -45,13 +45,18 @@ class OracleBusinessLinesCatalogSourceAdapterTest {
         when(sqlProvider.getAdCapabilitiesByProviderSql()).thenReturn("omni-cap-by-provider");
         when(sqlProvider.getAdMovementTypesSql()).thenReturn("movement-types");
         when(sqlProvider.getInputFieldsSql()).thenReturn("input-fields");
+        when(sqlProvider.getItemBusinessLineConfigSql()).thenReturn("item-business-line-config");
 
         // AD: parametros de servicio (via gpf_omnistack. — rmsTemplate)
         when(rmsTemplate.query(eq("ad-services"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(
                 new OracleBusinessLinesCatalogSourceAdapter.AdServiceRow(
-                        "1", "100713841", true, false, "RECA",
-                        true, true, false, false, "P", true, false, false,
+                        "1", "100713841", true, false, "RECA", false,
                         "1", "200", "10000", "3", "3", true, "<html>consent</html>", false)));
+
+        // TRX3: reglas de presentacion del POS por item.
+        when(prodTemplate.query(eq("item-business-line-config"), any(SqlParameterSource.class), any(RowMapper.class)))
+                .thenReturn(List.of(new OracleBusinessLinesCatalogSourceAdapter.BusinessLineItemConfigRow(
+                        "100713841", "RECA", true, true, false, false, "P", true, false)));
 
         // RMS: metadata del item (CLASS/SUBCLASS, desc)
         when(rmsTemplate.query(eq("rms-items"), any(SqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of(

@@ -26,6 +26,7 @@ public class OracleBusinessLinesSqlProvider {
     private final String adMovementTypesSql = readSql("sql/business-lines/oracle/ad-movement-types.sql");
     private final String rmsItemsSql = readSql("sql/business-lines/oracle/rms-items.sql");
     private final String rmsSuppliersSql = readSql("sql/business-lines/oracle/rms-suppliers.sql");
+    private final String itemBusinessLineConfigSql = readSql("sql/business-lines/oracle/item-business-line-config.sql");
 
     /**
      * Retorna el SQL de categorias y subcategorias.
@@ -107,6 +108,15 @@ public class OracleBusinessLinesSqlProvider {
 
     public String getRmsSuppliersSql() {
         return rmsSuppliersSql;
+    }
+
+    /**
+     * Retorna el SQL de configuracion POS por codigo de item en TRX3.
+     *
+     * @return sentencia SQL de configuracion de business-lines por item
+     */
+    public String getItemBusinessLineConfigSql() {
+        return itemBusinessLineConfigSql;
     }
 
     private String readSql(String path) {

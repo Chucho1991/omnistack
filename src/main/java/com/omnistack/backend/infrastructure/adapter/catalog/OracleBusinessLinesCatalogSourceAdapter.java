@@ -95,6 +95,20 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
         // --- RMS: metadata de items (CLASS, SUBCLASS, desc, tipo movimiento) ---
         MapSqlParameterSource rmsParams = new MapSqlParameterSource(
                 "rms_item_codes", new ArrayList<>(activeItemCodes));
+
+        // --- PROD (TRX3): reglas de presentacion POS por rms_item_code ---
+        List<BusinessLineItemConfigRow> itemConfigurations = prodJdbcTemplate.query(
+                sqlProvider.getItemBusinessLineConfigSql(), rmsParams, businessLineItemConfigRowMapper());
+        Map<String, BusinessLineItemConfigRow> itemConfigurationByCode = itemConfigurations.stream()
+                .collect(Collectors.toMap(BusinessLineItemConfigRow::rmsItemCode, row -> row,
+                        (a, b) -> a, LinkedHashMap::new));
+        log.debug("[BL-catalog] itemConfigurations={}", itemConfigurations.size());
+        if (itemConfigurations.size() < activeItemCodes.size()) {
+            Set<String> missingItemConfigurations = new LinkedHashSet<>(activeItemCodes);
+            missingItemConfigurations.removeAll(itemConfigurationByCode.keySet());
+            log.warn("[BL-catalog] items sin configuracion en IN_OMNI_BUSINESS_LINE_ITEM={}, se aplicara perfil R", missingItemConfigurations);
+        }
+
         List<RmsItemRow> rmsItems = rmsJdbcTemplate.query(
                 sqlProvider.getRmsItemsSql(), rmsParams, rmsItemRowMapper());
         log.debug("[BL-catalog] rmsItems={}", rmsItems.size());
@@ -191,15 +205,19 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 .map(r -> {
                     RmsItemRow rms = rmsItemMap.get(r.rmsItemCode());
                     String movementType = movementTypeByItem.getOrDefault(r.rmsItemCode(), "CASH_IN");
+                    BusinessLineItemConfigRow itemConfiguration = itemConfigurationByCode.getOrDefault(
+                            r.rmsItemCode(), defaultBusinessLineItemConfig(r.rmsItemCode(), r.flgItem()));
                     return new ServiceRow(
                             rms.categoryCode(), rms.subcategoryCode(),
                             r.serviceProviderCode(), r.rmsItemCode(),
                             rms.description(), r.active(),
                             null,
                             movementType,
-                            r.mixedPayment(), r.flgItem(),
-                            r.only(), r.allowOtherBillableServices(), r.allowSameService(),
-                            r.unique(), r.serviceType(), r.recTelepeajeActive(), r.printConfirmationVoucher(),
+                            r.mixedPayment(), itemConfiguration.flagItem(),
+                            itemConfiguration.only(), itemConfiguration.allowOtherBillableServices(),
+                            itemConfiguration.allowSameService(), itemConfiguration.unique(),
+                            itemConfiguration.serviceType(), itemConfiguration.recTelepeajeActive(),
+                            itemConfiguration.printConfirmationVoucher(),
                             r.refund(),
                             r.minAmount(), r.maxAmount(),
                             r.timeoutWsMax(), r.retriesWsMax(), r.numTickets(),
@@ -423,13 +441,6 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getInt("is_active") == 1,
                 rs.getInt("is_mixed_payment") == 1,
                 rs.getString("flg_item"),
-                rs.getInt("is_only") == 1,
-                rs.getInt("allow_other_billable_services") == 1,
-                rs.getInt("allow_same_service") == 1,
-                rs.getInt("is_unique") == 1,
-                rs.getString("service_type"),
-                rs.getInt("rec_telepeaje_active") == 1,
-                rs.getInt("print_confirmation_voucher") == 1,
                 rs.getInt("is_refund") == 1,
                 bigDecimalToString(rs.getBigDecimal("min_amount")),
                 bigDecimalToString(rs.getBigDecimal("max_amount")),
@@ -439,6 +450,24 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
                 rs.getInt("requires_consent") == 1,
                 rs.getString("consent_text"),
                 rs.getInt("homologated_auth") == 1);
+    }
+
+    private RowMapper<BusinessLineItemConfigRow> businessLineItemConfigRowMapper() {
+        return (rs, rowNum) -> new BusinessLineItemConfigRow(
+                rs.getString("rms_item_code"),
+                rs.getString("flag_item"),
+                rs.getInt("is_only") == 1,
+                rs.getInt("allow_other_billable_services") == 1,
+                rs.getInt("allow_same_service") == 1,
+                rs.getInt("is_unique") == 1,
+                rs.getString("service_type"),
+                rs.getInt("rec_telepeaje_active") == 1,
+                rs.getInt("print_confirmation_voucher") == 1);
+    }
+
+    private BusinessLineItemConfigRow defaultBusinessLineItemConfig(String rmsItemCode, String flagItem) {
+        return new BusinessLineItemConfigRow(rmsItemCode, flagItem, false, true, true,
+                false, "R", true, true);
     }
 
     private RowMapper<MovementTypeRow> movementTypeRowMapper() {
@@ -512,13 +541,6 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             boolean active,
             boolean mixedPayment,
             String flgItem,
-            boolean only,
-            boolean allowOtherBillableServices,
-            boolean allowSameService,
-            boolean unique,
-            String serviceType,
-            boolean recTelepeajeActive,
-            boolean printConfirmationVoucher,
             boolean refund,
             String minAmount,
             String maxAmount,
@@ -528,6 +550,17 @@ public class OracleBusinessLinesCatalogSourceAdapter implements BusinessLinesCat
             boolean requiresConsent,
             String consentText,
             boolean homologatedAuth) {}
+
+    record BusinessLineItemConfigRow(
+            String rmsItemCode,
+            String flagItem,
+            boolean only,
+            boolean allowOtherBillableServices,
+            boolean allowSameService,
+            boolean unique,
+            String serviceType,
+            boolean recTelepeajeActive,
+            boolean printConfirmationVoucher) {}
 
     record MovementTypeRow(String rmsItemCode, String movementType) {}
 

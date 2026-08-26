@@ -2,7 +2,7 @@ package com.omnistack.backend.application.mapper;
 
 import com.omnistack.backend.application.dto.BaseTransactionRequest;
 import com.omnistack.backend.application.dto.BaseTransactionResponse;
-import com.omnistack.backend.application.dto.BusinessLineCollectionSubcategoryResponse;
+import com.omnistack.backend.application.dto.BusinessLineCategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLinesRequest;
 import com.omnistack.backend.application.dto.BusinessLinesResponse;
 import com.omnistack.backend.application.dto.CreateTicketResponse;
@@ -32,19 +32,19 @@ public final class ResponseFactory {
      * Construye la respuesta de lineas de negocio.
      *
      * @param request request original de consulta
-     * @param collectionSubcategory subcategorias comerciales agrupadas
+     * @param categories categorias comerciales con sus subcategorias agrupadas
      * @return respuesta consolidada de lineas de negocio
      */
     public static BusinessLinesResponse businessLines(
             BusinessLinesRequest request,
-            java.util.List<BusinessLineCollectionSubcategoryResponse> collectionSubcategory) {
+            java.util.List<BusinessLineCategoryResponse> categories) {
         return BusinessLinesResponse.builder()
                 .chain(request.getChain())
                 .store(request.getStore())
                 .storeName(request.getStoreName())
                 .pos(request.getPos())
                 .channelPos(request.getChannelPos().name())
-                .collectionSubcategory(collectionSubcategory)
+                .categories(categories)
                 .build();
     }
 

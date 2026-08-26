@@ -37,7 +37,7 @@ public class BusinessLinesController {
     @PostMapping(ApiPaths.BUSINESS_LINES)
     @Operation(
             summary = "Consultar lineas de negocio",
-            description = "Retorna la oferta comercial parametrizada para un punto de venta",
+            description = "Retorna la oferta comercial agrupada por categorias y subcategorias para un punto de venta",
             responses = {
                 @ApiResponse(
                         responseCode = "200",
@@ -50,15 +50,17 @@ public class BusinessLinesController {
                                           "store_name": "FYBECA AMAZONAS",
                                           "pos": "1",
                                           "channel_POS": "POS",
-                                          "collection_subcategory": [
+                                          "categories": [
                                             {
                                               "category_code": "REC",
                                               "category_name": "Recargas",
-                                              "subcategory_code": "CEL",
-                                              "subcategory_name": "Recargas celulares",
-                                              "is_active": true,
-                                              "service_providers": [
+                                              "subcategories": [
                                                 {
+                                                  "subcategory_code": "CEL",
+                                                  "subcategory_name": "Recargas celulares",
+                                                  "is_active": true,
+                                                  "service_providers": [
+                                                    {
                                                   "service_provider_code": "CLARO",
                                                   "provider_name": "Claro",
                                                   "is_active": true,
@@ -95,6 +97,8 @@ public class BusinessLinesController {
                                                         }
                                                       ],
                                                       "requires_consent": false
+                                                    }
+                                                  ]
                                                     }
                                                   ]
                                                 }

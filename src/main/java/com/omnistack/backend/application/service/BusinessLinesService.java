@@ -1,5 +1,6 @@
 package com.omnistack.backend.application.service;
 
+import com.omnistack.backend.application.dto.BusinessLineCategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLineCollectionSubcategoryResponse;
 import com.omnistack.backend.application.dto.BusinessLineInputFieldResponse;
 import com.omnistack.backend.application.dto.BusinessLinePaymentMethodResponse;
@@ -11,6 +12,7 @@ import com.omnistack.backend.application.mapper.ResponseFactory;
 import com.omnistack.backend.application.port.in.BusinessLinesUseCase;
 import com.omnistack.backend.config.properties.AppProperties;
 import com.omnistack.backend.domain.model.CollectionSubcategory;
+import com.omnistack.backend.domain.model.Category;
 import com.omnistack.backend.domain.model.InputField;
 import com.omnistack.backend.domain.model.PaymentMethod;
 import com.omnistack.backend.domain.model.ServiceDefinition;
@@ -37,28 +39,30 @@ public class BusinessLinesService implements BusinessLinesUseCase {
 
     @Override
     public BusinessLinesResponse getBusinessLines(BusinessLinesRequest request) {
-        List<BusinessLineCollectionSubcategoryResponse> collectionSubcategories = businessLinesCatalogCacheService.getCatalogSnapshot(request)
+        List<BusinessLineCategoryResponse> categories = businessLinesCatalogCacheService.getCatalogSnapshot(request)
                 .getCategories().stream()
-                .flatMap(category -> category.getSubcategories().stream()
-                        .map(subcategory -> toCollectionSubcategoryResponse(
-                                category.getCategoryCode(),
-                                category.getCategoryName(),
-                                subcategory,
-                                request)))
-                .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
+                .map(category -> toCategoryResponse(category, request))
+                .filter(category -> !category.getSubcategories().isEmpty())
                 .collect(Collectors.toList());
 
-        return ResponseFactory.businessLines(request, collectionSubcategories);
+        return ResponseFactory.businessLines(request, categories);
+    }
+
+    private BusinessLineCategoryResponse toCategoryResponse(Category category, BusinessLinesRequest request) {
+        return BusinessLineCategoryResponse.builder()
+                .categoryCode(category.getCategoryCode())
+                .categoryName(category.getCategoryName())
+                .subcategories(category.getSubcategories().stream()
+                        .map(subcategory -> toCollectionSubcategoryResponse(subcategory, request))
+                        .filter(subcategory -> !subcategory.getServiceProviders().isEmpty())
+                        .collect(Collectors.toList()))
+                .build();
     }
 
     private BusinessLineCollectionSubcategoryResponse toCollectionSubcategoryResponse(
-            String categoryCode,
-            String categoryName,
             CollectionSubcategory subcategory,
             BusinessLinesRequest request) {
         return BusinessLineCollectionSubcategoryResponse.builder()
-                .categoryCode(categoryCode)
-                .categoryName(categoryName)
                 .subcategoryCode(subcategory.getSubcategoryCode())
                 .subcategoryName(subcategory.getSubcategoryName())
                 .active(subcategory.isActive())

@@ -126,27 +126,65 @@ class BusinessLinesServiceTest {
         assertEquals("0001", response.getStore());
         assertEquals("Tienda Centro", response.getStoreName());
         assertEquals("POS", response.getChannelPos());
-        assertEquals(1, response.getCollectionSubcategory().size());
-        assertEquals("REC", response.getCollectionSubcategory().get(0).getCategoryCode());
-        assertTrue(response.getCollectionSubcategory().get(0).isActive());
-        assertEquals(1, response.getCollectionSubcategory().get(0).getServiceProviders().size());
-        assertEquals("9999999999001", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getRucProvider());
-        assertEquals(1, response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().size());
-        assertEquals("900001", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRmsItemCode());
-        assertEquals("10000", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
-        assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
-        assertEquals("3", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getNumTickets());
-        assertEquals("RECA", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getFlagItem());
-        assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isOnly());
-        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isAllowOtherBillableServices());
-        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isAllowSameService());
-        assertEquals("R", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getServiceType());
-        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRecTelepeajeActive());
-        assertTrue(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isPrintConfirmationVoucher());
-        assertFalse(response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).isRequiresConsent());
-        assertEquals("Texto sin formato requerido", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText());
-        assertEquals("phone", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getInputFields().get(0).getId());
-        assertEquals("EFECTIVO", response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode());
+        assertEquals(1, response.getCategories().size());
+        assertEquals("REC", response.getCategories().get(0).getCategoryCode());
+        assertEquals(1, response.getCategories().get(0).getSubcategories().size());
+        var subcategory = response.getCategories().get(0).getSubcategories().get(0);
+        assertTrue(subcategory.isActive());
+        assertEquals(1, subcategory.getServiceProviders().size());
+        assertEquals("9999999999001", subcategory.getServiceProviders().get(0).getRucProvider());
+        assertEquals(1, subcategory.getServiceProviders().get(0).getServices().size());
+        assertEquals("900001", subcategory.getServiceProviders().get(0).getServices().get(0).getRmsItemCode());
+        assertEquals("10000", subcategory.getServiceProviders().get(0).getServices().get(0).getTimeoutWsMax());
+        assertEquals("3", subcategory.getServiceProviders().get(0).getServices().get(0).getRetriesWsMax());
+        assertEquals("3", subcategory.getServiceProviders().get(0).getServices().get(0).getNumTickets());
+        assertEquals("RECA", subcategory.getServiceProviders().get(0).getServices().get(0).getFlagItem());
+        assertFalse(subcategory.getServiceProviders().get(0).getServices().get(0).isOnly());
+        assertTrue(subcategory.getServiceProviders().get(0).getServices().get(0).isAllowOtherBillableServices());
+        assertTrue(subcategory.getServiceProviders().get(0).getServices().get(0).isAllowSameService());
+        assertEquals("R", subcategory.getServiceProviders().get(0).getServices().get(0).getServiceType());
+        assertTrue(subcategory.getServiceProviders().get(0).getServices().get(0).isRecTelepeajeActive());
+        assertTrue(subcategory.getServiceProviders().get(0).getServices().get(0).isPrintConfirmationVoucher());
+        assertFalse(subcategory.getServiceProviders().get(0).getServices().get(0).isRequiresConsent());
+        assertEquals("Texto sin formato requerido", subcategory.getServiceProviders().get(0).getServices().get(0).getConsentText());
+        assertEquals("phone", subcategory.getServiceProviders().get(0).getServices().get(0).getInputFields().get(0).getId());
+        assertEquals("EFECTIVO", subcategory.getServiceProviders().get(0).getServices().get(0).getPaymentMethods().get(0).getPaymentMethodCode());
+    }
+
+    @Test
+    void shouldKeepSubcategoriesGroupedUnderTheirCategory() {
+        BusinessLinesCatalogCacheService cacheService = Mockito.mock(BusinessLinesCatalogCacheService.class);
+        BusinessLinesService service = new BusinessLinesService(cacheService, new AppProperties());
+        BusinessLinesRequest request = BusinessLinesRequest.builder()
+                .chain("001")
+                .store("0001")
+                .storeName("Tienda Centro")
+                .pos("POS-01")
+                .channelPos(ChannelPos.POS)
+                .build();
+        ServiceDefinition firstService = serviceDefinition("900001", MovementType.CASH_IN);
+        ServiceDefinition secondService = serviceDefinition("900002", MovementType.CASH_OUT);
+
+        when(cacheService.getCatalogSnapshot(request)).thenReturn(CatalogSnapshot.builder()
+                .categories(List.of(Category.builder()
+                        .categoryCode("ENT")
+                        .categoryName("Entretenimiento")
+                        .subcategories(List.of(
+                                subcategory("BET", "Apuestas", firstService),
+                                subcategory("LOT", "Loterias", secondService)))
+                        .build()))
+                .services(List.of(firstService, secondService))
+                .loadedAt(OffsetDateTime.now())
+                .version("v1")
+                .build());
+
+        var response = service.getBusinessLines(request);
+
+        assertEquals(1, response.getCategories().size());
+        assertEquals("ENT", response.getCategories().get(0).getCategoryCode());
+        assertEquals(List.of("BET", "LOT"), response.getCategories().get(0).getSubcategories().stream()
+                .map(subcategoryResponse -> subcategoryResponse.getSubcategoryCode())
+                .toList());
     }
 
     @Test
@@ -210,7 +248,8 @@ class BusinessLinesServiceTest {
 
         var response = service.getBusinessLines(request);
 
-        String consentText = response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText();
+        String consentText = response.getCategories().get(0).getSubcategories().get(0)
+                .getServiceProviders().get(0).getServices().get(0).getConsentText();
         assertEquals("Autorizo de forma\nexpresa la creacion\nde mi registro", consentText);
         assertTrue(consentText.lines().allMatch(line -> line.length() <= 20));
     }
@@ -276,7 +315,8 @@ class BusinessLinesServiceTest {
 
         var response = service.getBusinessLines(request);
 
-        String consentText = response.getCollectionSubcategory().get(0).getServiceProviders().get(0).getServices().get(0).getConsentText();
+        String consentText = response.getCategories().get(0).getSubcategories().get(0)
+                .getServiceProviders().get(0).getServices().get(0).getConsentText();
         assertEquals("Autorizo servicios digitales de ECUABET", consentText);
     }
 
@@ -324,12 +364,29 @@ class BusinessLinesServiceTest {
 
         var response = service.getBusinessLines(request);
 
-        List<String> returnedItems = response.getCollectionSubcategory().get(0)
+        List<String> returnedItems = response.getCategories().get(0).getSubcategories().get(0)
                 .getServiceProviders().get(0)
                 .getServices().stream()
                 .map(serviceResponse -> serviceResponse.getRmsItemCode())
                 .toList();
         assertEquals(List.of("100713841", "100708846", "100708850", "100708848", "999999999"), returnedItems);
+    }
+
+    private static CollectionSubcategory subcategory(
+            String code,
+            String name,
+            ServiceDefinition service) {
+        return CollectionSubcategory.builder()
+                .subcategoryCode(code)
+                .subcategoryName(name)
+                .active(true)
+                .providers(List.of(ServiceProvider.builder()
+                        .serviceProviderCode("PROVIDER-" + code)
+                        .providerName("Proveedor " + code)
+                        .active(true)
+                        .services(List.of(service))
+                        .build()))
+                .build();
     }
 
     private static ServiceDefinition serviceDefinition(String rmsItemCode, MovementType movementType) {

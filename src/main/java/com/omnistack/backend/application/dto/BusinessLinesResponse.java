@@ -20,6 +20,5 @@ public class BusinessLinesResponse {
     String pos;
     @JsonProperty("channel_POS")
     String channelPos;
-    @JsonProperty("collection_subcategory")
-    List<BusinessLineCollectionSubcategoryResponse> collectionSubcategory;
+    List<BusinessLineCategoryResponse> categories;
 }

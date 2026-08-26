@@ -11,12 +11,8 @@ import lombok.Value;
  */
 @Value
 @Builder
-@Schema(description = "Subcategoria comercial agrupada por categoria y proveedor")
+@Schema(description = "Subcategoria comercial con sus proveedores agrupados")
 public class BusinessLineCollectionSubcategoryResponse {
-    @JsonProperty("category_code")
-    String categoryCode;
-    @JsonProperty("category_name")
-    String categoryName;
     @JsonProperty("subcategory_code")
     String subcategoryCode;
     @JsonProperty("subcategory_name")
