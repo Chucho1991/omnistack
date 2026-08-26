@@ -1,17 +1,5 @@
 .git
 .gitignore
 .idea
-.vscode
-.mvn
 target
-build
-out
-.settings
-.classpath
-.project
-.DS_Store
 *.iml
-*.log
-postman
-settings.xml
-README.md

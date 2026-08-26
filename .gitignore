@@ -1,49 +1,34 @@
-# Maven / Java
+HELP.md
 target/
-*.class
-*.jar
-*.war
-*.ear
-
-# Maven wrapper / local repo
 .mvn/wrapper/maven-wrapper.jar
-.m2/
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-# IDEs
-.idea/
-.vscode/
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
 *.ipr
-*.iws
-.classpath
-.project
-.settings/
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-logs/
-*.log
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# Docker
-docker-data/
-
-# Build / temp
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 build/
-/out/
-tmp/
-temp/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# Test / coverage
-coverage/
-.surefire-*
-
-# Local configs
-settings.xml
+### VS Code ###
+.vscode/
+/.m2
